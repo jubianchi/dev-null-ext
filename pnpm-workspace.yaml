@@ -1,0 +1,11 @@
+packages:
+  - packages/*
+  - apps/*
+
+# Supply chain: only install versions published at least 14 days ago (in minutes), so a compromised release has time
+# to be caught before it lands here.
+minimumReleaseAge: 20160
+
+# Dependencies' install scripts don't run unless listed here.
+onlyBuiltDependencies:
+  - esbuild

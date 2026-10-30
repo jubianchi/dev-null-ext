@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+/*
+ * The extension wears GitHub's clothes: every colour and font comes from GitHub's own Primer variables, which pierce
+ * the shadow root, so light, dark and high-contrast themes follow GitHub's setting with no code. The fallbacks are
+ * Primer's light values, for the popup, which isn't on github.com.
+ *
+ * /dev/null's identity is kept to what is its own: the slashes glyph, the lane rail beside each commit, and short
+ * hashes in mono.
+ */
+@theme {
+  --font-sans: var(--fontStack-sansSerif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif);
+  --font-mono: var(--fontStack-monospace, ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace);
+
+  --color-fg: var(--fgColor-default, #1f2328);
+  --color-fg-muted: var(--fgColor-muted, #59636e);
+  --color-fg-accent: var(--fgColor-accent, #0969da);
+  --color-fg-danger: var(--fgColor-danger, #d1242f);
+  --color-fg-attention: var(--fgColor-attention, #9a6700);
+  --color-fg-success: var(--fgColor-success, #1a7f37);
+  --color-canvas: var(--bgColor-default, #ffffff);
+  --color-canvas-muted: var(--bgColor-muted, #f6f8fa);
+  --color-canvas-overlay: var(--overlay-bgColor, #ffffff);
+  --color-border: var(--borderColor-default, #d1d9e0);
+  --color-border-muted: var(--borderColor-muted, #d1d9e0b3);
+  --color-button: var(--button-default-bgColor-rest, #f6f8fa);
+  --color-button-hover: var(--button-default-bgColor-hover, #eff2f5);
+  --color-button-border: var(--button-default-borderColor-rest, #d1d9e0);
+  --color-primary: var(--button-primary-bgColor-rest, #1f883d);
+  --color-primary-hover: var(--button-primary-bgColor-hover, #1c8139);
+  --color-primary-fg: var(--button-primary-fgColor-rest, #ffffff);
+
+  /* /dev/null lanes (DESIGN.md), light then dark. */
+  --color-lane-0: light-dark(#d9480f, #ff8a4c);
+  --color-lane-1: light-dark(#2f9e44, #51cf66);
+  --color-lane-2: light-dark(#9c36b5, #da77f2);
+  --color-lane-3: light-dark(#0c8599, #3bc9db);
+  --color-lane-4: light-dark(#c2255c, #f06595);
+  --color-lane-5: light-dark(#b7791f, #fcc419);
+
+  --shadow-overlay: var(--shadow-floating-small, 0 0 0 1px #d1d9e080, 0 6px 12px -3px #25292e0a, 0 6px 18px 0 #25292e1f);
+}
+
+:host {
+  color-scheme: light dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

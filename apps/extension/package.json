@@ -1,0 +1,29 @@
+{
+  "name": "@devnull-github/extension",
+  "version": "0.0.0",
+  "private": true,
+  "description": "/dev/null inside GitHub.",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox --mv3",
+    "build": "wxt build && wxt build -b firefox --mv3",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox --mv3",
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "@devnull-github/client": "workspace:*",
+    "preact": "^10.27.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0",
+    "wxt": "^0.21.0"
+  }
+}

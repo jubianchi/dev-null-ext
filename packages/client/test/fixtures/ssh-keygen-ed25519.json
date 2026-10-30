@@ -1,0 +1,11 @@
+{
+  "comment": "Generated once with `ssh-keygen -t ed25519` and `ssh-keygen -Y sign -n devnull-api`. Test-only key, never used anywhere else. Ed25519 is deterministic, so the TypeScript signer must produce exactly this signature.",
+  "namespace": "devnull-api",
+  "message": "1761832800\n0123456789abcdef0123456789abcdef\nPOST\n/api/v1/commits\n{\"body\":\"hello from the extension @laravel\"}",
+  "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILx2GAjVqg1jzZeAmant79qPVmq+DbpRfdIY+VoMIPFn devnull-github test key",
+  "privateSeedBase64Url": "Akfc_67e3blKSg6FSDvSYvqXwa4nwwet9hCFW5xZaig",
+  "publicRawBase64Url": "vHYYCNWqDWPNl4CZqe3v2o9War4NulF90hj5Wgwg8Wc",
+  "fingerprint": "SHA256:mCgzdIMCwVCCI5J6Lhd56m4hRsauYGHdaY6QIRT+TDc",
+  "signatureArmored": "-----BEGIN SSH SIGNATURE-----\nU1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgvHYYCNWqDWPNl4CZqe3v2o9War\n4NulF90hj5Wgwg8WcAAAALZGV2bnVsbC1hcGkAAAAAAAAABnNoYTUxMgAAAFMAAAALc3No\nLWVkMjU1MTkAAABA+qRU2aNHx9AvJfbfSDyKDj/73AEqJ3jplMaw73hhaVDxi/Gel6SpKU\nlVnVBAJ0+B6L4Eih2f3yMcXOu+QAX0BA==\n-----END SSH SIGNATURE-----",
+  "signatureBase64": "U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgvHYYCNWqDWPNl4CZqe3v2o9War4NulF90hj5Wgwg8WcAAAALZGV2bnVsbC1hcGkAAAAAAAAABnNoYTUxMgAAAFMAAAALc3NoLWVkMjU1MTkAAABA+qRU2aNHx9AvJfbfSDyKDj/73AEqJ3jplMaw73hhaVDxi/Gel6SpKUlVnVBAJ0+B6L4Eih2f3yMcXOu+QAX0BA=="
+}
