@@ -10,8 +10,9 @@ export default defineConfig({
     sourcesTemplate: 'dev-null-ext-{{version}}-sources.zip',
     // Firefox Add-ons rebuilds the extension from its sources: the whole workspace, with the client and the lockfile.
     sourcesRoot: '../..',
-    includeSources: ['.npmrc'],
-    excludeSources: ['**/.output/**', '**/.wxt/**', '**/coverage/**', '.idea/**', '.claude/**', 'docs/**'],
+    // includeSources replaces WXT's default (every file), and hidden files are skipped unless named.
+    includeSources: ['**/*', '.npmrc'],
+    excludeSources: ['**/node_modules/**', '**/.output/**', '**/.wxt/**', '**/coverage/**', 'docs/**'],
   },
   manifest: ({ browser }) => ({
     // What the stores and the browser show; the project itself is dev-null-ext.
