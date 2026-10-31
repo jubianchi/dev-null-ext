@@ -38,7 +38,14 @@ const SHARE_BUTTONS: Partial<Record<GitHubPage['kind'], FeatureId>> = {
   issue: 'issue-button',
   'pull-request': 'pull-button',
   discussion: 'discussion-button',
+  releases: 'release-buttons',
 };
+
+/** The feature that puts a Commit button on a page, if it has one. */
+export function shareFeatureFor(page: GitHubPage): (typeof FEATURES)[number] | null {
+  const id = SHARE_BUTTONS[page.kind];
+  return FEATURES.find((feature) => feature.id === id) ?? null;
+}
 
 /** What to mount on a page, as the settings allow. */
 export function decorationsFor(page: GitHubPage, settings: Settings): Decoration[] {

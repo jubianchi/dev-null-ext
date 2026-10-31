@@ -3,7 +3,9 @@ import { useEffect, useState } from 'preact/hooks';
 import { browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 import { Glyph } from '../../components/Glyph.tsx';
+import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
+import { type GitHubPage, readPage } from '../../lib/github/page.ts';
 import { type SignInState, ask } from '../../lib/messages.ts';
 import { type Settings, readSettings } from '../../lib/settings.ts';
 import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
@@ -25,6 +27,11 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'home' | 'settings'>('home');
   const [settings, setSettings] = useState<Settings>(() => readSettings(undefined));
+  const [page, setPage] = useState<GitHubPage | null>(null);
+
+  useEffect(() => {
+    void currentPage().then(setPage);
+  }, []);
 
   useEffect(() => {
     void browser.permissions.contains({ origins: ORIGINS }).then(setHostAccess);
@@ -44,7 +51,7 @@ export function App() {
 
   if (view === 'settings') {
     return (
-      <main class="w-80 bg-white font-sans text-sm text-zinc-900">
+      <main class="w-[360px] bg-white font-sans text-sm text-zinc-900">
         <PopupSettings
           settings={settings}
           onChange={(id, on) => {
@@ -67,16 +74,17 @@ export function App() {
   }
 
   return (
-    <main class="w-80 bg-canvas p-4 font-sans text-sm text-fg">
-      <header class="mb-4 flex items-center gap-2">
+    <main class="flex min-h-[420px] w-[360px] flex-col bg-white font-sans text-sm text-zinc-900">
+      <header class="flex items-center gap-2 px-4 py-3">
         <Glyph class="size-5" />
-        <h1 class="m-0 text-base font-semibold">/dev/null for GitHub</h1>
+        <h1 class="m-0 text-sm font-semibold">dev-null.sh</h1>
+        <span class="rounded border border-solid border-zinc-200 px-1.5 font-mono text-[11px] text-zinc-600">extension</span>
         <button
           type="button"
           onClick={() => setView('settings')}
           aria-label="Settings"
           title="Settings"
-          class="ml-auto flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-fg-muted hover:bg-button-hover hover:text-fg"
+          class="ml-auto flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
             <circle cx="8" cy="8" r="2.2" />
@@ -85,6 +93,9 @@ export function App() {
         </button>
       </header>
 
+      {user && <PopupProfile user={user} page={page} settings={settings} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))} />}
+
+      <div class="px-4 pb-4">
       {!hostAccess && (
         <section class="mb-4 space-y-2">
           <p class="m-0 text-fg-muted">The extension needs access to github.com and dev-null.sh to work.</p>
@@ -96,23 +107,6 @@ export function App() {
 
       {user === undefined && <p class="m-0 text-fg-muted">Checking your session…</p>}
 
-      {user && (
-        <section class="space-y-3">
-          <div class="flex items-center gap-3">
-            <img src={user.avatar_url ?? ''} alt="" class="size-10 rounded-full" />
-            <div class="min-w-0">
-              <p class="m-0 truncate font-semibold">{user.name ?? user.handle}</p>
-              <a href={user.html_url} target="_blank" rel="noopener" class="text-fg-accent hover:underline">
-                @{user.handle}
-              </a>
-            </div>
-          </div>
-          <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-out' }))}>
-            Disconnect
-          </button>
-          <p class="m-0 text-xs text-fg-muted">Disconnecting also revokes this browser in your /dev/null devices.</p>
-        </section>
-      )}
 
       {user === null && signIn.status === 'idle' && (
         <section class="space-y-2">
@@ -182,6 +176,18 @@ export function App() {
       )}
 
       {error && <p class="m-0 mt-3 text-fg-danger">{error}</p>}
+      </div>
     </main>
   );
+}
+
+/**
+ * The GitHub page in the current tab, from its URL and title (the host permission lets the popup read them). Its
+ * markup is out of reach: an organization's overview, told apart by a meta tag, reads as no page.
+ */
+async function currentPage(): Promise<GitHubPage | null> {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.url?.startsWith('https://github.com/')) return null;
+
+  return readPage(new URL(tab.url), { title: tab.title ?? '', querySelector: () => null } as unknown as Document);
 }
