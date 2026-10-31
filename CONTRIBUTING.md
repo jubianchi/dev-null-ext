@@ -47,9 +47,10 @@ Then run `pnpm dev`, or `pnpm build` and load the build by hand.
   extension falls back on `https://dev-null.sh`: nothing breaks.
 - **Fixed at build time.** WXT reads `.env` when it builds: change it, then restart `pnpm dev` or build again. Only the
   URL's origin is kept (scheme, host and port), and the manifest gets access to that server only, not to dev-null.sh.
-- **Easy to tell apart.** A build for another server is named **/dev/null (dev)**, and its popup shows the server's
-  host with a *dev* badge. Load it next to the store version if you like: each is its own extension, with its own key
-  and session.
+- **Easy to tell apart.** A build for another server, like any `pnpm dev` build, is named **/dev/null (dev)** and has
+  an amber icon (`public/icon-dev/`), on the extensions page and in the toolbar; its popup shows the server's host with
+  a *dev* badge. Load it next to the store version if you like: each is its own extension, with its own key and
+  session.
 - **Its own account.** Sign in from the popup as usual: you approve the extension on the development server, with an
   account there. It needs the device sign-in (dev-null-sh/dev-null.sh#585), or the loopback fallback.
 - **Never shipped.** `.env` is ignored by git and left out of the sources archive; CI and releases don't set
