@@ -6,12 +6,17 @@ import type { GitHubPage } from './github/page.ts';
  */
 export const FEATURES = [
   { id: 'organization-tab', group: 'Organizations', label: 'The /dev/null tab', hint: 'Commits mentioning the organization, next to its other tabs' },
-  { id: 'discussions-sidebar', group: 'Organizations', label: 'Discussions sidebar', hint: 'The latest commits mentioning it, next to its discussions' },
   { id: 'repository-button', group: 'Repositories', label: 'Commit button', hint: 'Next to Watch, Fork and Star' },
   { id: 'release-buttons', group: 'Repositories', label: 'Commit button on releases', hint: "Next to each release's Compare button" },
   { id: 'issue-button', group: 'Issues and pull requests', label: 'Commit button on issues', hint: 'Next to New issue' },
   { id: 'pull-button', group: 'Issues and pull requests', label: 'Commit button on pull requests', hint: 'Next to Code' },
   { id: 'discussion-button', group: 'Discussions', label: 'Commit button', hint: "Next to the discussion's title" },
+  {
+    id: 'discussions-sidebar',
+    group: 'Discussions',
+    label: 'On /dev/null section',
+    hint: "The latest commits mentioning the organization, next to its discussions' guidelines",
+  },
   { id: 'author-mention', group: 'Composer', label: 'Offer to mention the author', hint: 'Of the issue or pull request you share' },
   { id: 'organization-mention', group: 'Composer', label: 'Offer to mention the organization', hint: 'So the commit shows in its log' },
 ] as const;

@@ -27,6 +27,10 @@ describe('FEATURES', () => {
     }
   });
 
+  it('files the "On /dev/null" section with discussions, named as GitHub shows it', () => {
+    expect(FEATURES.find(({ id }) => id === 'discussions-sidebar')).toMatchObject({ group: 'Discussions', label: 'On /dev/null section' });
+  });
+
   it('says where a button goes as "next to", never "by"', () => {
     for (const feature of FEATURES) expect(feature.hint).not.toMatch(/\bby\b/i);
     expect(FEATURES.find((feature) => feature.id === 'issue-button')?.hint).toBe('Next to New issue');
