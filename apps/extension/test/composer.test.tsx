@@ -112,6 +112,16 @@ describe('Composer', () => {
     expect(root.querySelector('[role="menu"] [role="menuitem"]:last-child')?.getAttribute('aria-checked')).toBe('true');
   });
 
+  it('highlights a menu item for the keyboard only, not the one focused on opening it with the pointer', async () => {
+    await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: 'laravel' }} />);
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Insert a mention"]')!.click());
+
+    for (const item of root.querySelectorAll('[role="menuitem"]')) {
+      expect(item.className).toContain('focus-visible:bg-button-hover');
+      expect(item.className).not.toMatch(/(^|\s)focus:bg-/);
+    }
+  });
+
   it('closes the menu on Escape without closing anything else', async () => {
     await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: 'laravel' }} />);
     const mentions = root.querySelector<HTMLButtonElement>('button[aria-label="Insert a mention"]')!;

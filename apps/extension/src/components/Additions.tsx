@@ -158,7 +158,7 @@ function AdditionMenu({ kind, additions, inCommit, onInsert }: ToolProps & { kin
                   close();
                   onInsert(addition);
                 }}
-                class="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm text-fg hover:bg-button-hover focus:bg-button-hover focus:outline-none"
+                class="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm text-fg hover:bg-button-hover focus:outline-none focus-visible:bg-button-hover"
               >
                 <span class="mt-0.5 size-4 shrink-0 text-fg-muted">{present && <Octicon name="check" />}</span>
                 <span class="min-w-0">
