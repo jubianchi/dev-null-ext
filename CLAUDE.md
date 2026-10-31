@@ -26,7 +26,10 @@ displayed name is `/dev/null`; the project, its packages (`@dev-null-ext/*`) and
 - Every decoration MUST have an entry in `FEATURES` (`src/lib/settings.ts`), so the popup can turn it off. Never rename
   a feature id: it is the stored setting's key.
 - Nothing is inserted in a commit by default: additions are inserted by the user from the composer's toolbar.
-- When checking a change in a real browser, you MUST NOT publish anything, neither on dev-null.sh nor on GitHub.
+- The /dev/null server MUST come from `SERVER` (`apps/extension/src/lib/server.ts`), never a hardcoded
+  `https://dev-null.sh`: a build may target a development server (`WXT_DEVNULL_URL` in `apps/extension/.env`).
+- When checking a change in a real browser, you MUST NOT publish anything, neither on dev-null.sh nor on GitHub; to
+  try publishing, use a build for a development server.
 - Adding a host, a permission or a dependency needs the user's approval.
 
 ## Pitfalls

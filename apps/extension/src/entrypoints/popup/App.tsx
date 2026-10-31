@@ -7,6 +7,7 @@ import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
 import { ask, type SignInState } from '../../lib/messages.ts';
+import { hostPermission, isDefaultServer, SERVER, serverName } from '../../lib/server.ts';
 import { readSettings, type Settings } from '../../lib/settings.ts';
 import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
 
@@ -20,7 +21,8 @@ const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback
 const DEVELOPERS = 12_000;
 
 /** Firefox grants host access at the user's discretion, even when the manifest lists it. */
-const ORIGINS = ['https://github.com/*', 'https://dev-null.sh/*', 'https://api.github.com/*'];
+const ORIGINS = ['https://github.com/*', hostPermission(SERVER), 'https://api.github.com/*'];
+const SERVER_NAME = serverName(SERVER);
 
 const button = 'rounded-md px-3 py-1.5 text-sm font-medium';
 const primary = `${button} bg-primary text-primary-fg hover:bg-primary-hover`;
@@ -77,8 +79,14 @@ export function App() {
     <main class="flex w-[360px] flex-col bg-white font-sans text-sm text-zinc-900">
       <header class="flex items-center gap-2 px-4 py-3">
         <Glyph class="size-5" />
-        <h1 class="m-0 text-sm font-semibold">dev-null.sh</h1>
-        <span class="rounded border border-solid border-zinc-200 px-1.5 font-mono text-[11px] text-zinc-600">extension</span>
+        <h1 class="m-0 text-sm font-semibold">{SERVER_NAME}</h1>
+        {isDefaultServer(SERVER) ? (
+          <span class="rounded border border-solid border-zinc-200 px-1.5 font-mono text-[11px] text-zinc-600">extension</span>
+        ) : (
+          <span title="A build for a development server" class="rounded bg-amber-100 px-1.5 font-mono text-[11px] font-semibold text-amber-800">
+            dev
+          </span>
+        )}
         <button
           type="button"
           onClick={() => setView('settings')}
@@ -100,7 +108,7 @@ export function App() {
       <div class="px-4 pb-4 empty:hidden">
         {!hostAccess && (
           <section class="mb-4 space-y-2">
-            <p class="m-0 text-fg-muted">The extension needs access to github.com and dev-null.sh to work.</p>
+            <p class="m-0 text-fg-muted">The extension needs access to github.com and {SERVER_NAME} to work.</p>
             <button type="button" class={primary} onClick={() => run(async () => setHostAccess(await browser.permissions.request({ origins: ORIGINS })))}>
               Allow access
             </button>
@@ -111,7 +119,7 @@ export function App() {
 
         {user === null && signIn.status === 'waiting' && signIn.flow === 'device-grant' && (
           <section class="space-y-2">
-            <p class="m-0">Approve this code on dev-null.sh, in the tab that just opened:</p>
+            <p class="m-0">Approve this code on {SERVER_NAME}, in the tab that just opened:</p>
             <p class="m-0 rounded-md bg-canvas-muted py-2 text-center font-mono text-xl tracking-widest">{signIn.userCode}</p>
             <div class="flex gap-2">
               <a href={signIn.verificationUri} target="_blank" rel="noopener" class={secondary}>
@@ -126,7 +134,7 @@ export function App() {
 
         {user === null && signIn.status === 'waiting' && signIn.flow === 'loopback' && (
           <section class="space-y-2">
-            <p class="m-0">Approve this browser on dev-null.sh, in the tab that just opened.</p>
+            <p class="m-0">Approve this browser on {SERVER_NAME}, in the tab that just opened.</p>
             <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
               Cancel
             </button>

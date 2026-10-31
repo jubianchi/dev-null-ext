@@ -2,6 +2,7 @@ import type { Commit } from '@dev-null-ext/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
 import { ask, BackgroundError } from '../lib/messages.ts';
+import { SERVER } from '../lib/server.ts';
 import { useSession } from '../lib/use-session.ts';
 import { CommitItem } from './CommitItem.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
@@ -57,7 +58,7 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
 
   /** The inline composer is the way to commit while it is in view; once scrolled away, the header offers the modal. */
   const headerCommits = user && composerMode({ log: true, topInView }) === 'modal';
-  const profile = `https://dev-null.sh/@${organization}`;
+  const profile = `${SERVER}/@${organization}`;
 
   return (
     <section class="mx-auto my-6 max-w-[1012px] px-4 font-sans text-fg">

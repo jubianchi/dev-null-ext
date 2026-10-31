@@ -1,6 +1,7 @@
 import type { BodyMention, BodySegment } from '@dev-null-ext/client';
 import type { ComponentChild } from 'preact';
 import { type GitHubLinkTarget, gitHubLinkTo } from '../lib/github/links.ts';
+import { SERVER } from '../lib/server.ts';
 import { withoutTrailingPunctuation } from '../lib/urls.ts';
 import { Octicon } from './Octicon.tsx';
 
@@ -150,7 +151,7 @@ function linkify(text: string, known: Map<string, string>, Anchor: LinkComponent
           {url.replace(/^https?:\/\/(www\.)?/, '')}
         </Anchor>
       ) : (
-        <Anchor href={`https://dev-null.sh/@${mentioned}`} class="font-medium text-fg-accent hover:underline">
+        <Anchor href={`${SERVER}/@${mentioned}`} class="font-medium text-fg-accent hover:underline">
           {token}
         </Anchor>
       ),

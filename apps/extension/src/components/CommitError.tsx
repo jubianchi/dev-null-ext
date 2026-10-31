@@ -1,4 +1,5 @@
 import type { BackgroundError } from '../lib/messages.ts';
+import { SERVER, serverName } from '../lib/server.ts';
 
 /** Why a commit failed, with the one case that needs dev-null.sh itself: accepting the commit rules. */
 export function CommitError({ error }: { error: BackgroundError }) {
@@ -7,8 +8,8 @@ export function CommitError({ error }: { error: BackgroundError }) {
       {error.code === 'commit_rules_required' ? (
         <>
           Your first commit has to come from{' '}
-          <a href="https://dev-null.sh" target="_blank" rel="noopener" class="underline">
-            dev-null.sh
+          <a href={SERVER} target="_blank" rel="noopener" class="underline">
+            {serverName(SERVER)}
           </a>
           , to accept the commit rules. Then commit from here.
         </>

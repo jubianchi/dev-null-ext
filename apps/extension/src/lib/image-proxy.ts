@@ -1,4 +1,6 @@
-const IMAGE_ORIGIN = 'https://dev-null.sh';
+import { SERVER } from './server.ts';
+
+const IMAGE_ORIGIN = SERVER;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /**

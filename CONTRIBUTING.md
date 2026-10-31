@@ -27,6 +27,38 @@ Load a build by hand: `chrome://extensions` → Developer mode → **Load unpack
 or `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** →
 `apps/extension/.output/firefox-mv3/manifest.json`.
 
+### Testing against a development server
+
+By default, the extension talks to [dev-null.sh](https://dev-null.sh): trying it there publishes real commits. To try
+it against a development /dev/null server instead, set its URL in a `.env` file:
+
+```sh
+cp apps/extension/.env.example apps/extension/.env
+```
+
+```sh
+# apps/extension/.env
+WXT_DEVNULL_URL=http://localhost:8000
+```
+
+Then run `pnpm dev`, or `pnpm build` and load the build by hand.
+
+- **Optional.** Without `.env`, with `WXT_DEVNULL_URL` empty, or with a value that isn't an `http(s)` URL, the
+  extension falls back on `https://dev-null.sh`: nothing breaks.
+- **Fixed at build time.** WXT reads `.env` when it builds: change it, then restart `pnpm dev` or build again. Only the
+  URL's origin is kept (scheme, host and port), and the manifest gets access to that server only, not to dev-null.sh.
+- **Easy to tell apart.** A build for another server is named **/dev/null (dev)**, and its popup shows the server's
+  host with a *dev* badge. Load it next to the store version if you like: each is its own extension, with its own key
+  and session.
+- **Its own account.** Sign in from the popup as usual: you approve the extension on the development server, with an
+  account there. It needs the device sign-in (dev-null-sh/dev-null.sh#585), or the loopback fallback.
+- **Never shipped.** `.env` is ignored by git and left out of the sources archive; CI and releases don't set
+  `WXT_DEVNULL_URL`, so what users get always talks to dev-null.sh.
+
+In the code, the server is `SERVER` from `apps/extension/src/lib/server.ts`: use it rather than writing
+`https://dev-null.sh`. Tests always run against dev-null.sh; `test/dev-server.test.tsx` shows how to try code against
+another server.
+
 ## How to contribute
 
 ### What to work on

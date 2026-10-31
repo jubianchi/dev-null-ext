@@ -21,6 +21,7 @@ import { fetchImageAsDataUrl } from '../lib/image-proxy.ts';
 import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
+import { SERVER } from '../lib/server.ts';
 
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
@@ -49,12 +50,12 @@ const keepAliveClock: Clock = {
 };
 
 async function client(options: { signed: boolean }): Promise<DevNullClient> {
-  if (!options.signed) return new DevNullClient();
+  if (!options.signed) return new DevNullClient({ baseUrl: SERVER });
 
   const key = await loadKey();
   if (!key) throw new ApiError(401, 'signed_out', 'Connect /dev/null first, from the extension button.');
 
-  return new DevNullClient({ signer: await createWebCryptoSigner(key) });
+  return new DevNullClient({ baseUrl: SERVER, signer: await createWebCryptoSigner(key) });
 }
 
 /** Signed when signed in, as a guest otherwise. */
@@ -69,7 +70,7 @@ async function startSignIn(): Promise<SignInState> {
   signInAbort = new AbortController();
   const { signal } = signInAbort;
 
-  const signed = new DevNullClient({ signer: await createWebCryptoSigner(await loadOrCreateKey()) });
+  const signed = new DevNullClient({ baseUrl: SERVER, signer: await createWebCryptoSigner(await loadOrCreateKey()) });
 
   try {
     const authorization = await startDeviceAuthorization(signed, await deviceName());
@@ -110,7 +111,7 @@ async function startLoopbackSignIn(): Promise<SignInState> {
   const { signal } = signInAbort;
 
   const key = await createWebCryptoSigner(await loadOrCreateKey());
-  const signed = new DevNullClient({ signer: key });
+  const signed = new DevNullClient({ baseUrl: SERVER, signer: key });
   const loopback = await prepareLoopbackSignIn(signed, key.fingerprint, await deviceName());
   const redirect = new URL(loopback.redirectUri);
 
