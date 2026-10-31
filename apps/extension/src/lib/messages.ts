@@ -1,5 +1,6 @@
 import type { Commit, CommitPreview, CurrentUser, DeletedCommit, Page } from '@devnull-github/client';
 import { browser } from 'wxt/browser';
+import type { TransferredImage } from './images.ts';
 
 /**
  * Everything the GitHub pages and the popup ask the background for. The key lives in the background only: content
@@ -8,7 +9,7 @@ import { browser } from 'wxt/browser';
 export type Request =
   | { type: 'session' }
   | { type: 'mentions'; organization: string; cursor: string | null }
-  | { type: 'commit'; body: string }
+  | { type: 'commit'; body: string; images?: TransferredImage[] }
   | { type: 'preview'; body: string }
   | { type: 'image'; url: string }
   | { type: 'star'; commitId: string; starred: boolean }

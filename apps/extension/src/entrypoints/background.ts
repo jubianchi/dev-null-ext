@@ -18,6 +18,7 @@ import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { storage } from 'wxt/utils/storage';
 import { fetchImageAsDataUrl } from '../lib/image-proxy.ts';
+import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
 
@@ -229,7 +230,7 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
     case 'mentions':
       return (await readingClient()).organizationMentions(request.organization, request.cursor);
     case 'commit':
-      return (await client({ signed: true })).createCommit({ body: request.body });
+      return (await client({ signed: true })).createCommit({ body: request.body }, (request.images ?? []).map(fromTransfer));
     case 'preview':
       return (await client({ signed: true })).previewCommit(request.body);
     case 'image':
