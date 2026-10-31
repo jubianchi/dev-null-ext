@@ -1,7 +1,7 @@
 import type { Commit, CurrentUser } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
 import { BackgroundError, ask } from './messages.ts';
-import { type ComposerContext, additionsFor, composeBody } from './additions.ts';
+import { type ComposerContext, additionsFor, prefill } from './additions.ts';
 import { MAX_COMMIT_LENGTH, commitLength } from './share.ts';
 
 export type Target = ComposerContext;
@@ -15,23 +15,13 @@ export type DraftState =
   | { step: 'failed'; user: CurrentUser; error: BackgroundError };
 
 /**
- * A commit being written, whichever composer shows it: the session, the text, the additions and which ones the user
- * removed, the body /dev/null receives and its length. Additions go below what the user writes, so what they type is
- * only their own words.
+ * A commit being written, whichever composer shows it: the session, the text (prefilled with the additions, and the
+ * only truth about what is sent), the body /dev/null receives and its length.
  */
 export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) => void) {
-  const [state, setState] = useState<DraftState>({ step: 'loading' });
-  const [text, setText] = useState('');
-  const [removed, setRemoved] = useState<ReadonlySet<string>>(new Set());
   const additions = additionsFor(target);
-
-  function toggle(id: string) {
-    setRemoved((current) => {
-      const next = new Set(current);
-      if (!next.delete(id)) next.add(id);
-      return next;
-    });
-  }
+  const [state, setState] = useState<DraftState>({ step: 'loading' });
+  const [text, setText] = useState(() => prefill(additions));
 
   useEffect(() => {
     ask({ type: 'session' }).then(
@@ -40,10 +30,10 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     );
   }, []);
 
-  const body = composeBody(text, additions, removed);
+  const body = text.trim();
   const length = commitLength(body);
   const canCommit =
-    text.trim() !== '' && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
+    body !== '' && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
 
   async function submit() {
     if (!canCommit || !('user' in state)) return;
@@ -52,12 +42,12 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     try {
       const commit = await ask({ type: 'commit', body });
       setState({ step: 'sent', user, commit });
-      setText('');
+      setText(prefill(additions));
       onCommitted?.(commit);
     } catch (error) {
       setState({ step: 'failed', user, error: error instanceof BackgroundError ? error : new BackgroundError({ message: String(error) }) });
     }
   }
 
-  return { state, text, setText, additions, removed, toggle, body, length, canCommit, submit };
+  return { state, text, setText, additions, body, length, canCommit, submit };
 }

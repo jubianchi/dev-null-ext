@@ -2,7 +2,7 @@ import type { CurrentUser } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
-import { Additions } from './Additions.tsx';
+import { Additions, additionEditor } from './Additions.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -11,12 +11,19 @@ export type { Target } from '../lib/use-commit-draft.ts';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
-  const { state, text, setText, additions, removed, toggle, body, length, canCommit, submit } = useCommitDraft(target);
+  const { state, text, setText, additions, body, length, canCommit, submit } = useCommitDraft(target);
   const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const caretPlaced = useRef(false);
 
   useEffect(() => {
-    if (state.step === 'writing' && !previewing) textarea.current?.focus();
+    const element = textarea.current;
+    if (state.step !== 'writing' || previewing || !element) return;
+
+    element.focus();
+    // The additions are prefilled at the end: the user starts writing above them.
+    if (!caretPlaced.current) element.setSelectionRange(0, 0);
+    caretPlaced.current = true;
   }, [state.step, previewing]);
 
   return (
@@ -75,7 +82,7 @@ export function Composer({ target }: { target: Target }) {
             </div>
 
             <div class="mt-2">
-              <Additions additions={additions} removed={removed} onToggle={toggle} />
+              <Additions additions={additions} text={text} editor={additionEditor(textarea.current, text, setText)} />
             </div>
 
             {state.step === 'failed' && <CommitError error={state.error} />}

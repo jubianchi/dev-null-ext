@@ -48,13 +48,20 @@ afterEach(() => {
   root.remove();
 });
 
+/** Writes above the prefilled additions, where the caret starts. */
 async function type(text: string) {
+  await replace(text + root.querySelector('textarea')!.value);
+}
+
+async function replace(value: string) {
   const textarea = root.querySelector('textarea')!;
   await act(async () => {
-    textarea.value = text;
+    textarea.value = value;
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
   });
 }
+
+const button = (label: string) => root.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
 
 /** Opens the Preview tab, then lets the preview request answer. */
 async function openPreview() {
@@ -94,24 +101,42 @@ describe('InlineComposer', () => {
     expect(root.textContent).toContain('19 / 4000');
   });
 
-  it('says what it adds to the commit, and lets the user remove it and put it back', async () => {
+  it('prefills its additions into the text, below a blank line for the user to write in', () => {
+    expect(root.querySelector('textarea')?.value).toBe('\n\n@laravel');
+    expect(root.querySelector('[data-additions]')?.textContent).toContain('In your commit');
+    expect(root.querySelector('[data-additions]')?.textContent).toContain("so the commit shows on the organization's /dev/null page");
+  });
+
+  it('takes an addition out of the text, and puts it back at the caret', async () => {
     await type('Shipped');
-    const additions = root.querySelector('[data-additions]');
-    expect(additions?.textContent).toContain('Added to your commit');
-    expect(additions?.textContent).toContain('@laravel');
-    expect(additions?.textContent).toContain("so the commit shows on the organization's /dev/null page");
-    expect(root.textContent).toContain('17 / 4000');
+    await act(async () => button('Remove @laravel from your commit')!.click());
+    expect(root.querySelector('textarea')?.value).toBe('Shipped');
 
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
-    expect(root.textContent).toContain('7 / 4000');
+    const textarea = root.querySelector('textarea')!;
+    textarea.setSelectionRange(7, 7);
+    await act(async () => button('Add @laravel to your commit')!.click());
+    expect(textarea.value).toBe('Shipped @laravel');
+  });
 
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Add @laravel back to your commit"]')!.click());
-    expect(root.textContent).toContain('17 / 4000');
+  it('tells an addition is in the commit however it got there, typed by hand too', async () => {
+    await replace('Shipped');
+    expect(button('Add @laravel to your commit')).not.toBeNull();
+
+    await replace('Shipped, thanks @Laravel');
+    expect(button('Remove @laravel from your commit')).not.toBeNull();
+  });
+
+  it('allows a commit made of the additions alone', async () => {
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: '@laravel' });
   });
 
   it('commits without the mention once removed', async () => {
     await type('Shipped');
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
+    await act(async () => button('Remove @laravel from your commit')!.click());
     await act(async () => {
       root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });
@@ -131,7 +156,7 @@ describe('InlineComposer', () => {
 
     expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Shipped\n\n@laravel' });
     expect(onCommitted).toHaveBeenCalledWith(committed);
-    expect(root.querySelector('textarea')?.value).toBe('');
+    expect(root.querySelector('textarea')?.value).toBe('\n\n@laravel');
     expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')?.textContent).toBe('Commit');
   });
 });

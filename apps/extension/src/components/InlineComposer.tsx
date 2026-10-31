@@ -1,8 +1,8 @@
 import type { Commit } from '@devnull-github/client';
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
-import { Additions } from './Additions.tsx';
+import { Additions, additionEditor } from './Additions.tsx';
 import { CommitError } from './CommitError.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
@@ -14,11 +14,10 @@ type Tab = 'write' | 'preview';
  * limit. It stays open after a commit, for the next one.
  */
 export function InlineComposer({ organization, onCommitted }: { organization: string; onCommitted?: (commit: Commit) => void }) {
-  const { state, text, setText, additions, removed, toggle, body, length, canCommit, submit } = useCommitDraft(
-    { page: null, organization },
-    onCommitted,
-  );
+  const { state, text, setText, additions, body, length, canCommit, submit } = useCommitDraft({ page: null, organization }, onCommitted);
   const [tab, setTab] = useState<Tab>('write');
+  const textarea = useRef<HTMLTextAreaElement>(null);
+  const caretPlaced = useRef(false);
 
   if (state.step === 'loading') return null;
 
@@ -60,8 +59,14 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
         <div role="tabpanel" class="p-2">
           {tab === 'write' ? (
             <textarea
+              ref={textarea}
               value={text}
               onInput={(event) => setText(event.currentTarget.value)}
+              onFocus={(event) => {
+                // The additions are prefilled at the end: the user starts writing above them.
+                if (!caretPlaced.current) event.currentTarget.setSelectionRange(0, 0);
+                caretPlaced.current = true;
+              }}
               rows={4}
               aria-label="Commit message"
               placeholder="What did you ship?"
@@ -76,7 +81,7 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
         </div>
 
         <div class="px-3 pb-2">
-          <Additions additions={additions} removed={removed} onToggle={toggle} />
+          <Additions additions={additions} text={text} editor={additionEditor(textarea.current, text, setText)} />
         </div>
 
         <div class="flex flex-wrap items-center gap-3 border-t border-border-muted px-3 py-2 text-xs text-fg-muted">

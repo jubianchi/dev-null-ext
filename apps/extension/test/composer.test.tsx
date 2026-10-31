@@ -44,6 +44,8 @@ async function mount(vnode: preact.ComponentChild) {
   await act(async () => {
     render(vnode, root);
   });
+  // The session answers, then the composer's effects run on the form it shows.
+  await act(async () => {});
 }
 
 describe('Composer', () => {
@@ -59,12 +61,15 @@ describe('Composer', () => {
   it("says it adds the page's link and the organization's mention, each removable", async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 
-    const additions = root.querySelector('[data-additions]');
-    expect(additions?.textContent).toContain('Added to your commit');
+    const textarea = root.querySelector('textarea')!;
+    expect(textarea.value).toBe(`\n\n${page.url}\n@laravel`);
+    expect([textarea.selectionStart, textarea.selectionEnd]).toEqual([0, 0]);
+    expect(root.querySelector('[data-additions]')?.textContent).toContain('In your commit');
     expect(root.querySelector('button[aria-label="Remove laravel/framework from your commit"]')).not.toBeNull();
 
     await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
-    expect(root.querySelector('button[aria-label="Add @laravel back to your commit"]')).not.toBeNull();
+    expect(textarea.value).toBe(`\n\n${page.url}`);
+    expect(root.querySelector('button[aria-label="Add @laravel to your commit"]')).not.toBeNull();
   });
 
   it('commits without the link once removed', async () => {
@@ -74,7 +79,7 @@ describe('Composer', () => {
     await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove laravel/framework from your commit"]')!.click());
     const textarea = root.querySelector('textarea')!;
     await act(async () => {
-      textarea.value = 'Hello';
+      textarea.value = `Hello${textarea.value}`;
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     });
     await act(async () => {
@@ -98,7 +103,7 @@ describe('Composer', () => {
 
     const textarea = root.querySelector('textarea')!;
     await act(async () => {
-      textarea.value = 'Run `npm i`';
+      textarea.value = `Run \`npm i\`${textarea.value}`;
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     });
     const eye = root.querySelector<HTMLButtonElement>('[role="toolbar"] button[aria-label="Preview"]')!;
@@ -113,7 +118,7 @@ describe('Composer', () => {
     expect(root.querySelector('code')?.textContent).toBe('npm i');
 
     await act(async () => eye.click());
-    expect(root.querySelector('textarea')?.value).toBe('Run `npm i`');
+    expect(root.querySelector('textarea')?.value).toBe('Run `npm i`\n\n@laravel');
   });
 
   it('commits what the user wrote', async () => {
@@ -122,7 +127,7 @@ describe('Composer', () => {
 
     const textarea = root.querySelector('textarea')!;
     await act(async () => {
-      textarea.value = 'Hello';
+      textarea.value = `Hello${textarea.value}`;
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     });
     await act(async () => {
