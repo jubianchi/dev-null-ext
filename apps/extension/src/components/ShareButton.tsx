@@ -6,10 +6,26 @@ import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
 
 /**
- * A button in GitHub's own style that opens the composer for the repository, pull request or issue on screen. Only
- * when connected to /dev/null: there is nothing to do with it otherwise.
+ * GitHub's default button, measured on its pages (Primer's Button): medium in an issue's or a pull request's header,
+ * small in a repository's. The colours are Primer's own variables, which reach into the shadow root.
  */
-export function ShareButton({ page }: { page: SharedPage }) {
+const SIZES = {
+  medium: 'h-8 px-3 text-sm leading-[21px] gap-2',
+  small: 'h-7 px-2 text-xs leading-[18px] gap-1',
+} as const;
+
+const BUTTON =
+  'inline-flex items-center rounded-md border border-solid font-medium whitespace-nowrap cursor-pointer ' +
+  'border-[var(--button-default-borderColor-rest,var(--color-button-border))] bg-[var(--button-default-bgColor-rest,var(--color-button))] ' +
+  'text-[var(--button-default-fgColor-rest,var(--color-fg))] shadow-[var(--button-default-shadow-resting,none)] ' +
+  'hover:border-[var(--button-default-borderColor-hover,var(--color-button-border))] hover:bg-[var(--button-default-bgColor-hover,var(--color-button-hover))] ' +
+  'active:bg-[var(--button-default-bgColor-active,var(--color-button-hover))]';
+
+/**
+ * A button exactly like GitHub's own, among them, that opens the composer for the repository, pull request or issue
+ * on screen. Only when connected to /dev/null: there is nothing to do with it otherwise.
+ */
+export function ShareButton({ page, size }: { page: SharedPage; size: 'medium' | 'small' }) {
   const user = useSession();
   const [open, setOpen] = useState(false);
   const [organization, setOrganization] = useState<string | null>(null);
@@ -29,9 +45,9 @@ export function ShareButton({ page }: { page: SharedPage }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
-        class="inline-flex h-7 items-center gap-1.5 rounded-md border border-button-border bg-button px-2.5 text-xs font-medium text-fg hover:bg-button-hover"
+        class={`${SIZES[size]} ${BUTTON}`}
       >
-        <Glyph class="size-3.5" />
+        <Glyph class="size-4 shrink-0" />
         Commit
       </button>
       {open && <ComposerDialog target={{ page, organization }} onClose={() => setOpen(false)} />}

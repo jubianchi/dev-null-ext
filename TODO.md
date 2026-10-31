@@ -47,8 +47,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 
 - [x] The organization's @mention, added below the text, is visible and removable in both composers: the counter
       ("12 / 4000" on an empty composer) is no longer a surprise.
-- [ ] Put the share button with the header actions of issues and pull requests, next to "New issue", not against the
-      title.
+- [x] Put the share button with the header actions of issues and pull requests, next to "New issue", not against the
+      title; and on repositories with Watch, Fork and Star. It measures as GitHub's own buttons there.
 - [ ] Date separators in the log, as dev-null.sh does.
 - [ ] Follow the session: connecting from the popup should show the log and the buttons without reloading the page.
 

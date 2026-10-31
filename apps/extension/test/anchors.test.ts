@@ -79,18 +79,47 @@ describe('organization anchors, logged in', () => {
 });
 
 describe('share button anchor', () => {
-  it('prefers the issue or pull request header actions over the repository title', () => {
-    document.body.innerHTML = `<div id="repo-title-component"></div><div class="gh-header-actions"></div>`;
-
+  const at = () => {
     const anchor = shareButtonAnchor();
-    expect(anchor?.append).toBe('first');
-    expect(document.querySelector(anchor?.selector ?? 'none')?.className).toBe('gh-header-actions');
+    return anchor && { ...anchor, element: document.querySelector(anchor.selector)?.id };
+  };
+
+  it("goes with an issue's own buttons, New issue and Copy link, not against its title", () => {
+    document.body.innerHTML = `
+      <div data-component="PageHeader">
+        <div data-component="PH_Actions" id="title-actions"></div>
+        <div data-component="PageHeader.ContextArea">
+          <div data-component="PageHeader.ContextAreaActions"><div id="issue-actions"><div><a>New issue</a></div><button>Copy</button></div></div>
+        </div>
+      </div>`;
+
+    expect(at()).toEqual({ selector: '[data-component="PageHeader.ContextAreaActions"] > div', size: 'medium', item: false, element: 'issue-actions' });
   });
 
-  it('falls back to the repository title', () => {
+  it("goes with a pull request's own buttons, Edit and Code", () => {
+    document.body.innerHTML = `<div data-component="PH_Actions" id="pull-actions"><div class="d-flex gap-2"><button>Code</button></div></div>`;
+
+    expect(at()).toEqual({ selector: '[data-component="PH_Actions"]', size: 'medium', item: false, element: 'pull-actions' });
+  });
+
+  it("goes with a repository's own buttons, Watch, Fork and Star, at their smaller size, as a list item", () => {
+    document.body.innerHTML = `
+      <div id="repo-title-component"></div>
+      <ul class="list-style-none d-flex gap-2 RepoHeaderActions-module_xyz" id="repository-actions"><li>Watch</li><li>Fork</li><li>Star</li></ul>`;
+
+    expect(at()).toEqual({ selector: 'ul[class*="RepoHeaderActions"]', size: 'small', item: true, element: 'repository-actions' });
+  });
+
+  it("goes with the classic markup's header actions", () => {
+    document.body.innerHTML = `<div class="gh-header-actions" id="classic-actions"></div>`;
+
+    expect(at()).toEqual({ selector: '.gh-header-actions', size: 'small', item: false, element: 'classic-actions' });
+  });
+
+  it('never goes against the repository title', () => {
     document.body.innerHTML = `<div id="repo-title-component"></div>`;
 
-    expect(shareButtonAnchor()).toEqual({ selector: '#repo-title-component', append: 'after' });
+    expect(shareButtonAnchor()).toBeNull();
   });
 
   it('gives no anchor while the page has none, so the UI waits for one', () => {

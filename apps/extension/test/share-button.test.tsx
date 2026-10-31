@@ -27,10 +27,10 @@ afterEach(() => {
   root.remove();
 });
 
-async function mount(session: typeof user | null) {
+async function mount(session: typeof user | null, size: 'medium' | 'small' = 'medium') {
   ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? session : 'Organization'));
   await act(async () => {
-    render(<ShareButton page={page} />, root);
+    render(<ShareButton page={page} size={size} />, root);
   });
 }
 
@@ -39,6 +39,18 @@ describe('ShareButton', () => {
     await mount(user);
 
     expect(root.querySelector('button')?.textContent).toContain('Commit');
+  });
+
+  it("measures as GitHub's medium buttons in an issue's or a pull request's header", async () => {
+    await mount(user, 'medium');
+
+    expect(root.querySelector('button')?.className).toMatch(/\bh-8\b.*\bpx-3\b.*\btext-sm\b/);
+  });
+
+  it("measures as GitHub's small buttons in a repository's header", async () => {
+    await mount(user, 'small');
+
+    expect(root.querySelector('button')?.className).toMatch(/\bh-7\b.*\bpx-2\b.*\btext-xs\b/);
   });
 
   it('shows nothing when signed out', async () => {

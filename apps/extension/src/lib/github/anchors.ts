@@ -46,13 +46,29 @@ export function selectedOrganizationTabs(): Element[] {
     .filter((tab) => !tab.hasAttribute('data-devnull-tab'));
 }
 
-/** Where the share button goes, and how: next to an issue's or pull request's header actions, or the repository title. */
-export function shareButtonAnchor(): { selector: string; append: 'first' | 'after' } | null {
-  const headerActions = first(['.gh-header-actions', '[data-component="PH_Actions"]', '[data-testid="issue-header"] [data-component="PH_Actions"]']);
-  if (headerActions) return { selector: headerActions, append: 'first' };
+export interface ShareButtonAnchor {
+  /** The container of GitHub's own buttons, which the share button goes first in. */
+  selector: string;
+  /** The size of GitHub's buttons there: medium (32px) in an issue's or a pull request's header, small (28px) in a repository's. */
+  size: 'medium' | 'small';
+  /** Whether the container is a list, so the button goes in a list item. */
+  item: boolean;
+}
 
-  const repositoryTitle = first(['#repo-title-component', '[data-testid="repository-title"]']);
-  if (repositoryTitle) return { selector: repositoryTitle, append: 'after' };
+/** The containers of GitHub's own header buttons, from the most to the least specific page. */
+const SHARE_BUTTON_ANCHORS: ShareButtonAnchor[] = [
+  // An issue: with New issue and Copy link, not with the title's actions above them.
+  { selector: '[data-component="PageHeader.ContextAreaActions"] > div', size: 'medium', item: false },
+  // A pull request: with Edit and Code.
+  { selector: '[data-component="PH_Actions"]', size: 'medium', item: false },
+  // A repository: with Watch, Fork and Star.
+  { selector: 'ul[class*="RepoHeaderActions"]', size: 'small', item: true },
+  { selector: 'ul.pagehead-actions', size: 'small', item: true },
+  // The classic markup of issues and pull requests.
+  { selector: '.gh-header-actions', size: 'small', item: false },
+];
 
-  return null;
+/** Where the share button goes: first among GitHub's own buttons of the page's header, at their size. */
+export function shareButtonAnchor(): ShareButtonAnchor | null {
+  return SHARE_BUTTON_ANCHORS.find(({ selector }) => document.querySelector(selector) !== null) ?? null;
 }

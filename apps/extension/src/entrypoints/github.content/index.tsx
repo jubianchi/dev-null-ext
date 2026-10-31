@@ -73,19 +73,33 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     isolateEvents: true,
     position: 'inline',
     anchor: () => shareButtonAnchor()?.selector,
+    // First among GitHub's own buttons, whose container spaces them; in a list item when it is a list.
     append: (anchor, element) => {
-      const placement = shareButtonAnchor();
-      if (placement?.append === 'first') anchor.prepend(element);
-      else anchor.after(element);
+      removeShareItems();
       (element as HTMLElement).style.display = 'inline-flex';
-      (element as HTMLElement).style.marginInline = '0.5rem';
-      (element as HTMLElement).style.alignSelf = 'center';
+      if (!shareButtonAnchor()?.item) return anchor.prepend(element);
+
+      const item = document.createElement('li');
+      item.dataset['devnullShare'] = '';
+      item.append(element);
+      anchor.prepend(item);
     },
-    onMount: (container) => render(<ShareButton page={page} />, container),
+    onMount: (container) => render(<ShareButton page={page} size={shareButtonAnchor()?.size ?? 'medium'} />, container),
     onRemove: (container) => container && render(null, container),
   });
 
-  return keptMounted(ctx, ui, () => ui.shadowHost, () => shareButtonAnchor()?.selector);
+  const kept = keptMounted(ctx, ui, () => ui.shadowHost, () => shareButtonAnchor()?.selector);
+  return {
+    remove() {
+      kept.remove();
+      removeShareItems();
+    },
+  };
+}
+
+/** The list items the share button went in, so none is left empty among GitHub's. */
+function removeShareItems() {
+  for (const item of document.querySelectorAll('li[data-devnull-share]')) item.remove();
 }
 
 /** Mounts a WXT UI and keeps it mounted while its anchor is there, even when GitHub's React replaces the anchor. */
