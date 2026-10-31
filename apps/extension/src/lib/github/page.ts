@@ -84,8 +84,27 @@ function organizationDiscussion(organization: string, number: number, document: 
  * GitHub" or "<title> · owner · Discussion #12", which has been stable for years where the page markup has not.
  */
 function readTitle(document: Document): string | null {
+  const pull = PULL_REQUEST_TITLE.exec(document.title);
+  if (pull) return pull[1]?.trim() || null;
+
   const match = /^(.*?) · (?:(?:Pull Request|Issue) #\d+ · |.* · Discussion #\d+)/.exec(document.title);
   return match?.[1]?.trim() || null;
+}
+
+/** A GitHub login, a bot's included ("dependabot[bot]"). */
+const LOGIN = '[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\\[bot\\])?';
+
+/** A pull request's document title names its author: "<title> by <login> · Pull Request #12 · owner/repo · GitHub". */
+const PULL_REQUEST_TITLE = new RegExp(`^(.*) by (${LOGIN}) · Pull Request #\\d+ · `);
+
+/**
+ * Who opened an issue or a pull request: a pull request's document title names them; an issue's body header links
+ * them. Read when it is needed, once GitHub has rendered the page.
+ */
+export function readAuthor(page: GitHubPage, document: Document): string | null {
+  if (page.kind === 'pull-request') return PULL_REQUEST_TITLE.exec(document.title)?.[2] ?? null;
+  if (page.kind === 'issue') return document.querySelector('[data-testid="issue-body-header-author"]')?.textContent?.trim() || null;
+  return null;
 }
 
 export function samePage(a: GitHubPage, b: GitHubPage): boolean {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readPage } from '../src/lib/github/page.ts';
+import { readAuthor, readPage } from '../src/lib/github/page.ts';
 
 function documentWith(subject: string | null, title = '', repository: string | null = null): Document {
   return {
@@ -11,6 +11,30 @@ function documentWith(subject: string | null, title = '', repository: string | n
     },
   } as unknown as Document;
 }
+
+describe('readAuthor', () => {
+  const pull = { kind: 'pull-request' as const, owner: 'dev-null-sh', repository: 'dev-null.sh', number: 1016, title: null, url: '' };
+
+  it("reads a pull request's author from the document title", () => {
+    expect(readAuthor(pull, documentWith(null, 'feat: links by jubianchi · Pull Request #1016 · dev-null-sh/dev-null.sh · GitHub'))).toBe('jubianchi');
+    expect(readAuthor(pull, documentWith(null, 'Bump deps by dependabot[bot] · Pull Request #1 · a/b · GitHub'))).toBe('dependabot[bot]');
+  });
+
+  it("reads an issue's author from its body's header", () => {
+    const issue = { ...pull, kind: 'issue' as const };
+    const document = {
+      title: 'Idea · Issue #1335 · dev-null-sh/dev-null.sh · GitHub',
+      querySelector: (selector: string) =>
+        selector === '[data-testid="issue-body-header-author"]' ? { textContent: ' tomasnorre ' } : null,
+    } as unknown as Document;
+
+    expect(readAuthor(issue, document)).toBe('tomasnorre');
+  });
+
+  it('reads no author it cannot find', () => {
+    expect(readAuthor(pull, documentWith(null, 'Fix · Pull Request #1 · a/b · GitHub'))).toBeNull();
+  });
+});
 
 describe('readPage, releases', () => {
   it("reads a repository's releases, a list or one, where each release is shared on its own", () => {
@@ -107,6 +131,15 @@ describe('readPage', () => {
       number: 938,
       title: '[RFC] Orgs',
     });
+  });
+
+  it("reads a pull request's title without its author, which the document title adds", () => {
+    expect(
+      readPage(
+        new URL('https://github.com/dev-null-sh/dev-null.sh/pull/1016'),
+        documentWith(null, 'feat: show links by GitHub by jubianchi · Pull Request #1016 · dev-null-sh/dev-null.sh · GitHub'),
+      ),
+    ).toMatchObject({ kind: 'pull-request', title: 'feat: show links by GitHub' });
   });
 
   it("knows an organization's other tabs from their /orgs URL", () => {
