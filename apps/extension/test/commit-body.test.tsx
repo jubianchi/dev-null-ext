@@ -38,6 +38,26 @@ describe('CommitBody', () => {
     expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([['@Laravel', 'https://dev-null.sh/@Laravel']]);
   });
 
+  it('draws /dev/null as its wordmark, the second slash hollow', () => {
+    show([{ type: 'text', text: '/dev/null rocks (/dev/null), "/dev/null"!' }]);
+
+    const wordmarks = [...root.querySelectorAll('[title="/dev/null"]')];
+    expect(wordmarks).toHaveLength(3);
+    expect(wordmarks[0]?.textContent).toBe('/dev/null');
+    expect(wordmarks[0]?.className).toContain('font-semibold');
+    expect(wordmarks[0]?.querySelector('.text-transparent')?.textContent).toBe('/');
+    expect(root.textContent).toBe('/dev/null rocks (/dev/null), "/dev/null"!');
+  });
+
+  it('leaves /dev/null alone inside other words, paths, mentions, links and code', () => {
+    show([
+      { type: 'text', text: 'x/dev/null ./dev/null //dev/null /dev/nullify /dev/null2 /dev/null/x /dev/null-x /DEV/NULL https://example.com/dev/null ' },
+      { type: 'code', code: '/dev/null' },
+    ]);
+
+    expect(root.querySelector('[title="/dev/null"]')).toBeNull();
+  });
+
   it('shows inline code as code', () => {
     show([
       { type: 'text', text: 'Run ' },

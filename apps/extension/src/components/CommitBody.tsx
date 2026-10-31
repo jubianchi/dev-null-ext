@@ -2,7 +2,8 @@ import type { BodyMention, BodySegment } from '@devnull-github/client';
 import type { ComponentChild } from 'preact';
 
 const TOKEN_PATTERN = /(https?:\/\/[^\s<>]+)|(?<![\w@])@([A-Za-z0-9][A-Za-z0-9-]*)/g;
-const HIGHLIGHT_CLASS = /^hl-[a-z]+(-[a-z]+)*$/;
+const WORDMARK_PATTERN = /(?<![\p{L}\p{M}\p{N}_./-])(\/dev\/null)(?![\p{L}\p{M}\p{N}_/-])/u;
+const HIGHLIGHT_CLASS =/^hl-[a-z]+(-[a-z]+)*$/;
 
 /**
  * A commit body as dev-null.sh draws it (CommitBody): prose with its line breaks, links and mentions, `> ` quotes,
@@ -67,7 +68,7 @@ function linkify(text: string, known: Map<string, string>): ComponentChild[] {
     const mentioned = handle ? known.get(handle.toLowerCase()) : undefined;
     if (!url && !mentioned) continue;
 
-    parts.push(text.slice(last, match.index));
+    parts.push(...wordmarks(text.slice(last, match.index)));
     parts.push(
       url ? (
         <a href={url} target="_blank" rel="noopener noreferrer nofollow ugc" class="text-fg-accent [overflow-wrap:anywhere] hover:underline">
@@ -81,9 +82,24 @@ function linkify(text: string, known: Map<string, string>): ComponentChild[] {
     );
     last = match.index + token.length;
   }
-  parts.push(text.slice(last));
+  parts.push(...wordmarks(text.slice(last)));
 
   return parts;
+}
+
+/** /dev/null as its wordmark, as dev-null.sh draws it in prose (withWordmarks, AppWordmark): the second slash hollow. */
+function wordmarks(text: string): ComponentChild[] {
+  return text.split(WORDMARK_PATTERN).map((part, index) =>
+    index % 2 === 1 ? (
+      <span title="/dev/null" class="whitespace-nowrap font-semibold tracking-tight">
+        <span>
+          /dev<span class="text-transparent [-webkit-text-stroke:max(1px,0.035em)_var(--color-lane-0)]">/</span>null
+        </span>
+      </span>
+    ) : (
+      part
+    ),
+  );
 }
 
 function CodeBlock({ segment }: { segment: Extract<BodySegment, { type: 'block' }> }) {
