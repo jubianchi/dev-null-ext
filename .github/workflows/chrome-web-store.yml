@@ -70,6 +70,8 @@ jobs:
           name: chrome-web-store-${{ inputs.tag }}
           path: apps/extension/.output/*-chrome.zip
           if-no-files-found: error
+          # WXT builds into .output, which the action skips as hidden otherwise.
+          include-hidden-files: true
 
       - name: Say what to declare on the store
         working-directory: apps/extension/.output/chrome-mv3

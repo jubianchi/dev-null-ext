@@ -43,4 +43,6 @@ jobs:
             apps/extension/.output/*-chrome.zip
             apps/extension/.output/*-firefox.zip
           if-no-files-found: error
+          # WXT builds into .output, which the action skips as hidden otherwise.
+          include-hidden-files: true
           retention-days: 14
