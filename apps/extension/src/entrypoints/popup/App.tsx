@@ -74,7 +74,7 @@ export function App() {
   }
 
   return (
-    <main class="flex min-h-[420px] w-[360px] flex-col bg-white font-sans text-sm text-zinc-900">
+    <main class="flex w-[360px] flex-col bg-white font-sans text-sm text-zinc-900">
       <header class="flex items-center gap-2 px-4 py-3">
         <Glyph class="size-5" />
         <h1 class="m-0 text-sm font-semibold">dev-null.sh</h1>
@@ -97,7 +97,7 @@ export function App() {
 
       {user === null && signIn.status === 'idle' && <PopupWelcome developers={DEVELOPERS} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
 
-      <div class="px-4 pb-4">
+      <div class="px-4 pb-4 empty:hidden">
       {!hostAccess && (
         <section class="mb-4 space-y-2">
           <p class="m-0 text-fg-muted">The extension needs access to github.com and dev-null.sh to work.</p>

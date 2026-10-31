@@ -14,7 +14,7 @@ export function PopupProfile({ user, onDisconnect }: { user: CurrentUser; onDisc
 
   return (
     <>
-      <section class="mx-3 flex flex-col items-center gap-2.5 rounded-xl border border-solid border-zinc-200 px-4 py-5 text-center">
+      <section class="flex flex-col items-center gap-2.5 px-4 pb-4 pt-1 text-center">
         <div data-lane-ring class="size-[72px] rounded-full border-2 border-dashed p-[3px]" style={{ borderColor: laneColor(user, 'var(--color-lane-3)') }}>
           {user.avatar_url ? (
             <img src={user.avatar_url} alt="" class="size-full rounded-full" />
@@ -47,7 +47,7 @@ export function PopupProfile({ user, onDisconnect }: { user: CurrentUser; onDisc
         </a>
       </section>
 
-      <footer class="mt-auto flex items-center justify-between border-0 border-t border-solid border-zinc-200 px-4 py-2.5">
+      <footer class="flex items-center justify-between border-0 border-t border-solid border-zinc-200 px-4 py-2.5">
         <span class="text-[11px] text-zinc-600">This browser is one of your devices</span>
         <button
           type="button"
