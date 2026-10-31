@@ -40,8 +40,16 @@ The extension's popup shows your /dev/null profile, and lets you turn off anythi
 
 ## Install
 
-The extension isn't on the Chrome Web Store or Firefox Add-ons yet. To try it, build it from source as described in
-[CONTRIBUTING.md](CONTRIBUTING.md#getting-started), then load it in Chrome 137+ or Firefox 129+.
+The extension isn't on the Chrome Web Store or Firefox Add-ons yet. Download it from the
+[latest release](https://github.com/jubianchi/github-dev-null/releases/latest):
+
+- **Chrome 137+** (and other Chromium browsers): unzip `devnull-github-<version>-chrome.zip`, open
+  `chrome://extensions`, turn on **Developer mode**, then **Load unpacked** and pick the unzipped folder.
+- **Firefox 129+**: the archive isn't signed yet, so Firefox only loads it until it restarts. Open
+  `about:debugging#/runtime/this-firefox`, then **Load Temporary Add-on** and pick
+  `devnull-github-<version>-firefox.zip`.
+
+You can also build it from source, as described in [CONTRIBUTING.md](CONTRIBUTING.md#getting-started).
 
 Then open the popup and **Join with GitHub**: already on /dev/null, you approve the extension as one of your devices on
 dev-null.sh, as you would a phone. Disconnecting revokes it.

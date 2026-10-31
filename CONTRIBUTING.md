@@ -180,6 +180,20 @@ and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`
 - an addition can say what leaving it out would mean (`missing`): written from an organization's log without its
   mention, the composer warns that the commit won't show there, with a way to insert it. The user decides.
 
+## Continuous integration and releases
+
+- **CI** (`.github/workflows/ci.yml`): every push to `main` and every pull request is typechecked, tested and built.
+  The run keeps the Chrome and Firefox archives for 14 days, to try the build.
+- **Release** (`.github/workflows/release.yml`): pushing a `vMAJOR.MINOR.PATCH` tag sets the extension's version from
+  the tag, checks and builds it, then publishes a GitHub release with three archives: Chrome, Firefox, and the sources
+  Firefox Add-ons asks for.
+
+  ```sh
+  git tag v1.2.3 && git push origin v1.2.3
+  ```
+
+Workflows share `.github/actions/setup`, and every action is pinned to a commit.
+
 ## Before publishing anywhere
 
 - Firefox requires `data_collection_permissions` in `browser_specific_settings.gecko` for new add-ons: decide what to
