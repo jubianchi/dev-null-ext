@@ -1,5 +1,6 @@
 import type { Commit } from '@devnull-github/client';
 import { relativeTime } from '../lib/time.ts';
+import { Octicon } from './Octicon.tsx';
 
 const LANES = ['bg-lane-0', 'bg-lane-1', 'bg-lane-2', 'bg-lane-3', 'bg-lane-4', 'bg-lane-5'];
 
@@ -30,6 +31,10 @@ function Body({ text }: { text: string }) {
   );
 }
 
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 export function CommitItem({ commit }: { commit: Commit }) {
   const rail = lane(commit);
 
@@ -52,8 +57,18 @@ export function CommitItem({ commit }: { commit: Commit }) {
         </div>
         <Body text={commit.body} />
         <div class="mt-2 flex gap-4 text-xs text-fg-muted">
-          {commit.replies_count !== undefined && <span>{commit.replies_count} replies</span>}
-          {commit.stars_count !== undefined && <span>{commit.stars_count} stars</span>}
+          {commit.stars_count !== undefined && (
+            <span class="inline-flex items-center gap-1" aria-label={plural(commit.stars_count, 'star', 'stars')}>
+              <Octicon name={commit.starred ? 'star-fill' : 'star'} class={commit.starred ? 'text-fg-attention' : ''} />
+              {commit.stars_count}
+            </span>
+          )}
+          {commit.replies_count !== undefined && (
+            <span class="inline-flex items-center gap-1" aria-label={plural(commit.replies_count, 'reply', 'replies')}>
+              <Octicon name="comment" />
+              {commit.replies_count}
+            </span>
+          )}
           {commit.status === 'pending' && <span class="text-fg-attention">Pending review</span>}
         </div>
       </div>
