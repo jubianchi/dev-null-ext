@@ -6,6 +6,7 @@ import { defineContentScript } from 'wxt/utils/define-content-script';
 import { OrganizationPanel } from '../../components/OrganizationPanel.tsx';
 import { ShareButton } from '../../components/ShareButton.tsx';
 import { organizationContent, organizationTabs, shareButtonAnchor } from '../../lib/github/anchors.ts';
+import { watchNavigation } from '../../lib/github/navigation.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import '../../assets/tailwind.css';
 
@@ -23,7 +24,6 @@ export default defineContentScript({
     let page: GitHubPage = { kind: 'other' };
     let mounted: Mounted[] = [];
 
-    // GitHub navigates without reloading (Turbo, React): follow the URL, and the hash for the organization tab.
     const update = async () => {
       const next = readPage(window.location, document);
       if (samePage(page, next)) return;
@@ -34,7 +34,13 @@ export default defineContentScript({
     };
 
     void update();
-    ctx.addEventListener(window, 'wxt:locationchange', () => void update());
+    watchNavigation({
+      window,
+      document,
+      listen: (target, type, handler) => target.addEventListener(type, handler, { signal: ctx.signal }),
+      defer: (callback) => ctx.setTimeout(callback, 0),
+      onNavigate: () => void update(),
+    });
   },
 });
 
