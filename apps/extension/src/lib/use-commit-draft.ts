@@ -8,6 +8,11 @@ import { replaceText } from './textarea.ts';
 
 export type Target = ComposerContext;
 
+/** A reply to a commit: it shares no page, so it offers no additions, and /dev/null notifies the parent's author. */
+export interface ReplyTarget {
+  parentId: string;
+}
+
 /** An image attached to the draft: the file, a URL to show it, and its description (alt text). */
 export interface AttachedImage {
   id: string;
@@ -28,9 +33,10 @@ export type DraftState =
  * A commit being written, whichever composer shows it: the session, the text (the only truth about what is sent), the
  * additions the user can insert, and what leaving one out would mean.
  */
-export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) => void) {
+export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (commit: Commit) => void) {
   const [state, setState] = useState<DraftState>({ step: 'loading' });
-  const additions = additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
+  const parentId = 'parentId' in target ? target.parentId : null;
+  const additions = 'parentId' in target ? [] : additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
   const [text, setText] = useState('');
 
   useEffect(() => {
@@ -88,7 +94,12 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     setState({ step: 'sending', user });
     try {
       const transferred = await Promise.all(images.map((image) => toTransfer(image.file, image.description)));
-      const commit = await ask(transferred.length > 0 ? { type: 'commit', body, images: transferred } : { type: 'commit', body });
+      const commit = await ask({
+        type: 'commit',
+        body,
+        ...(transferred.length > 0 ? { images: transferred } : {}),
+        ...(parentId ? { parentId } : {}),
+      });
       setState({ step: 'sent', user, commit });
       setText('');
       for (const image of images) URL.revokeObjectURL(image.url);

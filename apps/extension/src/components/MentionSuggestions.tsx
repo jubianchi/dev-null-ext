@@ -17,7 +17,13 @@ const MARGIN = 8;
  * follows it, under the caret. Arrows move through them, Enter or Tab completes the mention, a click too; Escape closes
  * them, and only them, until the next mention. The textarea keeps the focus, as a combobox.
  */
-export function useMentionSuggestions(textarea: RefObject<HTMLTextAreaElement>, text: string, candidates: MentionCandidate[]) {
+export function useMentionSuggestions(
+  textarea: RefObject<HTMLTextAreaElement>,
+  text: string,
+  candidates: MentionCandidate[],
+  /** In a reply, the commit replied to: /dev/null then suggests its thread's people first. */
+  reply: string | null = null,
+) {
   const id = useId();
   const [caret, setCaret] = useState<number | null>(null);
   const [active, setActive] = useState(0);
@@ -34,7 +40,7 @@ export function useMentionSuggestions(textarea: RefObject<HTMLTextAreaElement>, 
 
     let current = true;
     const suggest = () => {
-      ask({ type: 'mention-suggestions', query }).then(
+      ask({ type: 'mention-suggestions', query, ...(reply ? { reply } : {}) }).then(
         (suggestions) => current && setSuggested(suggestedCandidates(suggestions)),
         () => undefined,
       );
@@ -45,7 +51,7 @@ export function useMentionSuggestions(textarea: RefObject<HTMLTextAreaElement>, 
       current = false;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, reply]);
 
   const options = mention && focused && dismissed !== mention.start ? matching([...candidates, ...suggested], mention.query).slice(0, LIMIT) : [];
   const open = options.length > 0;

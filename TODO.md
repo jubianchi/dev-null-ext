@@ -18,8 +18,12 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 
 - [x] Star and unstar: the client already has `star()` and `unstar()`; add the button on the star counter.
 - [x] Reply and Quote: link to the commit on dev-null.sh first; composing them in the extension comes later.
-- [ ] Reply to a commit from a log, in the extension: a composer for the reply (`parent_id`), the reply added under
-      its commit once sent. Then quote the same way (`quoted_commit_id`).
+- [x] Reply to a commit from a log, in the extension: a composer for the reply (`parent_id`), the reply added under
+      its commit once sent.
+- [ ] In a reply, "Replying to @a, @b": choose which of the parent's other mentioned people get it too
+      (`reply_recipients`, user ids), as dev-null.sh's reply-recipient-picker does.
+- [ ] The `r` shortcut to reply to a commit, as on dev-null.sh.
+- [ ] Quote a commit from a log the same way (`quoted_commit_id`; no `parent_id`, no poll).
 
 ## 3. Threads
 

@@ -124,7 +124,7 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
             {state.step === 'loaded' && state.commits.length > 0 && (
               <ul class="m-0 list-none p-0">
                 {state.commits.map((commit) => (
-                  <CommitItem key={commit.id} commit={commit} />
+                  <CommitItem key={commit.id} commit={commit} canReply={Boolean(user)} />
                 ))}
               </ul>
             )}

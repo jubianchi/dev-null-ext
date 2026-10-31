@@ -1,4 +1,5 @@
 import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client';
+import { useState } from 'preact/hooks';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
@@ -7,8 +8,15 @@ import { LinkPreview } from './LinkPreview.tsx';
 import { Octicon } from './Octicon.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
 import { Replies } from './Replies.tsx';
+import { ReplyComposer } from './ReplyComposer.tsx';
 
-export function CommitItem({ commit }: { commit: Commit }) {
+/** A commit of a log. Signed in, its Reply button opens a reply composer under it, and what is sent joins its replies. */
+export function CommitItem({ commit, canReply = false }: { commit: Commit; canReply?: boolean }) {
+  const [replying, setReplying] = useState(false);
+  const [sent, setSent] = useState<Commit[]>([]);
+  const repliesCount = commit.replies_count === undefined ? undefined : commit.replies_count + sent.length;
+  const preview = commit.reply_preview ?? (sent.length > 0 ? { data: [], next_cursor: null } : null);
+
   return (
     <li class="flex gap-3 border-b border-border-muted px-4 py-3 last:border-b-0">
       <span class="w-0.5 shrink-0 self-stretch rounded-full" style={{ background: laneColor(commit.author) }} aria-hidden="true" />
@@ -34,26 +42,49 @@ export function CommitItem({ commit }: { commit: Commit }) {
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
         <div class="mt-2 flex items-center gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
-          {commit.replies_count !== undefined && (
-            <a
-              href={commit.html_url}
-              target="_blank"
-              rel="noopener"
-              title="Reply on /dev/null"
-              class={ACTION}
-              aria-label={plural(commit.replies_count, 'reply', 'replies')}
-            >
-              <Octicon name="comment" />
-              {commit.replies_count}
-            </a>
-          )}
+          {repliesCount !== undefined &&
+            (canReply ? (
+              <button
+                type="button"
+                onClick={() => setReplying(!replying)}
+                aria-label={`Reply to @${commit.author.handle}`}
+                aria-expanded={replying}
+                title={plural(repliesCount, 'reply', 'replies')}
+                class={`${ACTION} cursor-pointer border-0 bg-transparent p-0`}
+              >
+                <Octicon name="comment" />
+                {repliesCount}
+              </button>
+            ) : (
+              <a
+                href={commit.html_url}
+                target="_blank"
+                rel="noopener"
+                title="Reply on /dev/null"
+                class={ACTION}
+                aria-label={plural(repliesCount, 'reply', 'replies')}
+              >
+                <Octicon name="comment" />
+                {repliesCount}
+              </a>
+            ))}
           <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
             <Octicon name="quote" />
             Quote
           </a>
           {commit.status === 'pending' && <span class="text-fg-attention">Pending review</span>}
         </div>
-        {commit.reply_preview && <Replies parent={commit} preview={commit.reply_preview} />}
+        {replying && (
+          <ReplyComposer
+            parent={commit}
+            onReplied={(reply) => {
+              setSent((current) => [reply, ...current]);
+              setReplying(false);
+            }}
+            onCancel={() => setReplying(false)}
+          />
+        )}
+        {preview && <Replies parent={{ ...commit, replies_count: repliesCount }} preview={preview} sent={sent} />}
       </div>
     </li>
   );

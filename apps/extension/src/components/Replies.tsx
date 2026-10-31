@@ -13,8 +13,18 @@ type Reply = Commit | DeletedCommit;
  * A commit's replies under it, as dev-null.sh opens them in a list: the newest one the API previews, and the older
  * ones on demand, newest first, each hanging from a dashed line in its author's lane.
  */
-export function Replies({ parent, preview }: { parent: Commit; preview: { data: Reply[]; next_cursor: string | null } }) {
-  const [replies, setReplies] = useState(preview.data);
+export function Replies({
+  parent,
+  preview,
+  sent = [],
+}: {
+  parent: Commit;
+  preview: { data: Reply[]; next_cursor: string | null };
+  /** The user's replies sent from the log, newest first: they come before the others, as the newest. */
+  sent?: Commit[];
+}) {
+  const [loaded, setReplies] = useState(preview.data);
+  const replies = [...sent, ...loaded.filter((reply) => !sent.some((own) => own.id === reply.id))];
   const [cursor, setCursor] = useState(preview.next_cursor);
   const [loading, setLoading] = useState(false);
 
