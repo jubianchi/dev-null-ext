@@ -27,10 +27,10 @@ afterEach(() => {
   root.remove();
 });
 
-async function mount(session: typeof user | null, size: 'medium' | 'small' = 'medium') {
+async function mount(session: typeof user | null, size: 'medium' | 'small' = 'medium', spacing?: 'start' | 'end') {
   ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? session : 'Organization'));
   await act(async () => {
-    render(<ShareButton page={page} size={size} />, root);
+    render(<ShareButton page={page} size={size} spacing={spacing} />, root);
   });
 }
 
@@ -51,6 +51,14 @@ describe('ShareButton', () => {
     await mount(user, 'small');
 
     expect(root.querySelector('button')?.className).toMatch(/\bh-7\b.*\bpx-2\b.*\btext-xs\b/);
+  });
+
+  it("spaces itself from GitHub's buttons from inside its shadow root, which WXT's host reset can't undo", async () => {
+    await mount(user, 'small', 'end');
+    expect(root.firstElementChild?.className).toContain('mr-2');
+
+    await mount(user, 'medium', 'start');
+    expect(root.firstElementChild?.className).toContain('ml-2');
   });
 
   it('shows nothing when signed out', async () => {

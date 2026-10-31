@@ -25,7 +25,19 @@ const BUTTON =
  * A button exactly like GitHub's own, among them, that opens the composer for the repository, pull request or issue
  * on screen. Only when connected to /dev/null: there is nothing to do with it otherwise.
  */
-export function ShareButton({ page, size }: { page: SharedPage; size: 'medium' | 'small' }) {
+export function ShareButton({
+  page,
+  size,
+  spacing,
+}: {
+  page: SharedPage;
+  size: 'medium' | 'small';
+  /**
+   * The space to keep from GitHub's elements when their container doesn't space them. It is set in here: WXT resets
+   * the host (`:host { all: initial !important }`), which wins over any style the page side gives it.
+   */
+  spacing?: 'start' | 'end';
+}) {
   const user = useSession();
   const [open, setOpen] = useState(false);
   const [organization, setOrganization] = useState<string | null>(null);
@@ -40,7 +52,7 @@ export function ShareButton({ page, size }: { page: SharedPage; size: 'medium' |
   if (!user) return null;
 
   return (
-    <span class="inline-flex font-sans">
+    <span class={`inline-flex font-sans ${spacing === 'end' ? 'mr-2' : spacing === 'start' ? 'ml-2' : ''}`}>
       <button
         type="button"
         onClick={() => setOpen(true)}

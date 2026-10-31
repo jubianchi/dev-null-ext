@@ -17,7 +17,6 @@ import {
   shareButtonAnchor,
 } from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
-import { styleHost } from '../../lib/host-style.ts';
 import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
 import type { SharedPage } from '../../lib/share.ts';
@@ -89,11 +88,7 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     append: (anchor, element) => {
       removeShareItems();
       const placement = shareButtonAnchor();
-      styleHost(element, { display: 'inline-flex' });
-      if (placement?.position === 'after') {
-        styleHost(element, { 'align-self': 'flex-start', 'margin-left': '8px' });
-        return anchor.after(element);
-      }
+      if (placement?.position === 'after') return anchor.after(element);
       if (!placement?.item) return anchor.prepend(element);
 
       const item = document.createElement('li');
@@ -101,7 +96,11 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
       item.append(element);
       anchor.prepend(item);
     },
-    onMount: (container) => render(<ShareButton page={page} size={shareButtonAnchor()?.size ?? 'medium'} />, container),
+    onMount: (container) => {
+      const placement = shareButtonAnchor();
+      const spacing = placement?.position === 'after' ? 'start' : undefined;
+      render(<ShareButton page={page} size={placement?.size ?? 'medium'} spacing={spacing} />, container);
+    },
     onRemove: (container) => container && render(null, container),
   });
 
@@ -139,12 +138,9 @@ function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { k
         isolateEvents: true,
         position: 'inline',
         anchor: box,
-        append: (anchor, element) => {
-          // As GitHub spaces the buttons of a release's header (mr-2).
-          styleHost(element, { display: 'inline-flex', 'margin-right': '8px' });
-          anchor.prepend(element);
-        },
-        onMount: (container) => render(<ShareButton page={release} size="small" />, container),
+        append: 'first',
+        // Spaced from Compare as GitHub spaces a release's header buttons (mr-2).
+        onMount: (container) => render(<ShareButton page={release} size="small" spacing="end" />, container),
         onRemove: (container) => container && render(null, container),
       });
       ui.mount();
