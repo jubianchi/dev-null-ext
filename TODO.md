@@ -29,6 +29,15 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
       not expose. For the same reason, the replies loaded on demand may include that continuation. Ask dev-null.sh to
       expose it.
 
+## 3b. Discussions
+
+- [x] Share a discussion from its header (an organization's, linked in its repository's form, or a repository's).
+- [x] An "On /dev/null" section in an organization's discussions sidebar.
+- [ ] An "On /dev/null" section in a discussion's sidebar, listing the commits that link it. The API can't find
+      commits by URL: it needs an endpoint in dev-null.sh, e.g. `GET /api/v1/links?url=` built on the web prototype's
+      `LinkCommitsQuery` (exact URL, first link of a commit only). Query both the organization's and the repository's
+      form of the discussion's URL.
+
 ## 4. Composer
 
 - [x] Preview in the modal composer too (only the inline composer has it).
