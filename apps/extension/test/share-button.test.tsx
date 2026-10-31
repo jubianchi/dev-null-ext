@@ -73,6 +73,21 @@ describe('ShareButton', () => {
     document.getElementById('author')?.remove();
   });
 
+  it("leaves out the additions the user turned off, such as the author's mention", async () => {
+    ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? user : 'User'));
+    await act(async () => {
+      render(<ShareButton page={page} size="medium" disabled={new Set(['author-mention'])} />, root);
+    });
+    await act(async () => {});
+    document.body.insertAdjacentHTML('beforeend', '<a data-testid="issue-body-header-author" id="author">taylorotwell</a>');
+
+    await act(async () => root.querySelector('button')!.click());
+    await act(async () => {});
+
+    expect(root.querySelector('[role="toolbar"] button[aria-label="Insert @taylorotwell"]')).toBeNull();
+    document.getElementById('author')?.remove();
+  });
+
   it('shows nothing when signed out', async () => {
     await mount(null);
 

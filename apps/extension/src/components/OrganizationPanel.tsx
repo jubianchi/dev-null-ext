@@ -17,7 +17,7 @@ type State =
  * The organization's Mentions on /dev/null, in place of the organization's overview while the tab is open. Only when
  * connected to /dev/null; otherwise it says how to connect.
  */
-export function OrganizationPanel({ organization }: { organization: string }) {
+export function OrganizationPanel({ organization, disabled }: { organization: string; disabled?: ReadonlySet<string> }) {
   const user = useSession();
   const [state, setState] = useState<State>({ step: 'loading' });
   const [writing, setWriting] = useState(false);
@@ -107,10 +107,10 @@ export function OrganizationPanel({ organization }: { organization: string }) {
       {user && (
         <>
       <div ref={inline} class="mb-4">
-        <InlineComposer organization={organization} onCommitted={committed} />
+        <InlineComposer organization={organization} onCommitted={committed} disabled={disabled} />
       </div>
 
-      {writing && <ComposerDialog target={{ page: null, organization }} onClose={() => setWriting(false)} />}
+      {writing && <ComposerDialog target={{ page: null, organization, disabled }} onClose={() => setWriting(false)} />}
 
       <div class="overflow-hidden rounded-md border border-border bg-canvas">
         {state.step === 'loading' && <p class="m-0 p-4 text-sm text-fg-muted">Reading the log…</p>}

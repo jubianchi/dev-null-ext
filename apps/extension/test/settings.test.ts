@@ -1,0 +1,65 @@
+import { describe, expect, it } from 'vitest';
+import { FEATURES, decorationsFor, disabledFeatures, readSettings } from '../src/lib/settings.ts';
+
+const all = readSettings(undefined);
+
+describe('readSettings', () => {
+  it('turns every feature on by default', () => {
+    expect(Object.values(all).every(Boolean)).toBe(true);
+    expect(Object.keys(all).sort()).toEqual(FEATURES.map((feature) => feature.id).sort());
+  });
+
+  it('keeps what the user turned off, and nothing it does not know', () => {
+    const settings = readSettings({ 'issue-button': false, 'pull-button': 'no', unknown: false });
+
+    expect(settings['issue-button']).toBe(false);
+    expect(settings['pull-button']).toBe(true);
+    expect('unknown' in settings).toBe(false);
+  });
+});
+
+describe('FEATURES', () => {
+  it('names and explains every feature, in groups, for the settings screen', () => {
+    for (const feature of FEATURES) {
+      expect(feature.group).not.toBe('');
+      expect(feature.label).not.toBe('');
+      expect(feature.hint).not.toBe('');
+    }
+  });
+});
+
+describe('decorationsFor', () => {
+  const issue = { kind: 'issue' as const, owner: 'a', repository: 'b', number: 1, title: null, url: '' };
+
+  it('mounts on each page what its features allow', () => {
+    expect(decorationsFor({ kind: 'organization', organization: 'a' }, all)).toEqual(['organization-tab']);
+    expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, all)).toEqual(['organization-tab', 'discussions-sidebar']);
+    expect(decorationsFor(issue, all)).toEqual(['share-button']);
+    expect(decorationsFor({ kind: 'releases', owner: 'a', repository: 'b' }, all)).toEqual(['release-buttons']);
+    expect(decorationsFor({ kind: 'other' }, all)).toEqual([]);
+  });
+
+  it('mounts nothing the user turned off', () => {
+    const settings = readSettings({
+      'organization-tab': false,
+      'issue-button': false,
+      'pull-button': true,
+      'release-buttons': false,
+      'repository-button': false,
+      'discussion-button': false,
+    });
+
+    expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, settings)).toEqual(['discussions-sidebar']);
+    expect(decorationsFor(issue, settings)).toEqual([]);
+    expect(decorationsFor({ ...issue, kind: 'pull-request' }, settings)).toEqual(['share-button']);
+    expect(decorationsFor({ ...issue, kind: 'discussion' }, settings)).toEqual([]);
+    expect(decorationsFor({ kind: 'repository', owner: 'a', repository: 'b', url: '' }, settings)).toEqual([]);
+    expect(decorationsFor({ kind: 'releases', owner: 'a', repository: 'b' }, settings)).toEqual([]);
+  });
+});
+
+describe('disabledFeatures', () => {
+  it('lists the features the user turned off, for the composers to leave out their additions', () => {
+    expect([...disabledFeatures(readSettings({ 'author-mention': false }))]).toEqual(['author-mention']);
+  });
+});

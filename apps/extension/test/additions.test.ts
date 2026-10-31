@@ -39,6 +39,12 @@ describe('addition sources', () => {
     expect(authorMention({ page: pull, organization: null })).toEqual([]);
   });
 
+  it('leaves out the additions the user turned off in the settings', () => {
+    const context = { page: { ...pull, author: 'taylorotwell' }, organization: 'laravel', disabled: new Set(['author-mention', 'organization-mention']) };
+
+    expect(additionsFor(context).map((addition) => addition.id)).toEqual(['page-link']);
+  });
+
   it('proposes the author before the organization', () => {
     expect(additionsFor({ page: { ...pull, author: 'taylorotwell' }, organization: 'laravel' }).map((addition) => addition.id)).toEqual([
       'page-link',

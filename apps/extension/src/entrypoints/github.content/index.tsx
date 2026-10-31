@@ -21,6 +21,8 @@ import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
 import type { SharedPage } from '../../lib/share.ts';
 import { panelToggle } from '../../lib/panel-toggle.ts';
+import { type Settings, decorationsFor, disabledFeatures } from '../../lib/settings.ts';
+import { loadSettings, watchSettings } from '../../lib/settings-store.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import '../../assets/tailwind.css';
 
@@ -34,18 +36,30 @@ export default defineContentScript({
   matches: ['https://github.com/*'],
   cssInjectionMode: 'ui',
 
-  main(ctx) {
+  async main(ctx) {
     let page: GitHubPage = { kind: 'other' };
     let mounted: Mounted[] = [];
+    let settings = await loadSettings();
+
+    const remount = async () => {
+      for (const ui of mounted) ui.remove();
+      mounted = await mount(ctx, page, settings);
+    };
 
     const update = async () => {
       const next = readPage(window.location, document);
       if (samePage(page, next)) return;
 
       page = next;
-      for (const ui of mounted) ui.remove();
-      mounted = await mount(ctx, next);
+      await remount();
     };
+
+    // A setting changed in the popup applies at once, to every open GitHub tab.
+    const stop = watchSettings((next) => {
+      settings = next;
+      void remount();
+    });
+    ctx.onInvalidated(stop);
 
     void update();
     watchNavigation({
@@ -58,26 +72,26 @@ export default defineContentScript({
   },
 });
 
-async function mount(ctx: ContentScriptContext, page: GitHubPage): Promise<Mounted[]> {
-  switch (page.kind) {
-    case 'organization':
-      return [
-        organizationTab(ctx, page.organization),
-        ...(page.discussions ? [await organizationSidebar(ctx, page.organization)] : []),
-      ];
-    case 'repository':
-    case 'pull-request':
-    case 'issue':
-    case 'discussion':
-      return [await shareButton(ctx, page)];
-    case 'releases':
-      return [releaseButtons(ctx, page)];
-    default:
-      return [];
+/** What the page gets, as the settings allow; the composers leave out the additions the user turned off. */
+async function mount(ctx: ContentScriptContext, page: GitHubPage, settings: Settings): Promise<Mounted[]> {
+  const disabled = disabledFeatures(settings);
+  const mounted: Mounted[] = [];
+
+  for (const decoration of decorationsFor(page, settings)) {
+    if (decoration === 'organization-tab' && page.kind === 'organization') mounted.push(organizationTab(ctx, page.organization, disabled));
+    if (decoration === 'discussions-sidebar' && page.kind === 'organization') mounted.push(await organizationSidebar(ctx, page.organization));
+    if (decoration === 'share-button' && 'url' in page && page.kind !== 'release') mounted.push(await shareButton(ctx, page, disabled));
+    if (decoration === 'release-buttons' && page.kind === 'releases') mounted.push(releaseButtons(ctx, page, disabled));
   }
+
+  return mounted;
 }
 
-async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, { url: string }>): Promise<Mounted> {
+async function shareButton(
+  ctx: ContentScriptContext,
+  page: Extract<GitHubPage, { url: string }>,
+  disabled: ReadonlySet<string>,
+): Promise<Mounted> {
   const ui = await createShadowRootUi(ctx, {
     name: 'devnull-share',
     // Keep keystrokes in the composer from reaching GitHub's own shortcuts (c, t, /, …).
@@ -99,7 +113,7 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     onMount: (container) => {
       const placement = shareButtonAnchor();
       const spacing = placement?.position === 'after' ? 'start' : undefined;
-      render(<ShareButton page={page} size={placement?.size ?? 'medium'} spacing={spacing} />, container);
+      render(<ShareButton page={page} size={placement?.size ?? 'medium'} spacing={spacing} disabled={disabled} />, container);
     },
     onRemove: (container) => container && render(null, container),
   });
@@ -117,7 +131,7 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
  * A share button for each release of a releases page, before its Compare button and at its size: the page as a whole
  * has nothing to share. Releases GitHub adds or renders again get theirs too.
  */
-function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { kind: 'releases' }>): Mounted {
+function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { kind: 'releases' }>, disabled: ReadonlySet<string>): Mounted {
   const controller = new AbortController();
   const anchors = () => releaseShareAnchors(new URL(window.location.href));
 
@@ -140,7 +154,7 @@ function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { k
         anchor: box,
         append: 'first',
         // Spaced from Compare as GitHub spaces a release's header buttons (mr-2).
-        onMount: (container) => render(<ShareButton page={release} size="small" spacing="end" />, container),
+        onMount: (container) => render(<ShareButton page={release} size="small" spacing="end" disabled={disabled} />, container),
         onRemove: (container) => container && render(null, container),
       });
       ui.mount();
@@ -205,7 +219,7 @@ function keptMounted(
  * hides the page's content and shows the organization's commits on /dev/null in its place; leaving it puts the page
  * back.
  */
-function organizationTab(ctx: ContentScriptContext, organization: string): Mounted {
+function organizationTab(ctx: ContentScriptContext, organization: string, disabled: ReadonlySet<string>): Mounted {
   let hidden: HTMLElement | null = null;
   let deselected: Array<{ tab: Element; hadSelectedClass: boolean }> = [];
 
@@ -236,7 +250,7 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
       position: 'inline',
       anchor: content,
       append: 'before',
-      onMount: (container) => render(<OrganizationPanel organization={organization} />, container),
+      onMount: (container) => render(<OrganizationPanel organization={organization} disabled={disabled} />, container),
       onRemove: (container) => container && render(null, container),
     });
     ui.mount();

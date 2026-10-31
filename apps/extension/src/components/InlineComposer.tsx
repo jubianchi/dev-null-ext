@@ -13,9 +13,18 @@ type Tab = 'write' | 'preview';
  * under the text, the button below the box) and speaking /dev/null: a commit, its character count against /dev/null's
  * limit. It stays open after a commit, for the next one.
  */
-export function InlineComposer({ organization, onCommitted }: { organization: string; onCommitted?: (commit: Commit) => void }) {
+export function InlineComposer({
+  organization,
+  onCommitted,
+  disabled,
+}: {
+  organization: string;
+  onCommitted?: (commit: Commit) => void;
+  /** The additions the user turned off in the extension's settings. */
+  disabled?: ReadonlySet<string>;
+}) {
   const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = useCommitDraft(
-    { page: null, organization },
+    { page: null, organization, disabled },
     onCommitted,
   );
   const [tab, setTab] = useState<Tab>('write');

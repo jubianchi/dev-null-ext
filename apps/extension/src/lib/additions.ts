@@ -11,6 +11,8 @@ import { type SharedPage, shareLabel } from './share.ts';
 /** Where a commit is written from: a GitHub page, an organization, or both; and who writes it, once known. */
 export type ComposerContext = ({ page: SharedPage; organization: string | null } | { page: null; organization: string }) & {
   viewer?: string | null;
+  /** The additions the user turned off in the extension's settings, by id. */
+  disabled?: ReadonlySet<string>;
 };
 
 export interface Addition {
@@ -97,7 +99,7 @@ export const organizationMention: AdditionSource = ({ page, organization }) =>
 export const SOURCES: AdditionSource[] = [pageLink, authorMention, organizationMention];
 
 export function additionsFor(context: ComposerContext, sources: AdditionSource[] = SOURCES): Addition[] {
-  return sources.flatMap((source) => source(context));
+  return sources.flatMap((source) => source(context)).filter((addition) => !context.disabled?.has(addition.id));
 }
 
 export function isIn(addition: Addition, text: string): boolean {

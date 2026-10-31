@@ -36,6 +36,7 @@ export function ShareButton({
   page,
   size,
   spacing,
+  disabled,
 }: {
   page: SharedPage;
   size: 'medium' | 'small';
@@ -44,6 +45,8 @@ export function ShareButton({
    * the host (`:host { all: initial !important }`), which wins over any style the page side gives it.
    */
   spacing?: 'start' | 'end';
+  /** The additions the user turned off in the extension's settings. */
+  disabled?: ReadonlySet<string>;
 }) {
   const user = useSession();
   const [opened, setOpened] = useState<SharedPage | null>(null);
@@ -69,7 +72,7 @@ export function ShareButton({
         <Glyph class="size-4 shrink-0" />
         Commit
       </button>
-      {opened && <ComposerDialog target={{ page: opened, organization }} onClose={() => setOpened(null)} />}
+      {opened && <ComposerDialog target={{ page: opened, organization, disabled }} onClose={() => setOpened(null)} />}
     </span>
   );
 }
