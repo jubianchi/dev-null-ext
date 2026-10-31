@@ -1,9 +1,10 @@
 import type { Commit, CurrentUser } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
 import { BackgroundError, ask } from './messages.ts';
-import { MAX_COMMIT_LENGTH, type SharedPage, commitLength, shareBody } from './share.ts';
+import { type ComposerContext, additionsFor, composeBody } from './additions.ts';
+import { MAX_COMMIT_LENGTH, commitLength } from './share.ts';
 
-export type Target = { page: SharedPage; organization: string | null } | { page: null; organization: string };
+export type Target = ComposerContext;
 
 export type DraftState =
   | { step: 'loading' }
@@ -14,14 +15,23 @@ export type DraftState =
   | { step: 'failed'; user: CurrentUser; error: BackgroundError };
 
 /**
- * A commit being written, whichever composer shows it: the session, the text, the organization mention, the body
- * /dev/null receives and its length. The link and the @mention are added below what the user writes, so what they
- * type is only their own words.
+ * A commit being written, whichever composer shows it: the session, the text, the additions and which ones the user
+ * removed, the body /dev/null receives and its length. Additions go below what the user writes, so what they type is
+ * only their own words.
  */
 export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) => void) {
   const [state, setState] = useState<DraftState>({ step: 'loading' });
   const [text, setText] = useState('');
-  const [mention, setMention] = useState(target.organization !== null);
+  const [removed, setRemoved] = useState<ReadonlySet<string>>(new Set());
+  const additions = additionsFor(target);
+
+  function toggle(id: string) {
+    setRemoved((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
 
   useEffect(() => {
     ask({ type: 'session' }).then(
@@ -30,10 +40,7 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     );
   }, []);
 
-  const organization = mention ? target.organization : null;
-  const body = target.page
-    ? shareBody(text, target.page, organization)
-    : [text.trim(), organization ? `@${organization}` : null].filter(Boolean).join('\n\n');
+  const body = composeBody(text, additions, removed);
   const length = commitLength(body);
   const canCommit =
     text.trim() !== '' && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
@@ -52,5 +59,5 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     }
   }
 
-  return { state, text, setText, mention, setMention, body, length, canCommit, submit };
+  return { state, text, setText, additions, removed, toggle, body, length, canCommit, submit };
 }

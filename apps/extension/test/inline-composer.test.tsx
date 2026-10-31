@@ -94,23 +94,24 @@ describe('InlineComposer', () => {
     expect(root.textContent).toContain('19 / 4000');
   });
 
-  it('shows the mention it adds below the text, and lets the user remove it and put it back', async () => {
+  it('says what it adds to the commit, and lets the user remove it and put it back', async () => {
     await type('Shipped');
-    const remove = root.querySelector<HTMLButtonElement>('button[aria-label="Remove the mention of @laravel"]');
-    expect(remove?.closest('[data-auto-mention]')?.textContent).toContain('@laravel');
+    const additions = root.querySelector('[data-additions]');
+    expect(additions?.textContent).toContain('Added to your commit');
+    expect(additions?.textContent).toContain('@laravel');
+    expect(additions?.textContent).toContain("so the commit shows on the organization's /dev/null page");
     expect(root.textContent).toContain('17 / 4000');
 
-    await act(async () => remove!.click());
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
     expect(root.textContent).toContain('7 / 4000');
 
-    const add = root.querySelector<HTMLButtonElement>('button[aria-label="Mention @laravel"]');
-    await act(async () => add!.click());
-    expect(root.querySelector('button[aria-label="Remove the mention of @laravel"]')).not.toBeNull();
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Add @laravel back to your commit"]')!.click());
+    expect(root.textContent).toContain('17 / 4000');
   });
 
   it('commits without the mention once removed', async () => {
     await type('Shipped');
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove the mention of @laravel"]')!.click());
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
     await act(async () => {
       root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });

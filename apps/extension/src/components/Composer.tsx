@@ -2,7 +2,7 @@ import type { CurrentUser } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
-import { AutoMention } from './AutoMention.tsx';
+import { Additions } from './Additions.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -11,7 +11,7 @@ export type { Target } from '../lib/use-commit-draft.ts';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
-  const { state, text, setText, mention, setMention, body, length, canCommit, submit } = useCommitDraft(target);
+  const { state, text, setText, additions, removed, toggle, body, length, canCommit, submit } = useCommitDraft(target);
   const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
 
@@ -74,16 +74,9 @@ export function Composer({ target }: { target: Target }) {
             )}
             </div>
 
-            {(target.page || target.organization) && (
-              <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-fg-muted">
-                {target.page && (
-                  <span>
-                    Links <span class="font-mono text-fg">{shareLabel(target.page)}</span>
-                  </span>
-                )}
-                {target.organization && <AutoMention organization={target.organization} on={mention} onChange={setMention} />}
-              </div>
-            )}
+            <div class="mt-2">
+              <Additions additions={additions} removed={removed} onToggle={toggle} />
+            </div>
 
             {state.step === 'failed' && <CommitError error={state.error} />}
 

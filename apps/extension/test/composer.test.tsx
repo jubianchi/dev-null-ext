@@ -56,23 +56,32 @@ describe('Composer', () => {
     expect(root.querySelector('textarea')).not.toBeNull();
   });
 
-  it('shows the mention of the organization it adds, which the user can remove and put back', async () => {
+  it("says it adds the page's link and the organization's mention, each removable", async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 
-    const remove = root.querySelector<HTMLButtonElement>('button[aria-label="Remove the mention of @laravel"]');
-    expect(remove?.closest('[data-auto-mention]')?.textContent).toContain('@laravel');
+    const additions = root.querySelector('[data-additions]');
+    expect(additions?.textContent).toContain('Added to your commit');
+    expect(root.querySelector('button[aria-label="Remove laravel/framework from your commit"]')).not.toBeNull();
 
-    await act(async () => remove!.click());
-    expect(root.querySelector('button[aria-label="Remove the mention of @laravel"]')).toBeNull();
-
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Mention @laravel"]')!.click());
-    expect(root.querySelector('button[aria-label="Remove the mention of @laravel"]')).not.toBeNull();
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
+    expect(root.querySelector('button[aria-label="Add @laravel back to your commit"]')).not.toBeNull();
   });
 
-  it('shows no mention to remove when the page is not an organization’s', async () => {
+  it('commits without the link once removed', async () => {
     await mount(<Composer target={{ page, organization: null }} />);
+    ask.mockResolvedValueOnce({ id: 'c', status: 'approved', html_url: 'https://dev-null.sh/c' });
 
-    expect(root.querySelector('[data-auto-mention]')).toBeNull();
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove laravel/framework from your commit"]')!.click());
+    const textarea = root.querySelector('textarea')!;
+    await act(async () => {
+      textarea.value = 'Hello';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
   });
 
   it('previews the commit from the eye in its toolbar, as dev-null.sh does', async () => {

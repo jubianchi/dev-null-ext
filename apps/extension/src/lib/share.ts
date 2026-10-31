@@ -29,17 +29,6 @@ export function commitLength(body: string): number {
 
 export type SharedPage = Extract<GitHubPage, { url: string }>;
 
-/**
- * The body of a commit sharing a GitHub page: what the user wrote, the link (which /dev/null shows as owner/repo#123
- * with a card), and the organization as a bare @mention, which is what files the commit under the organization's
- * page on /dev/null. `@org/repo` is not a mention there, on purpose.
- */
-export function shareBody(text: string, page: SharedPage, organization: string | null): string {
-  return [text.trim(), [page.url, organization ? `@${organization}` : null].filter(Boolean).join('\n')]
-    .filter(Boolean)
-    .join('\n\n');
-}
-
 export function shareLabel(page: SharedPage): string {
   switch (page.kind) {
     case 'pull-request':
