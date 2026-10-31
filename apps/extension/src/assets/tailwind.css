@@ -45,6 +45,20 @@
   color-scheme: light dark;
 }
 
+/* /dev/null's highlighter classes (tempest/highlight), in GitHub's own syntax colours. */
+.hl-keyword { color: var(--color-prettylights-syntax-keyword, #cf222e); }
+.hl-type,
+.hl-generic { color: var(--color-prettylights-syntax-entity, #6639ba); }
+.hl-property,
+.hl-attribute { color: var(--color-prettylights-syntax-constant, #0550ae); }
+.hl-value { color: var(--color-prettylights-syntax-string, #0a3069); }
+.hl-number,
+.hl-literal { color: var(--color-prettylights-syntax-constant, #0550ae); }
+.hl-variable { color: var(--color-prettylights-syntax-variable, #953800); }
+.hl-comment { color: var(--color-prettylights-syntax-comment, #59636e); }
+.hl-addition { color: var(--color-prettylights-syntax-markup-inserted-text, #116329); }
+.hl-deletion { color: var(--color-prettylights-syntax-markup-deleted-text, #82071e); }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
