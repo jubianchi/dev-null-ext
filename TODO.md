@@ -16,8 +16,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 
 ## 2. Act on a commit from the log
 
-- [ ] Star and unstar: the client already has `star()` and `unstar()`; add the button on the star counter.
-- [ ] Reply and Quote: link to the commit on dev-null.sh first; composing them in the extension comes later.
+- [x] Star and unstar: the client already has `star()` and `unstar()`; add the button on the star counter.
+- [x] Reply and Quote: link to the commit on dev-null.sh first; composing them in the extension comes later.
 
 ## 3. Threads
 

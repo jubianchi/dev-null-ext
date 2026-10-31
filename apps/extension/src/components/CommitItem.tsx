@@ -1,5 +1,6 @@
 import type { BodyMention, BodySegment, Commit } from '@devnull-github/client';
 import { useState } from 'preact/hooks';
+import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
@@ -71,22 +72,56 @@ export function CommitItem({ commit }: { commit: Commit }) {
         <CommitImages images={commit.images ?? []} hash={commit.short_hash} link={commit.html_url} />
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
-        <div class="mt-2 flex gap-4 text-xs text-fg-muted">
-          {commit.stars_count !== undefined && (
-            <span class="inline-flex items-center gap-1" aria-label={plural(commit.stars_count, 'star', 'stars')}>
-              <Octicon name={commit.starred ? 'star-fill' : 'star'} class={commit.starred ? 'text-fg-attention' : ''} />
-              {commit.stars_count}
-            </span>
-          )}
+        <div class="mt-2 flex items-center gap-4 text-xs text-fg-muted">
+          {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
           {commit.replies_count !== undefined && (
-            <span class="inline-flex items-center gap-1" aria-label={plural(commit.replies_count, 'reply', 'replies')}>
+            <a
+              href={commit.html_url}
+              target="_blank"
+              rel="noopener"
+              title="Reply on /dev/null"
+              class={ACTION}
+              aria-label={plural(commit.replies_count, 'reply', 'replies')}
+            >
               <Octicon name="comment" />
               {commit.replies_count}
-            </span>
+            </a>
           )}
+          <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
+            <Octicon name="quote" />
+            Quote
+          </a>
           {commit.status === 'pending' && <span class="text-fg-attention">Pending review</span>}
         </div>
       </div>
     </li>
+  );
+}
+
+const ACTION = 'inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-fg-muted hover:bg-canvas-muted hover:text-fg-accent';
+
+/** The star counter, which stars and unstars the commit: at once, and back as it was if /dev/null refuses. */
+function Star({ commit, count }: { commit: Commit; count: number }) {
+  const [state, setState] = useState({ starred: commit.starred ?? false, count });
+
+  function toggle() {
+    const previous = state;
+    const starred = !previous.starred;
+    setState({ starred, count: previous.count + (starred ? 1 : -1) });
+    ask({ type: 'star', commitId: commit.id, starred }).catch(() => setState(previous));
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-pressed={state.starred}
+      aria-label={plural(state.count, 'star', 'stars')}
+      title={state.starred ? 'Unstar' : 'Star'}
+      class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit]`}
+    >
+      <Octicon name={state.starred ? 'star-fill' : 'star'} class={state.starred ? 'text-fg-attention' : ''} />
+      {state.count}
+    </button>
   );
 }

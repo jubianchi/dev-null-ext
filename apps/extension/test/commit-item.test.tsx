@@ -2,8 +2,15 @@
 import type { Commit } from '@devnull-github/client';
 import { render } from 'preact';
 import { act } from 'preact/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CommitItem } from '../src/components/CommitItem.tsx';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const ask = vi.hoisted(() => vi.fn());
+vi.mock('../src/lib/messages.ts', () => ({
+  ask,
+  BackgroundError: class BackgroundError extends Error {},
+}));
+
+const { CommitItem } = await import('../src/components/CommitItem.tsx');
 
 const commit: Commit = {
   id: 'c1',
@@ -20,6 +27,8 @@ const commit: Commit = {
 let root: HTMLElement;
 
 beforeEach(() => {
+  ask.mockReset();
+  ask.mockResolvedValue(null);
   root = document.createElement('ul');
   document.body.append(root);
 });
@@ -131,6 +140,44 @@ describe('CommitItem', () => {
 
     render(<CommitItem commit={{ ...commit, quoted_commit_id: 'q2', quoted_commit: null }} />, root);
     expect(root.textContent).toContain("This commit isn't available.");
+  });
+
+  it('stars and unstars the commit from its star counter, at once', async () => {
+    render(<CommitItem commit={commit} />, root);
+    const star = root.querySelector<HTMLButtonElement>('button[aria-pressed]')!;
+    expect(star.getAttribute('aria-pressed')).toBe('false');
+
+    await act(async () => star.click());
+    expect(ask).toHaveBeenLastCalledWith({ type: 'star', commitId: 'c1', starred: true });
+    expect(star.getAttribute('aria-pressed')).toBe('true');
+    expect(star.getAttribute('aria-label')).toBe('4 stars');
+    expect(star.querySelector('svg.octicon-star-fill')).not.toBeNull();
+
+    await act(async () => star.click());
+    expect(ask).toHaveBeenLastCalledWith({ type: 'star', commitId: 'c1', starred: false });
+    expect(star.getAttribute('aria-label')).toBe('3 stars');
+  });
+
+  it('puts the star back as it was when /dev/null refuses it', async () => {
+    ask.mockRejectedValueOnce(new Error('offline'));
+    render(<CommitItem commit={commit} />, root);
+    const star = root.querySelector<HTMLButtonElement>('button[aria-pressed]')!;
+
+    await act(async () => star.click());
+    await act(async () => {});
+
+    expect(star.getAttribute('aria-pressed')).toBe('false');
+    expect(star.getAttribute('aria-label')).toBe('3 stars');
+  });
+
+  it('replies and quotes on /dev/null, from links to the commit', () => {
+    render(<CommitItem commit={commit} />, root);
+
+    const reply = root.querySelector('a[aria-label="1 reply"]');
+    const quote = [...root.querySelectorAll('a')].find((link) => link.textContent === 'Quote');
+    expect(reply?.getAttribute('href')).toBe(commit.html_url);
+    expect(quote?.getAttribute('href')).toBe(commit.html_url);
+    expect(quote?.querySelector('svg.octicon-quote')).not.toBeNull();
   });
 
   it('fills the star of a commit the user starred', () => {

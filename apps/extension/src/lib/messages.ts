@@ -11,6 +11,7 @@ export type Request =
   | { type: 'commit'; body: string }
   | { type: 'preview'; body: string }
   | { type: 'image'; url: string }
+  | { type: 'star'; commitId: string; starred: boolean }
   | { type: 'owner-type'; login: string }
   | { type: 'sign-in' }
   | { type: 'sign-in:loopback' }
@@ -26,6 +27,7 @@ export interface Responses {
   preview: CommitPreview;
   /** A data URL: github.com's CSP blocks images from dev-null.sh. */
   image: string;
+  star: null;
   'owner-type': OwnerType;
   'sign-in': SignInState;
   'sign-in:loopback': SignInState;
