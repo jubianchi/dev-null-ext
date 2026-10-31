@@ -70,13 +70,16 @@ Everything that depends on GitHub's markup is in `apps/extension/src/lib/github/
 
 - `page.ts` reads the page from the URL, with `meta[name="hovercard-subject-tag"]` telling an organization from a
   user, and the issue or pull request title from `document.title`.
-- `anchors.ts` lists, for each place the extension attaches, selectors from the most to the least specific.
+- `anchors.ts` lists, for each place the extension attaches, selectors from the most to the least specific, and
+  answers with a selector, never an element, as WXT requires.
+- `navigation.ts` tells when to read the page again: after Turbo renders it, since WXT's location change fires before.
 
-UIs are mounted with WXT's `autoMount`, so they follow GitHub's soft navigations, and live in a Shadow DOM, styled
-with Tailwind mapped onto Primer's CSS variables (`src/assets/tailwind.css`): GitHub's light, dark and high-contrast
-themes apply with no code. WXT 0.21 moves Tailwind's `@property` rules out of the shadow root, where they don't work.
-
-The anchors were checked against GitHub's pages signed out. **Check them signed in** before relying on them.
+GitHub serves two markups: signed out, the organization tabs are in the organization's header; signed in, they are a
+Primer React `UnderlineNav` in the global header, which React may render again at any time. UIs are therefore kept
+mounted by `src/lib/keep-mounted.ts`, which watches the mounted element rather than its anchor. They live in a Shadow
+DOM, styled with Tailwind mapped onto Primer's CSS variables (`src/assets/tailwind.css`): GitHub's light, dark and
+high-contrast themes apply with no code. WXT 0.21 moves Tailwind's `@property` rules out of the shadow root, where they
+don't work. The organization tab is the exception: it sits in GitHub's own tab list and copies its neighbours' classes.
 
 ## Before publishing anywhere
 
