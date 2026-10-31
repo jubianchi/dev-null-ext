@@ -118,5 +118,9 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     length,
     canCommit,
     submit,
+    /** Back to writing, for the next commit, once one is sent. */
+    writeAnother: () => {
+      if ('user' in state) setState({ step: 'writing', user: state.user });
+    },
   };
 }

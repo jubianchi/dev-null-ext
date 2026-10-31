@@ -6,6 +6,7 @@ import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
+import { Committed } from './Committed.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -39,14 +40,7 @@ export function Composer({ target }: { target: Target }) {
         <p class="m-0 text-fg-muted">Connect your /dev/null account from the extension's button in the browser toolbar, then come back here.</p>
       )}
 
-      {state.step === 'sent' && (
-        <div class="space-y-2">
-          <p class="m-0">{state.commit.status === 'pending' ? 'Committed. It shows publicly once it passes review.' : 'Committed.'}</p>
-          <a href={state.commit.html_url} target="_blank" rel="noopener" class="text-fg-accent hover:underline">
-            View on /dev/null
-          </a>
-        </div>
-      )}
+      {state.step === 'sent' && <Committed commit={state.commit} onWriteAnother={draft.writeAnother} />}
 
       {(state.step === 'writing' || state.step === 'sending' || state.step === 'failed') && (
         <form

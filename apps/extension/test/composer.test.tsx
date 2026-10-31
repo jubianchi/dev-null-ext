@@ -34,6 +34,17 @@ const issue = {
   url: 'https://github.com/laravel/framework/issues/1',
 };
 
+const committed = {
+  id: 'c',
+  short_hash: 'c000000',
+  body: 'Hello',
+  parent_id: null,
+  status: 'approved',
+  html_url: 'https://dev-null.sh/c',
+  created_at: '2026-10-31T10:00:00Z',
+  author: user,
+};
+
 let root: HTMLElement;
 
 beforeEach(() => {
@@ -207,7 +218,7 @@ describe('Composer', () => {
 
   it('attaches images from the first button of its toolbar, and commits them', async () => {
     await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
-    ask.mockResolvedValueOnce({ id: 'c', status: 'approved', html_url: 'https://dev-null.sh/c' });
+    ask.mockResolvedValueOnce(committed);
 
     const toolbar = root.querySelector('[role="toolbar"]')!;
     expect(toolbar.firstElementChild?.getAttribute('aria-label')).toBe('Attach images');
@@ -233,7 +244,7 @@ describe('Composer', () => {
 
   it('commits what the user wrote', async () => {
     await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
-    ask.mockResolvedValueOnce({ id: 'c', status: 'approved', html_url: 'https://dev-null.sh/c' });
+    ask.mockResolvedValueOnce(committed);
 
     const textarea = root.querySelector('textarea')!;
     await act(async () => {
@@ -247,6 +258,61 @@ describe('Composer', () => {
 
     expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
     expect(root.textContent).toContain('View on /dev/null');
+  });
+});
+
+describe('Composer, once committed', () => {
+  const published = (status: 'approved' | 'pending') => ({
+    id: 'c1',
+    short_hash: 'abc1234',
+    body: 'Shipped it',
+    body_segments: [{ type: 'text', text: 'Shipped it' }],
+    parent_id: null,
+    html_url: 'https://dev-null.sh/c1',
+    created_at: '2026-10-31T10:00:00Z',
+    author: user,
+    status,
+  });
+
+  async function commit(status: 'approved' | 'pending') {
+    await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
+    ask.mockResolvedValueOnce(published(status));
+    const textarea = root.querySelector('textarea')!;
+    await act(async () => {
+      textarea.value = 'Shipped it';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await act(async () => {});
+  }
+
+  it('shows the commit as published, by its author, with a link to it on /dev/null', async () => {
+    await commit('approved');
+
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Committed to /dev/null');
+    const card = root.querySelector('[data-committed]')!;
+    expect(card.textContent).toContain('Shipped it');
+    expect(card.textContent).toContain('@jubianchi');
+    expect(card.textContent).toContain('abc1234');
+    const link = [...root.querySelectorAll('a')].find((anchor) => anchor.textContent?.includes('View on /dev/null'));
+    expect(link?.getAttribute('href')).toBe('https://dev-null.sh/c1');
+  });
+
+  it('says when the commit waits for review before it shows publicly', async () => {
+    await commit('pending');
+
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('It shows publicly once it passes review.');
+  });
+
+  it('writes another commit from an empty composer', async () => {
+    await commit('approved');
+    const again = [...root.querySelectorAll('button')].find((button) => button.textContent === 'Write another')!;
+    await act(async () => again.click());
+
+    expect(root.querySelector('[data-committed]')).toBeNull();
+    expect(root.querySelector('textarea')?.value).toBe('');
   });
 });
 
