@@ -5,6 +5,14 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   srcDir: 'src',
   vite: () => ({ plugins: [preact(), tailwindcss()] }),
+  zip: {
+    artifactTemplate: 'devnull-github-{{version}}-{{browser}}.zip',
+    sourcesTemplate: 'devnull-github-{{version}}-sources.zip',
+    // Firefox Add-ons rebuilds the extension from its sources: the whole workspace, with the client and the lockfile.
+    sourcesRoot: '../..',
+    includeSources: ['.npmrc'],
+    excludeSources: ['**/.output/**', '**/.wxt/**', '**/coverage/**', '.idea/**', '.claude/**', 'docs/**'],
+  },
   manifest: ({ browser }) => ({
     name: '/dev/null for GitHub',
     description:
