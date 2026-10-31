@@ -58,12 +58,8 @@ export function OrganizationPanel({ organization }: { organization: string }) {
     setState((current) => (current.step === 'loaded' ? { ...current, commits: [commit, ...current.commits] } : current));
   }
 
-  function commit() {
-    if (composerMode({ log: true, topInView }) === 'modal') return setWriting(true);
-
-    inline.current?.querySelector('textarea')?.focus();
-  }
-
+  /** The inline composer is the way to commit while it is in view; once scrolled away, the header offers the modal. */
+  const headerCommits = user && composerMode({ log: true, topInView }) === 'modal';
   const profile = `https://dev-null.sh/@${organization}`;
 
   return (
@@ -71,19 +67,27 @@ export function OrganizationPanel({ organization }: { organization: string }) {
       <header class="sticky top-0 z-10 -mx-4 mb-4 flex flex-wrap items-center gap-3 bg-canvas px-4 py-2">
         <Glyph class="size-5" />
         <h2 class="m-0 text-xl font-semibold">Commits mentioning @{organization}</h2>
-        <div class="ml-auto flex items-center gap-2">
-          <a href={profile} target="_blank" rel="noopener" class="text-sm text-fg-accent hover:underline">
-            Open on /dev/null
-          </a>
-          {user && (
+        {/* The link comes last, so the Commit button showing up or going away never moves it. */}
+        <div class="ml-auto flex items-center gap-1">
+          {headerCommits && (
             <button
               type="button"
-              onClick={commit}
-              class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
+              onClick={() => setWriting(true)}
+              class="h-8 cursor-pointer rounded-md border border-solid border-transparent bg-primary px-3 text-sm font-medium leading-[21px] text-primary-fg hover:bg-primary-hover"
             >
               Commit
             </button>
           )}
+          <a
+            href={profile}
+            target="_blank"
+            rel="noopener"
+            aria-label={`Open @${organization} on /dev/null`}
+            title={`Open @${organization} on /dev/null`}
+            class="flex size-8 items-center justify-center rounded-md text-fg-muted hover:bg-button-hover hover:text-fg"
+          >
+            <Glyph class="size-4" muted />
+          </a>
         </div>
       </header>
 

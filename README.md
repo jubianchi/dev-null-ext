@@ -97,8 +97,10 @@ flowchart TD
 ```
 
 - **A log at its top**: the composer is inline, above the log, like GitHub's comment box above a timeline.
-- **A log scrolled down**: the log's header stays at the top of the screen, and its *Commit* button opens the composer
-  in a modal, so writing never scrolls the reader away from where they are.
+- **A log scrolled down**: the log's header stays at the top of the screen, and a *Commit* button shows up in it to
+  open the composer in a modal, so writing never scrolls the reader away from where they are. While the inline
+  composer is in view, the header has no *Commit* button: there is one way to commit at a time. The header's last
+  item never moves, so a button showing up or going away shifts nothing.
 - **No log** (the share button on a repository, an issue or a pull request): the composer is modal.
 
 The inline composer is GitHub's comment box with /dev/null's essentials: *Write* and *Preview* tabs, the character

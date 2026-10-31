@@ -108,18 +108,28 @@ describe('OrganizationPanel', () => {
     expect(document.activeElement).not.toBe(textarea);
   });
 
-  it('focuses the inline composer from the header while the top of the log is in view', async () => {
+  it('has no Commit button in its header while the inline composer is in view', async () => {
     await scroll(true);
-    await act(async () => root.querySelector<HTMLButtonElement>('header button')!.click());
 
-    expect(root.querySelector('dialog')).toBeNull();
-    expect(document.activeElement).toBe(root.querySelector('textarea'));
+    expect(root.querySelector('header button')).toBeNull();
   });
 
-  it('opens the composer in a modal from the header once the log is scrolled down', async () => {
+  it('shows a Commit button in its header once the log is scrolled down, which opens the composer in a modal', async () => {
     await scroll(false);
     await act(async () => root.querySelector<HTMLButtonElement>('header button')!.click());
 
     expect(root.querySelector('dialog')?.open).toBe(true);
+  });
+
+  it('links to the organization on /dev/null with its muted glyph alone, last in the header so it never moves', async () => {
+    await scroll(false);
+    const header = root.querySelector('header')!;
+    const link = header.querySelector<HTMLAnchorElement>('a[href="https://dev-null.sh/@laravel"]');
+
+    expect(link?.getAttribute('aria-label')).toBe('Open @laravel on /dev/null');
+    expect(link?.textContent).toBe('');
+    expect(link?.querySelector('svg')).not.toBeNull();
+    expect(link?.className).toContain('text-fg-muted');
+    expect(link?.parentElement?.lastElementChild).toBe(link);
   });
 });
