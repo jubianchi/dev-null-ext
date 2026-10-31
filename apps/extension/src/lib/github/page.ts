@@ -21,6 +21,7 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
   const segments = location.pathname.split('/').filter(Boolean);
   const [owner, repository, section, number] = segments;
 
+  if (owner === 'orgs' && repository) return { kind: 'organization', organization: repository };
   if (!owner || RESERVED.has(owner.toLowerCase())) return { kind: 'other' };
 
   if (segments.length === 1) {

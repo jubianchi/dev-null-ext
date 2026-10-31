@@ -47,8 +47,21 @@ describe('readPage', () => {
     });
   });
 
+  it("knows an organization's other tabs from their /orgs URL", () => {
+    for (const tab of ['repositories', 'projects', 'packages', 'people', 'sponsoring', 'discussions']) {
+      expect(readPage(new URL(`https://github.com/orgs/dev-null-sh/${tab}`), documentWith(null))).toEqual({
+        kind: 'organization',
+        organization: 'dev-null-sh',
+      });
+    }
+    expect(readPage(new URL('https://github.com/orgs/NativePHP/discussions?discussions_q=is%3Aopen'), documentWith(null))).toEqual({
+      kind: 'organization',
+      organization: 'NativePHP',
+    });
+  });
+
   it("leaves GitHub's own pages alone", () => {
     expect(readPage(new URL('https://github.com/settings/profile'), documentWith(null))).toEqual({ kind: 'other' });
-    expect(readPage(new URL('https://github.com/orgs/laravel/people'), documentWith(null))).toEqual({ kind: 'other' });
+    expect(readPage(new URL('https://github.com/orgs'), documentWith(null))).toEqual({ kind: 'other' });
   });
 });
