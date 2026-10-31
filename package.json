@@ -4,13 +4,20 @@
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.20.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
+    "lint": "biome check .",
+    "format": "biome check --write .",
     "dev": "pnpm --filter @devnull-github/extension dev",
     "dev:firefox": "pnpm --filter @devnull-github/extension dev:firefox",
     "zip": "pnpm --filter @devnull-github/extension zip && pnpm --filter @devnull-github/extension zip:firefox"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15"
   }
 }
