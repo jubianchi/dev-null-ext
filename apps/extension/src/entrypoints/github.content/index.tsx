@@ -15,6 +15,7 @@ import {
 } from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
+import { panelToggle } from '../../lib/panel-toggle.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import '../../assets/tailwind.css';
 
@@ -121,7 +122,6 @@ function keptMounted(
  * back.
  */
 function organizationTab(ctx: ContentScriptContext, organization: string): Mounted {
-  let panel: Mounted | null = null;
   let hidden: HTMLElement | null = null;
   let deselected: Array<{ tab: Element; hadSelectedClass: boolean }> = [];
 
@@ -139,21 +139,12 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
   });
   const kept = keptMounted(ctx, tab, () => tab.wrapper, organizationTabs);
 
-  async function open() {
+  const panel = panelToggle(async () => {
     const content = organizationContent();
-    if (!content || panel) return;
+    if (!content) return { remove() {} };
 
     hidden = content;
     content.hidden = true;
-
-    for (const selected of selectedOrganizationTabs()) {
-      deselected.push({ tab: selected, hadSelectedClass: selected.classList.contains('selected') });
-      selected.classList.remove('selected');
-      selected.removeAttribute('aria-current');
-    }
-    const link = document.querySelector('[data-devnull-tab]');
-    if (deselected.some(({ hadSelectedClass }) => hadSelectedClass)) link?.classList.add('selected');
-    link?.setAttribute('aria-current', 'page');
 
     const ui = await createShadowRootUi(ctx, {
       name: 'devnull-organization',
@@ -165,12 +156,11 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
       onRemove: (container) => container && render(null, container),
     });
     ui.mount();
-    panel = ui;
-  }
+    return ui;
+  });
 
   function close() {
-    panel?.remove();
-    panel = null;
+    panel.hide();
     if (hidden) hidden.hidden = false;
     hidden = null;
 
@@ -184,9 +174,23 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
     deselected = [];
   }
 
+  /** Idempotent, since GitHub's React may render the tab bar again, and the /dev/null tab with it, while it is open. */
+  function select() {
+    for (const selected of selectedOrganizationTabs()) {
+      deselected.push({ tab: selected, hadSelectedClass: selected.classList.contains('selected') });
+      selected.classList.remove('selected');
+      selected.removeAttribute('aria-current');
+    }
+    const link = document.querySelector('[data-devnull-tab]');
+    if (deselected.some(({ hadSelectedClass }) => hadSelectedClass)) link?.classList.add('selected');
+    link?.setAttribute('aria-current', 'page');
+  }
+
   async function sync() {
-    if (window.location.hash === TAB_HASH) await open();
-    else close();
+    if (window.location.hash !== TAB_HASH) return close();
+
+    select();
+    await panel.show();
   }
 
   ctx.addEventListener(window, 'hashchange', () => void sync());
