@@ -42,6 +42,36 @@ export interface Commit {
   body_segments?: BodySegment[];
   preview_segments?: BodySegment[] | null;
   mentions?: BodyMention[];
+  images?: CommitImage[];
+  link_preview?: LinkPreview | null;
+  /** Only on signed requests. The quoted commit is null when the viewer may not see it. */
+  quoted_commit_id?: string | null;
+  quoted_commit?: Commit | DeletedCommit | null;
+}
+
+/** What is left of a deleted commit (CommitResource's tombstone). */
+export interface DeletedCommit {
+  id: string;
+  parent_id: string | null;
+  deleted_at: string;
+}
+
+export interface CommitImage {
+  id: string;
+  width: number;
+  height: number;
+  description: string | null;
+  /** On dev-null.sh, which github.com's CSP does not allow as an image source. */
+  url: string;
+}
+
+export interface LinkPreview {
+  url: string;
+  title: string | null;
+  description: string | null;
+  image_url: string | null;
+  site_name: string | null;
+  is_pending: boolean;
 }
 
 /** A Laravel cursor-paginated resource collection. */
