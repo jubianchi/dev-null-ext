@@ -32,8 +32,8 @@ export type SharedPage = Extract<GitHubPage, { url: string }>;
 export function shareLabel(page: SharedPage): string {
   switch (page.kind) {
     case 'pull-request':
-      return `${page.owner}/${page.repository}#${page.number}`;
     case 'issue':
+    case 'discussion':
       return `${page.owner}/${page.repository}#${page.number}`;
     default:
       return `${page.owner}/${page.repository}`;

@@ -1,13 +1,57 @@
 import { describe, expect, it } from 'vitest';
 import { readPage } from '../src/lib/github/page.ts';
 
-function documentWith(subject: string | null, title = ''): Document {
+function documentWith(subject: string | null, title = '', repository: string | null = null): Document {
   return {
     title,
-    querySelector: (selector: string) =>
-      selector === 'meta[name="hovercard-subject-tag"]' && subject ? { content: subject } : null,
+    querySelector: (selector: string) => {
+      if (selector === 'meta[name="hovercard-subject-tag"]' && subject) return { content: subject };
+      if (selector === 'meta[name="octolytics-dimension-repository_nwo"]' && repository) return { content: repository };
+      return null;
+    },
   } as unknown as Document;
 }
+
+describe('readPage, discussions', () => {
+  it("reads an organization's discussion, linked in the form of the repository it lives in", () => {
+    expect(
+      readPage(
+        new URL('https://github.com/orgs/NativePHP/discussions/280'),
+        documentWith('discussion:11071506', 'Proposal: Public Tab · NativePHP · Discussion #280', 'NativePHP/discussions'),
+      ),
+    ).toEqual({
+      kind: 'discussion',
+      owner: 'NativePHP',
+      repository: 'discussions',
+      number: 280,
+      title: 'Proposal: Public Tab',
+      url: 'https://github.com/NativePHP/discussions/discussions/280',
+    });
+  });
+
+  it("reads a repository's discussion", () => {
+    expect(
+      readPage(
+        new URL('https://github.com/laravel/framework/discussions/42#discussioncomment-1'),
+        documentWith('discussion:1', 'Queues · laravel/framework · Discussion #42'),
+      ),
+    ).toEqual({
+      kind: 'discussion',
+      owner: 'laravel',
+      repository: 'framework',
+      number: 42,
+      title: 'Queues',
+      url: 'https://github.com/laravel/framework/discussions/42',
+    });
+  });
+
+  it("keeps an organization's discussions list an organization page", () => {
+    expect(readPage(new URL('https://github.com/orgs/NativePHP/discussions'), documentWith(null))).toEqual({
+      kind: 'organization',
+      organization: 'NativePHP',
+    });
+  });
+});
 
 describe('readPage', () => {
   it('knows an organization page from its hovercard subject', () => {

@@ -20,6 +20,12 @@ describe('addition sources', () => {
     expect(pageLink({ page: null, organization: 'laravel' })).toEqual([]);
   });
 
+  it('links a discussion as owner/repo#number', () => {
+    const discussion = { ...pull, kind: 'discussion' as const, repository: 'discussions', url: 'https://github.com/laravel/discussions/discussions/58112' };
+
+    expect(pageLink({ page: discussion, organization: 'laravel' })[0]?.label).toBe('laravel/discussions#58112');
+  });
+
   it('mentions the organization, which files the commit under its /dev/null page', () => {
     expect(organizationMention({ page: pull, organization: 'laravel' })).toEqual([
       expect.objectContaining({ id: 'organization-mention', kind: 'mention', text: '@laravel', label: '@laravel' }),

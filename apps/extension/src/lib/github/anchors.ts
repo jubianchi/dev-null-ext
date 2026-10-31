@@ -53,20 +53,26 @@ export interface ShareButtonAnchor {
   size: 'medium' | 'small';
   /** Whether the container is a list, so the button goes in a list item. */
   item: boolean;
+  /** First in the container of GitHub's buttons, or right after the element when a header has none. */
+  position: 'first' | 'after';
 }
 
 /** The containers of GitHub's own header buttons, from the most to the least specific page. */
 const SHARE_BUTTON_ANCHORS: ShareButtonAnchor[] = [
   // An issue: with New issue and Copy link, in the title's actions. GitHub renders them twice, the other copy in the
   // ContextArea, which only shows on narrow screens.
-  { selector: '[data-component="PH_Actions"] [class*="menuActionsContainer"]', size: 'medium', item: false },
+  { selector: '[data-component="PH_Actions"] [class*="menuActionsContainer"]', size: 'medium', item: false, position: 'first' },
   // A pull request: with Edit and Code.
-  { selector: '[data-component="PH_Actions"]', size: 'medium', item: false },
+  { selector: '[data-component="PH_Actions"]', size: 'medium', item: false, position: 'first' },
+  // A discussion (classic markup): with its actions for those who may edit it; at the end of the title's row, which
+  // the title fills, for the others. Before the repository's buttons, which a repository's discussion may show too.
+  { selector: '.gh-header-show .gh-header-actions', size: 'medium', item: false, position: 'first' },
+  { selector: '.gh-header-show h1.gh-header-title', size: 'medium', item: false, position: 'after' },
   // A repository: with Watch, Fork and Star.
-  { selector: 'ul[class*="RepoHeaderActions"]', size: 'small', item: true },
-  { selector: 'ul.pagehead-actions', size: 'small', item: true },
+  { selector: 'ul[class*="RepoHeaderActions"]', size: 'small', item: true, position: 'first' },
+  { selector: 'ul.pagehead-actions', size: 'small', item: true, position: 'first' },
   // The classic markup of issues and pull requests.
-  { selector: '.gh-header-actions', size: 'small', item: false },
+  { selector: '.gh-header-actions', size: 'small', item: false, position: 'first' },
 ];
 
 /** Where the share button goes: first among GitHub's own buttons of the page's header, at their size. */

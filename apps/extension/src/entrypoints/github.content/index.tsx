@@ -60,6 +60,7 @@ async function mount(ctx: ContentScriptContext, page: GitHubPage): Promise<Mount
     case 'repository':
     case 'pull-request':
     case 'issue':
+    case 'discussion':
       return [await shareButton(ctx, page)];
     default:
       return [];
@@ -76,8 +77,14 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     // First among GitHub's own buttons, whose container spaces them; in a list item when it is a list.
     append: (anchor, element) => {
       removeShareItems();
+      const placement = shareButtonAnchor();
       (element as HTMLElement).style.display = 'inline-flex';
-      if (!shareButtonAnchor()?.item) return anchor.prepend(element);
+      if (placement?.position === 'after') {
+        (element as HTMLElement).style.alignSelf = 'flex-start';
+        (element as HTMLElement).style.marginLeft = '8px';
+        return anchor.after(element);
+      }
+      if (!placement?.item) return anchor.prepend(element);
 
       const item = document.createElement('li');
       item.dataset['devnullShare'] = '';

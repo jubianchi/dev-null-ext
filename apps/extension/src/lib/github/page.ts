@@ -6,7 +6,14 @@
 export type GitHubPage =
   | { kind: 'organization'; organization: string }
   | { kind: 'repository'; owner: string; repository: string; url: string }
-  | { kind: 'pull-request' | 'issue'; owner: string; repository: string; number: number; title: string | null; url: string }
+  | {
+      kind: 'pull-request' | 'issue' | 'discussion';
+      owner: string;
+      repository: string;
+      number: number;
+      title: string | null;
+      url: string;
+    }
   | { kind: 'other' };
 
 /** First path segments that are GitHub's own pages, never an owner. */
@@ -21,7 +28,10 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
   const segments = location.pathname.split('/').filter(Boolean);
   const [owner, repository, section, number] = segments;
 
-  if (owner === 'orgs' && repository) return { kind: 'organization', organization: repository };
+  if (owner === 'orgs' && repository) {
+    const discussion = section === 'discussions' && number && /^\d+$/.test(number) ? organizationDiscussion(repository, Number(number), document) : null;
+    return discussion ?? { kind: 'organization', organization: repository };
+  }
   if (!owner || RESERVED.has(owner.toLowerCase())) return { kind: 'other' };
 
   if (segments.length === 1) {
@@ -33,8 +43,8 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
 
   const base = `https://github.com/${owner}/${repository}`;
 
-  if ((section === 'pull' || section === 'issues') && number && /^\d+$/.test(number)) {
-    const kind = section === 'pull' ? 'pull-request' : 'issue';
+  if ((section === 'pull' || section === 'issues' || section === 'discussions') && number && /^\d+$/.test(number)) {
+    const kind = section === 'pull' ? 'pull-request' : section === 'issues' ? 'issue' : 'discussion';
     return { kind, owner, repository, number: Number(number), title: readTitle(document), url: `${base}/${section}/${number}` };
   }
 
@@ -42,11 +52,31 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
 }
 
 /**
- * The issue or pull request title from the document title, "<title> · Pull Request #12 · owner/repo · GitHub", which
- * has been stable for years where the page markup has not.
+ * An organization's discussion. It lives in one of the organization's repositories, which the page names
+ * (octolytics' repository_nwo): it is linked in that repository's form, github.com/owner/repo/discussions/12, which
+ * GitHub redirects to the organization's page, and which /dev/null and the extension show as owner/repo#12.
+ */
+function organizationDiscussion(organization: string, number: number, document: Document): GitHubPage | null {
+  const nwo = document.querySelector<HTMLMetaElement>('meta[name="octolytics-dimension-repository_nwo"]')?.content ?? '';
+  const [owner, repository] = nwo.split('/');
+  if (!owner || !repository || owner.toLowerCase() !== organization.toLowerCase()) return null;
+
+  return {
+    kind: 'discussion',
+    owner,
+    repository,
+    number,
+    title: readTitle(document),
+    url: `https://github.com/${owner}/${repository}/discussions/${number}`,
+  };
+}
+
+/**
+ * The issue, pull request or discussion title from the document title, "<title> · Pull Request #12 · owner/repo ·
+ * GitHub" or "<title> · owner · Discussion #12", which has been stable for years where the page markup has not.
  */
 function readTitle(document: Document): string | null {
-  const match = /^(.*) · (?:Pull Request|Issue) #\d+ · /.exec(document.title);
+  const match = /^(.*?) · (?:(?:Pull Request|Issue) #\d+ · |.* · Discussion #\d+)/.exec(document.title);
   return match?.[1]?.trim() || null;
 }
 
