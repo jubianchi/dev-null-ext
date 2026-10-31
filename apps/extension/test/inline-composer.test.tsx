@@ -94,6 +94,30 @@ describe('InlineComposer', () => {
     expect(root.textContent).toContain('19 / 4000');
   });
 
+  it('shows the mention it adds below the text, and lets the user remove it and put it back', async () => {
+    await type('Shipped');
+    const remove = root.querySelector<HTMLButtonElement>('button[aria-label="Remove the mention of @laravel"]');
+    expect(remove?.closest('[data-auto-mention]')?.textContent).toContain('@laravel');
+    expect(root.textContent).toContain('17 / 4000');
+
+    await act(async () => remove!.click());
+    expect(root.textContent).toContain('7 / 4000');
+
+    const add = root.querySelector<HTMLButtonElement>('button[aria-label="Mention @laravel"]');
+    await act(async () => add!.click());
+    expect(root.querySelector('button[aria-label="Remove the mention of @laravel"]')).not.toBeNull();
+  });
+
+  it('commits without the mention once removed', async () => {
+    await type('Shipped');
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove the mention of @laravel"]')!.click());
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Shipped' });
+  });
+
   it("says what /dev/null's commits support", () => {
     expect(root.textContent).toContain('Links, @mentions, :emoji: and `code` are supported');
   });

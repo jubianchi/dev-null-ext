@@ -33,7 +33,7 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
   const organization = mention ? target.organization : null;
   const body = target.page
     ? shareBody(text, target.page, organization)
-    : [text.trim(), `@${target.organization}`].filter(Boolean).join('\n\n');
+    : [text.trim(), organization ? `@${organization}` : null].filter(Boolean).join('\n\n');
   const length = commitLength(body);
   const canCommit =
     text.trim() !== '' && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');

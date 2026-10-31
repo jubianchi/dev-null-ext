@@ -39,8 +39,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 
 ## 5. Polish
 
-- [ ] The counter shows "12 / 4000" on an empty composer, because it counts the organization's @mention added below
-      the text.
+- [x] The organization's @mention, added below the text, is visible and removable in both composers: the counter
+      ("12 / 4000" on an empty composer) is no longer a surprise.
 - [ ] Put the share button with the header actions of issues and pull requests, next to "New issue", not against the
       title.
 - [ ] Date separators in the log, as dev-null.sh does.

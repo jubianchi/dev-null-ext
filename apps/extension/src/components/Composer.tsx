@@ -2,6 +2,7 @@ import type { CurrentUser } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
+import { AutoMention } from './AutoMention.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -73,10 +74,15 @@ export function Composer({ target }: { target: Target }) {
             )}
             </div>
 
-            {target.page && (
-              <p class="m-0 mt-1 text-xs text-fg-muted">
-                Links <span class="font-mono text-fg">{shareLabel(target.page)}</span>
-              </p>
+            {(target.page || target.organization) && (
+              <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-fg-muted">
+                {target.page && (
+                  <span>
+                    Links <span class="font-mono text-fg">{shareLabel(target.page)}</span>
+                  </span>
+                )}
+                {target.organization && <AutoMention organization={target.organization} on={mention} onChange={setMention} />}
+              </div>
             )}
 
             {state.step === 'failed' && <CommitError error={state.error} />}
@@ -93,17 +99,6 @@ export function Composer({ target }: { target: Target }) {
                 >
                   <Octicon name="eye" />
                 </button>
-                {target.organization && target.page && (
-                  <button
-                    type="button"
-                    aria-pressed={mention}
-                    onClick={() => setMention(!mention)}
-                    title={`Mention @${target.organization}, so it shows on the organization's /dev/null page`}
-                    class="rounded-md px-2 py-1 font-mono text-xs text-fg-muted hover:bg-button-hover hover:text-fg aria-pressed:bg-button aria-pressed:text-fg-accent"
-                  >
-                    @{target.organization}
-                  </button>
-                )}
               </div>
 
               <span class={`ml-auto text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>

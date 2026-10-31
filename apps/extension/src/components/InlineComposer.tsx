@@ -2,6 +2,7 @@ import type { Commit } from '@devnull-github/client';
 import { useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
+import { AutoMention } from './AutoMention.tsx';
 import { CommitError } from './CommitError.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
@@ -13,7 +14,10 @@ type Tab = 'write' | 'preview';
  * limit. It stays open after a commit, for the next one.
  */
 export function InlineComposer({ organization, onCommitted }: { organization: string; onCommitted?: (commit: Commit) => void }) {
-  const { state, text, setText, body, length, canCommit, submit } = useCommitDraft({ page: null, organization }, onCommitted);
+  const { state, text, setText, mention, setMention, body, length, canCommit, submit } = useCommitDraft(
+    { page: null, organization },
+    onCommitted,
+  );
   const [tab, setTab] = useState<Tab>('write');
 
   if (state.step === 'loading') return null;
@@ -71,7 +75,8 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
           )}
         </div>
 
-        <div class="flex items-center gap-3 px-3 pb-2 text-xs text-fg-muted">
+        <div class="flex flex-wrap items-center gap-3 px-3 pb-2 text-xs text-fg-muted">
+          <AutoMention organization={organization} on={mention} onChange={setMention} />
           <span>Links, @mentions, :emoji: and `code` are supported</span>
           <span class={`ml-auto ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : ''}`}>
             {length} / {MAX_COMMIT_LENGTH}

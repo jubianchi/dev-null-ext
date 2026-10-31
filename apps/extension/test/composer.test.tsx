@@ -56,15 +56,23 @@ describe('Composer', () => {
     expect(root.querySelector('textarea')).not.toBeNull();
   });
 
-  it('puts the mention of the organization in its toolbar, on by default', async () => {
+  it('shows the mention of the organization it adds, which the user can remove and put back', async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 
-    const toolbar = root.querySelector('[role="toolbar"]');
-    const mention = [...(toolbar?.querySelectorAll<HTMLButtonElement>('button[aria-pressed]') ?? [])].find((button) => button.textContent === '@laravel');
-    expect(mention?.getAttribute('aria-pressed')).toBe('true');
+    const remove = root.querySelector<HTMLButtonElement>('button[aria-label="Remove the mention of @laravel"]');
+    expect(remove?.closest('[data-auto-mention]')?.textContent).toContain('@laravel');
 
-    await act(async () => mention?.click());
-    expect(mention?.getAttribute('aria-pressed')).toBe('false');
+    await act(async () => remove!.click());
+    expect(root.querySelector('button[aria-label="Remove the mention of @laravel"]')).toBeNull();
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Mention @laravel"]')!.click());
+    expect(root.querySelector('button[aria-label="Remove the mention of @laravel"]')).not.toBeNull();
+  });
+
+  it('shows no mention to remove when the page is not an organization’s', async () => {
+    await mount(<Composer target={{ page, organization: null }} />);
+
+    expect(root.querySelector('[data-auto-mention]')).toBeNull();
   });
 
   it('previews the commit from the eye in its toolbar, as dev-null.sh does', async () => {
