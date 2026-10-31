@@ -26,6 +26,11 @@ describe('FEATURES', () => {
       expect(feature.hint).not.toBe('');
     }
   });
+
+  it('says where a button goes as "next to", never "by"', () => {
+    for (const feature of FEATURES) expect(feature.hint).not.toMatch(/\bby\b/i);
+    expect(FEATURES.find((feature) => feature.id === 'issue-button')?.hint).toBe('Next to New issue');
+  });
 });
 
 describe('decorationsFor', () => {

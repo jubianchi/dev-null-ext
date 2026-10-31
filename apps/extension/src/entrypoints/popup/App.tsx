@@ -6,7 +6,6 @@ import { Glyph } from '../../components/Glyph.tsx';
 import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
-import { type GitHubPage, readPage } from '../../lib/github/page.ts';
 import { type SignInState, ask } from '../../lib/messages.ts';
 import { type Settings, readSettings } from '../../lib/settings.ts';
 import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
@@ -34,12 +33,6 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'home' | 'settings'>('home');
   const [settings, setSettings] = useState<Settings>(() => readSettings(undefined));
-  const [page, setPage] = useState<GitHubPage | null>(null);
-
-  useEffect(() => {
-    void currentPage().then(setPage);
-  }, []);
-
   useEffect(() => {
     void browser.permissions.contains({ origins: ORIGINS }).then(setHostAccess);
     void signInItem.getValue().then(setSignIn);
@@ -100,7 +93,7 @@ export function App() {
         </button>
       </header>
 
-      {user && <PopupProfile user={user} page={page} settings={settings} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))} />}
+      {user && <PopupProfile user={user} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))} />}
 
       {user === null && signIn.status === 'idle' && <PopupWelcome developers={DEVELOPERS} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
 
@@ -178,15 +171,4 @@ export function App() {
       </div>
     </main>
   );
-}
-
-/**
- * The GitHub page in the current tab, from its URL and title (the host permission lets the popup read them). Its
- * markup is out of reach: an organization's overview, told apart by a meta tag, reads as no page.
- */
-async function currentPage(): Promise<GitHubPage | null> {
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.url?.startsWith('https://github.com/')) return null;
-
-  return readPage(new URL(tab.url), { title: tab.title ?? '', querySelector: () => null } as unknown as Document);
 }

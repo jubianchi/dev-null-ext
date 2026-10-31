@@ -1,26 +1,11 @@
 import type { CurrentUser } from '@devnull-github/client';
-import type { GitHubPage } from '../lib/github/page.ts';
-import { type Settings, shareFeatureFor } from '../lib/settings.ts';
-import { shareLabel } from '../lib/share.ts';
 import { laneColor } from './CommitParts.tsx';
-import { Octicon } from './Octicon.tsx';
 
 /**
- * The popup when connected, as dev-null.sh's profile card: the user's avatar in a dashed ring, their name and handle,
- * their counts when /dev/null sends them, and the way to their profile; then where to commit about the GitHub page in
- * the current tab.
+ * The popup when connected, as dev-null.sh's profile card: the user's avatar in a dashed ring of their lane, their name
+ * and handle, their counts when /dev/null sends them, and the way to their profile.
  */
-export function PopupProfile({
-  user,
-  page,
-  settings,
-  onDisconnect,
-}: {
-  user: CurrentUser;
-  page: GitHubPage | null;
-  settings: Settings;
-  onDisconnect: () => void;
-}) {
+export function PopupProfile({ user, onDisconnect }: { user: CurrentUser; onDisconnect: () => void }) {
   const counts = [
     [user.commits_count, 'commits'],
     [user.following_count, 'following'],
@@ -62,8 +47,6 @@ export function PopupProfile({
         </a>
       </section>
 
-      {page && <OnThisPage page={page} settings={settings} />}
-
       <footer class="mt-auto flex items-center justify-between border-0 border-t border-solid border-zinc-200 px-4 py-2.5">
         <span class="text-[11px] text-zinc-600">This browser is one of your devices</span>
         <button
@@ -75,26 +58,5 @@ export function PopupProfile({
         </button>
       </footer>
     </>
-  );
-}
-
-/** Where the GitHub page in the current tab gets its Commit button, or that the user turned it off. */
-function OnThisPage({ page, settings }: { page: GitHubPage; settings: Settings }) {
-  const feature = shareFeatureFor(page);
-  if (!feature) return null;
-
-  const label = 'url' in page ? shareLabel(page) : 'owner' in page ? `${page.owner}/${page.repository} releases` : '';
-
-  return (
-    <section aria-label="On this page" class="p-4">
-      <h2 class="m-0 mb-2 text-[13px] font-semibold">On this page</h2>
-      <div class="flex items-center gap-2.5 rounded-lg bg-zinc-100 px-3 py-2.5">
-        <Octicon name="mark-github" class="text-zinc-600" />
-        <div class="min-w-0">
-          <p class="m-0 truncate font-mono text-xs">{label}</p>
-          <p class="m-0 text-[11px] text-zinc-600">{settings[feature.id] ? feature.hint : 'Turned off in settings'}</p>
-        </div>
-      </div>
-    </section>
   );
 }
