@@ -38,6 +38,10 @@ export interface Commit {
   /** Only on signed requests. */
   status?: CommitStatus;
   starred?: boolean;
+  /** Only on signed requests: the body as /dev/null renders it, whole and folded (null when it fits). */
+  body_segments?: BodySegment[];
+  preview_segments?: BodySegment[] | null;
+  mentions?: BodyMention[];
 }
 
 /** A Laravel cursor-paginated resource collection. */
