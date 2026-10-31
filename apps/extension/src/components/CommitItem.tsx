@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
+import { CommitImages } from './CommitImages.tsx';
 import { Octicon } from './Octicon.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
 
@@ -66,6 +67,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
           excerpt={commit.preview_segments ?? null}
           mentions={commit.mentions ?? []}
         />
+        <CommitImages images={commit.images ?? []} hash={commit.short_hash} link={commit.html_url} />
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         <div class="mt-2 flex gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && (

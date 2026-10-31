@@ -9,8 +9,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
       `link_preview`: all three are loaded; `quoted_commit` is a full commit, a tombstone, or null when hidden.
 - [x] Quoted commits: show the quoted commit as a card under the commit, as dev-null.sh does. Without it, a commit
       like "I love that you can use markdown to quote a block of text" loses its meaning.
-- [ ] Images: show a commit's images, with their descriptions as alt text. github.com's CSP only allows its own hosts,
-      `data:` and `blob:` as image sources: the background has to fetch them from dev-null.sh.
+- [x] Images: show a commit's images, with their descriptions as alt text. github.com's CSP only allows its own hosts,
+      `data:` and `blob:` as image sources: the background fetches them from dev-null.sh as data URLs.
 - [ ] Link previews: show the card of the first link. Its image comes from any host, so the same CSP applies.
 
 ## 2. Act on a commit from the log

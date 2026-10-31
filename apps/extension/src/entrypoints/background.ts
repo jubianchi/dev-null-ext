@@ -17,6 +17,7 @@ import {
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { storage } from 'wxt/utils/storage';
+import { fetchImageAsDataUrl } from '../lib/image-proxy.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
 
@@ -231,6 +232,8 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return (await client({ signed: true })).createCommit({ body: request.body });
     case 'preview':
       return (await client({ signed: true })).previewCommit(request.body);
+    case 'image':
+      return fetchImageAsDataUrl(request.url);
     case 'owner-type':
       return ownerType(request.login);
     case 'sign-in':

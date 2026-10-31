@@ -10,6 +10,7 @@ export type Request =
   | { type: 'mentions'; organization: string; cursor: string | null }
   | { type: 'commit'; body: string }
   | { type: 'preview'; body: string }
+  | { type: 'image'; url: string }
   | { type: 'owner-type'; login: string }
   | { type: 'sign-in' }
   | { type: 'sign-in:loopback' }
@@ -23,6 +24,8 @@ export interface Responses {
   mentions: Page<Commit>;
   commit: Commit;
   preview: CommitPreview;
+  /** A data URL: github.com's CSP blocks images from dev-null.sh. */
+  image: string;
   'owner-type': OwnerType;
   'sign-in': SignInState;
   'sign-in:loopback': SignInState;

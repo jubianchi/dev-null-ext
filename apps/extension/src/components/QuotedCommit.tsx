@@ -2,6 +2,7 @@ import type { Commit, DeletedCommit } from '@devnull-github/client';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
+import { CommitImages } from './CommitImages.tsx';
 
 /**
  * The commit a commit quotes, as dev-null.sh draws it (QuotedCommit): one card linking to it, its author and time,
@@ -38,6 +39,7 @@ export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null
           interactive={false}
         />
       </div>
+      <CommitImages images={quoted.images ?? []} hash={quoted.short_hash} link={null} />
     </a>
   );
 }
