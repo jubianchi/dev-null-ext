@@ -105,6 +105,18 @@ The inline composer is GitHub's comment box with /dev/null's essentials: *Write*
 count against /dev/null's limit, and a *Commit* button. The modal composer is dev-null.sh's: the author's avatar beside
 the text, the tools below it.
 
+### What the composer adds to a commit
+
+The extension may add to a commit what the user did not write: the GitHub page's link, the organization's mention,
+and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`):
+
+- an addition is a piece of the body with a label and a **reason** it can tell the user;
+- **sources** propose them from the composer's context (the page, the organization); a new idea is a new source,
+  listed in `SOURCES`, and no composer changes;
+- additions go below what the user writes, one per line, so what they type is only their own words;
+- both composers show them under "Added to your commit", each with its reason, and **every addition is removable**:
+  a removed one stays in place, struck through, to add back. The counter and the preview show the result.
+
 ## Before publishing anywhere
 
 - Firefox requires `data_collection_permissions` in `browser_specific_settings.gecko` for new add-ons: decide what to
