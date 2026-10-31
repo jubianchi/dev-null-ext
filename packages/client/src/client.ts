@@ -3,7 +3,7 @@ import { buffer, toHex } from './encoding.ts';
 import { ApiError } from './errors.ts';
 import { signatureHeaders } from './signed-request.ts';
 import type { Signer } from './signer.ts';
-import type { Commit, CommitPreview, CurrentUser, Device, NewCommit, NewCommitImage, Organization, Page } from './types.ts';
+import type { Commit, CommitPreview, CurrentUser, Device, MentionSuggestions, NewCommit, NewCommitImage, Organization, Page, User } from './types.ts';
 
 export const DEFAULT_BASE_URL = 'https://dev-null.sh';
 
@@ -157,6 +157,18 @@ export class DevNullClient {
   /** How /dev/null will render a body, without storing anything or counting toward the commit rate limit. */
   async previewCommit(body: string): Promise<CommitPreview> {
     return (await this.request<Wrapped<CommitPreview>>('POST', '/api/v1/commits/preview', { body: { body }, signed: true })).data;
+  }
+
+  /**
+   * Who to mention, as dev-null.sh's composer suggests: for an empty query, the people the user follows, most recently
+   * followed first; otherwise the users and organizations whose handle or name contains it, followed ones first.
+   */
+  async mentionSuggestions(query: string): Promise<MentionSuggestions> {
+    const { data, organizations } = await this.request<{ data: User[]; organizations: Organization[] }>('GET', '/api/v1/search/mentions', {
+      query: { q: query },
+      signed: true,
+    });
+    return { users: data, organizations };
   }
 
   async devices(): Promise<Device[]> {

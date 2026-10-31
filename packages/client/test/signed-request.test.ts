@@ -75,6 +75,20 @@ describe('signed requests', () => {
     expect(request?.headers['X-SSH-Signature']).toBeTypeOf('string');
   });
 
+  it("asks who to mention, signed, as dev-null.sh's composer does", async () => {
+    const user = { id: 'u1', handle: 'nunomaduro', name: 'Nuno Maduro', avatar_url: null, bio: null, github_url: '', html_url: '', lane: 2 };
+    const organization = { handle: 'laravel', name: 'Laravel', avatar_url: null, bio: null, github_url: '', html_url: '', lane: null };
+    const fetch = fakeFetch([[200, { data: [user], organizations: [organization] }]]);
+    const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });
+
+    expect(await client.mentionSuggestions('nu')).toEqual({ users: [user], organizations: [organization] });
+
+    const [request] = fetch.requests;
+    expect(request?.method).toBe('GET');
+    expect(request?.url.pathname + request!.url.search).toBe('/api/v1/search/mentions?q=nu');
+    expect(request?.headers['X-SSH-Signature']).toBeTypeOf('string');
+  });
+
   it("pages a commit's replies, newest first to follow its reply preview, signed", async () => {
     const page = { data: [], meta: { next_cursor: null } };
     const fetch = fakeFetch([[200, page]]);

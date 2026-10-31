@@ -27,6 +27,14 @@ export interface Organization {
   bio: string | null;
   github_url: string;
   html_url: string;
+  /** Signed requests only: a custom colour, or null for /dev/null's blue. */
+  lane?: string | null;
+}
+
+/** Who /dev/null suggests to mention (GET /api/v1/search/mentions): at most 6 users and 3 organizations. */
+export interface MentionSuggestions {
+  users: User[];
+  organizations: Organization[];
 }
 
 export type CommitStatus = 'pending' | 'approved' | 'rejected';
