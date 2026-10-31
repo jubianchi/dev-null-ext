@@ -67,11 +67,33 @@ describe('composerMode', () => {
   });
 });
 
+describe('OrganizationPanel, signed out', () => {
+  beforeEach(async () => {
+    ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? null : { data: [], meta: { next_cursor: null } }));
+    await act(async () => {
+      render(<OrganizationPanel organization="laravel" />, root);
+    });
+  });
+
+  it('says to connect /dev/null instead of showing the log', () => {
+    expect(root.textContent).toContain('Connect your /dev/null account');
+    expect(ask).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'mentions' }));
+    expect(root.querySelector('ul')).toBeNull();
+  });
+
+  it('offers no way to commit', () => {
+    expect(root.querySelector('textarea')).toBeNull();
+    expect([...root.querySelectorAll('button')].some((button) => button.textContent === 'Commit')).toBe(false);
+  });
+});
+
 describe('OrganizationPanel', () => {
   beforeEach(async () => {
     await act(async () => {
       render(<OrganizationPanel organization="laravel" />, root);
     });
+    // The session, then the inline composer's own session and the log.
+    await act(async () => {});
   });
 
   it('keeps its header, and its Commit button, at the top of the screen', () => {

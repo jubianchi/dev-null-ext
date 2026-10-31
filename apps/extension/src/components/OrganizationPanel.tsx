@@ -2,6 +2,7 @@ import type { Commit } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
 import { BackgroundError, ask } from '../lib/messages.ts';
+import { useSession } from '../lib/use-session.ts';
 import { CommitItem } from './CommitItem.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { InlineComposer } from './InlineComposer.tsx';
@@ -12,8 +13,12 @@ type State =
   | { step: 'loaded'; commits: Commit[]; cursor: string | null; more: boolean }
   | { step: 'failed'; message: string };
 
-/** The organization's Mentions on /dev/null, in place of the organization's overview while the tab is open. */
+/**
+ * The organization's Mentions on /dev/null, in place of the organization's overview while the tab is open. Only when
+ * connected to /dev/null; otherwise it says how to connect.
+ */
 export function OrganizationPanel({ organization }: { organization: string }) {
+  const user = useSession();
   const [state, setState] = useState<State>({ step: 'loading' });
   const [writing, setWriting] = useState(false);
   const [topInView, setTopInView] = useState(true);
@@ -34,9 +39,10 @@ export function OrganizationPanel({ organization }: { organization: string }) {
   }
 
   useEffect(() => {
+    if (!user) return;
     setState({ step: 'loading' });
     void load(null, []);
-  }, [organization]);
+  }, [organization, user]);
 
   useEffect(() => {
     const element = inline.current;
@@ -45,7 +51,7 @@ export function OrganizationPanel({ organization }: { organization: string }) {
     const observer = new IntersectionObserver(([entry]) => setTopInView(entry?.isIntersecting ?? false));
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [user]);
 
   function committed(commit: Commit) {
     if (commit.status === 'pending') return;
@@ -69,16 +75,33 @@ export function OrganizationPanel({ organization }: { organization: string }) {
           <a href={profile} target="_blank" rel="noopener" class="text-sm text-fg-accent hover:underline">
             Open on /dev/null
           </a>
-          <button
-            type="button"
-            onClick={commit}
-            class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
-          >
-            Commit
-          </button>
+          {user && (
+            <button
+              type="button"
+              onClick={commit}
+              class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
+            >
+              Commit
+            </button>
+          )}
         </div>
       </header>
 
+      {user === undefined && <p class="m-0 p-4 text-sm text-fg-muted">Checking your /dev/null session…</p>}
+
+      {user === null && (
+        <div class="rounded-md border border-border bg-canvas p-8 text-center text-sm">
+          <Glyph class="mx-auto mb-3 size-8" />
+          <p class="m-0 mb-1 font-semibold">You're not connected to /dev/null.</p>
+          <p class="m-0 text-fg-muted">
+            Connect your /dev/null account from the extension's button in the browser toolbar to read and write the commits
+            mentioning @{organization}.
+          </p>
+        </div>
+      )}
+
+      {user && (
+        <>
       <div ref={inline} class="mb-4">
         <InlineComposer organization={organization} onCommitted={committed} />
       </div>
@@ -118,6 +141,8 @@ export function OrganizationPanel({ organization }: { organization: string }) {
         >
           {state.more ? 'Loading…' : 'Load older commits'}
         </button>
+      )}
+        </>
       )}
     </section>
   );
