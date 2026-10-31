@@ -1,11 +1,14 @@
 import type { RefObject } from 'preact';
-import { useId, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { caretRect } from '../lib/caret.ts';
-import { type MentionCandidate, matching, mentionAt, withMention } from '../lib/mentions.ts';
+import { type MentionCandidate, matching, mentionAt, suggestedCandidates, withMention } from '../lib/mentions.ts';
+import { ask } from '../lib/messages.ts';
 import { replaceText } from '../lib/textarea.ts';
+import { laneColor } from './CommitParts.tsx';
 
-/** As many as dev-null.sh's composer shows. */
+/** As many as dev-null.sh's composer shows, and its pause before asking (ms). */
 const LIMIT = 6;
+const DEBOUNCE = 120;
 const GAP = 4;
 const MARGIN = 8;
 
@@ -20,9 +23,31 @@ export function useMentionSuggestions(textarea: RefObject<HTMLTextAreaElement>, 
   const [active, setActive] = useState(0);
   const [dismissed, setDismissed] = useState<number | null>(null);
   const [focused, setFocused] = useState(true);
+  const [suggested, setSuggested] = useState<MentionCandidate[]>([]);
 
   const mention = caret === null ? null : mentionAt(text, caret);
-  const options = mention && focused && dismissed !== mention.start ? matching(candidates, mention.query).slice(0, LIMIT) : [];
+  const query = mention?.query ?? null;
+
+  // /dev/null's suggestions, as its composer asks: at once for a bare @, once the user pauses typing otherwise.
+  useEffect(() => {
+    if (query === null) return;
+
+    let current = true;
+    const suggest = () => {
+      ask({ type: 'mention-suggestions', query }).then(
+        (suggestions) => current && setSuggested(suggestedCandidates(suggestions)),
+        () => undefined,
+      );
+    };
+    if (query === '') suggest();
+    const timer = query === '' ? undefined : setTimeout(suggest, DEBOUNCE);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
+  const options = mention && focused && dismissed !== mention.start ? matching([...candidates, ...suggested], mention.query).slice(0, LIMIT) : [];
   const open = options.length > 0;
   const current = Math.min(active, options.length - 1);
 
@@ -147,7 +172,12 @@ function MentionList({
           )}
           <span class="min-w-0 flex-1">
             {candidate.name && <span class="block truncate text-sm font-semibold">{candidate.name}</span>}
-            <span class={`block truncate font-mono ${candidate.name ? 'text-xs text-fg-muted' : 'text-sm font-semibold'}`}>@{candidate.handle}</span>
+            <span class={`flex items-center gap-1.5 truncate font-mono ${candidate.name ? 'text-xs text-fg-muted' : 'text-sm font-semibold'}`}>
+              {candidate.lane !== null && (
+                <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full" style={{ background: laneColor({ lane: candidate.lane }) }} />
+              )}
+              @{candidate.handle}
+            </span>
             {candidate.reason && <span class="block text-xs text-fg-muted">{candidate.reason}</span>}
           </span>
           {index === active && (

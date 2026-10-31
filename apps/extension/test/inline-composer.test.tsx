@@ -12,6 +12,7 @@ vi.mock('../src/lib/messages.ts', () => ({
 const { InlineComposer } = await import('../src/components/InlineComposer.tsx');
 
 const user = { id: '1', handle: 'jubianchi', name: null, avatar_url: null, bio: null, github_url: '', html_url: '', terms_accepted: true };
+const nuno = { id: '2', handle: 'nunomaduro', name: 'Nuno Maduro', avatar_url: null, bio: null, github_url: '', html_url: '', lane: 2 };
 const committed = { id: 'c1', short_hash: 'abc1234', body: 'Shipped @laravel', status: 'approved', html_url: 'https://dev-null.sh/c1' };
 
 const preview = {
@@ -32,6 +33,7 @@ beforeEach(async () => {
   ask.mockImplementation(async (request: { type: string }) => {
     if (request.type === 'session') return user;
     if (request.type === 'preview') return preview;
+    if (request.type === 'mention-suggestions') return { users: [nuno], organizations: [] };
     return committed;
   });
   onCommitted.mockReset();
@@ -233,6 +235,24 @@ describe('InlineComposer, mention suggestions', () => {
     expect(escapeKey.defaultPrevented).toBe(true);
     expect(listbox()).toBeNull();
     expect(root.querySelector('textarea')?.value).toBe('Thanks @la');
+  });
+
+  it('adds the people /dev/null suggests after the composer’s own mentions, asking at once on a bare @', async () => {
+    await type('@');
+    await act(async () => {});
+
+    expect(ask).toHaveBeenCalledWith({ type: 'mention-suggestions', query: '' });
+    expect(options().map((option) => option.dataset.handle)).toEqual(['laravel', 'nunomaduro']);
+    expect(options()[1]?.textContent).toContain('Nuno Maduro');
+  });
+
+  it('asks /dev/null again once the user pauses typing', async () => {
+    await type('@nu');
+    expect(ask).not.toHaveBeenCalledWith({ type: 'mention-suggestions', query: 'nu' });
+
+    await act(() => new Promise((resolve) => setTimeout(resolve, 150)));
+    expect(ask).toHaveBeenCalledWith({ type: 'mention-suggestions', query: 'nu' });
+    expect(options().map((option) => option.dataset.handle)).toEqual(['nunomaduro']);
   });
 
   it('shows nothing when no one matches, nor outside a mention', async () => {

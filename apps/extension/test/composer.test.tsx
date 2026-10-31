@@ -38,7 +38,7 @@ let root: HTMLElement;
 
 beforeEach(() => {
   ask.mockReset();
-  ask.mockResolvedValue(user);
+  ask.mockImplementation(async (request: { type: string }) => (request.type === 'mention-suggestions' ? { users: [], organizations: [] } : user));
   root = document.createElement('div');
   document.body.append(root);
 });

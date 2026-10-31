@@ -233,6 +233,8 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return (await client({ signed: true })).createCommit({ body: request.body }, (request.images ?? []).map(fromTransfer));
     case 'preview':
       return (await client({ signed: true })).previewCommit(request.body);
+    case 'mention-suggestions':
+      return (await client({ signed: true })).mentionSuggestions(request.query);
     case 'image':
       return fetchImageAsDataUrl(request.url);
     case 'replies':

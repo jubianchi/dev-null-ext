@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Addition } from '../src/lib/additions.ts';
-import { additionCandidates, type MentionCandidate, matching, mentionAt, withMention } from '../src/lib/mentions.ts';
+import { additionCandidates, type MentionCandidate, matching, mentionAt, suggestedCandidates, withMention } from '../src/lib/mentions.ts';
 
 describe('mentionAt', () => {
   it('finds the mention being typed before the caret', () => {
@@ -22,7 +22,7 @@ describe('mentionAt', () => {
   });
 });
 
-const candidate = (handle: string, name: string | null = null): MentionCandidate => ({ handle, name, avatarUrl: null, reason: null });
+const candidate = (handle: string, name: string | null = null): MentionCandidate => ({ handle, name, avatarUrl: null, lane: null, reason: null });
 
 describe('matching', () => {
   const candidates = [candidate('laravel'), candidate('taylorotwell', 'Taylor Otwell'), candidate('nunomaduro', 'Nuno Maduro')];
@@ -68,8 +68,20 @@ describe('additionCandidates', () => {
     ];
 
     expect(additionCandidates(additions)).toEqual([
-      { handle: 'laravel', name: null, avatarUrl: 'https://github.com/laravel.png?size=40', reason: 'The organization' },
-      { handle: 'taylorotwell', name: null, avatarUrl: 'https://github.com/taylorotwell.png?size=40', reason: 'Who opened this issue' },
+      { handle: 'laravel', name: null, avatarUrl: 'https://github.com/laravel.png?size=40', lane: null, reason: 'The organization' },
+      { handle: 'taylorotwell', name: null, avatarUrl: 'https://github.com/taylorotwell.png?size=40', lane: null, reason: 'Who opened this issue' },
+    ]);
+  });
+});
+
+describe('suggestedCandidates', () => {
+  it("lists /dev/null's suggestions, users then organizations, with their avatars and lanes", () => {
+    const user = { id: 'u1', handle: 'nunomaduro', name: 'Nuno Maduro', avatar_url: 'https://avatars/n', bio: null, github_url: '', html_url: '', lane: 2 };
+    const organization = { handle: 'laravel', name: 'Laravel', avatar_url: 'https://avatars/l', bio: null, github_url: '', html_url: '', lane: null };
+
+    expect(suggestedCandidates({ users: [user], organizations: [organization] })).toEqual([
+      { handle: 'nunomaduro', name: 'Nuno Maduro', avatarUrl: 'https://avatars/n', lane: 2, reason: null },
+      { handle: 'laravel', name: 'Laravel', avatarUrl: 'https://avatars/l', lane: null, reason: null },
     ]);
   });
 });

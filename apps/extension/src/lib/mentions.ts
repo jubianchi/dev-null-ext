@@ -1,3 +1,4 @@
+import type { MentionSuggestions } from '@devnull-github/client';
 import type { Addition } from './additions.ts';
 
 /** Someone the composer can suggest to mention, as dev-null.sh's composer lists them. */
@@ -5,6 +6,8 @@ export interface MentionCandidate {
   handle: string;
   name: string | null;
   avatarUrl: string | null;
+  /** Their lane, as the API gives it: one of the six, a custom colour, or none. */
+  lane: number | string | null;
   /** Why it is suggested, when the composer knows: an addition's reason. */
   reason: string | null;
 }
@@ -55,6 +58,17 @@ export function additionCandidates(additions: Addition[]): MentionCandidate[] {
     .sort((a, b) => MENTION_ORDER.indexOf(a.id) - MENTION_ORDER.indexOf(b.id))
     .map((addition) => {
       const handle = addition.text.replace(/^@/, '');
-      return { handle, name: null, avatarUrl: `https://github.com/${handle}.png?size=40`, reason: addition.reason };
+      return { handle, name: null, avatarUrl: `https://github.com/${handle}.png?size=40`, lane: null, reason: addition.reason };
     });
+}
+
+/** /dev/null's suggestions, in its order: users, then organizations. */
+export function suggestedCandidates({ users, organizations }: MentionSuggestions): MentionCandidate[] {
+  return [...users, ...organizations].map(({ handle, name, avatar_url, lane }) => ({
+    handle,
+    name,
+    avatarUrl: avatar_url,
+    lane: lane ?? null,
+    reason: null,
+  }));
 }

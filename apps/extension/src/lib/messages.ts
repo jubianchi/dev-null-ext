@@ -1,4 +1,4 @@
-import type { Commit, CommitPreview, CurrentUser, DeletedCommit, Page } from '@devnull-github/client';
+import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, Page } from '@devnull-github/client';
 import { browser } from 'wxt/browser';
 import type { TransferredImage } from './images.ts';
 
@@ -11,6 +11,7 @@ export type Request =
   | { type: 'mentions'; organization: string; cursor: string | null }
   | { type: 'commit'; body: string; images?: TransferredImage[] }
   | { type: 'preview'; body: string }
+  | { type: 'mention-suggestions'; query: string }
   | { type: 'image'; url: string }
   | { type: 'star'; commitId: string; starred: boolean }
   | { type: 'replies'; commitId: string; cursor: string | null }
@@ -27,6 +28,7 @@ export interface Responses {
   mentions: Page<Commit>;
   commit: Commit;
   preview: CommitPreview;
+  'mention-suggestions': MentionSuggestions;
   /** A data URL: github.com's CSP blocks images from dev-null.sh. */
   image: string;
   star: null;
