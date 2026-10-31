@@ -35,6 +35,8 @@ export function shareLabel(page: SharedPage): string {
     case 'issue':
     case 'discussion':
       return `${page.owner}/${page.repository}#${page.number}`;
+    case 'release':
+      return `${page.owner}/${page.repository}@${page.tag}`;
     default:
       return `${page.owner}/${page.repository}`;
   }

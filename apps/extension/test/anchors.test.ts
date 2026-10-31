@@ -5,6 +5,7 @@ import {
   organizationContent,
   organizationTabs,
   organizationTabStyle,
+  releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
 } from '../src/lib/github/anchors.ts';
@@ -76,6 +77,37 @@ describe('organization anchors, logged in', () => {
 
   it('finds the selected tab', () => {
     expect(selectedOrganizationTabs().map((tab) => tab.textContent)).toEqual(['Overview']);
+  });
+});
+
+describe('release share anchors', () => {
+  const card = (tag: string) => `
+    <section aria-labelledby="h-${tag}">
+      <div class="Box"><div class="Box-body"><div class="d-flex flex-md-row flex-column">
+        <div class="d-flex flex-row flex-1"><h2 id="h-${tag}"><a href="/laravel/installer/releases/tag/${tag}">${tag}</a></h2></div>
+        <div class="d-flex tmp-mb-3" id="compare-${tag}"><select-panel><button>Compare</button></select-panel></div>
+      </div></div></div>
+    </section>`;
+
+  it("finds each release's Compare box on a releases list, with its tag", () => {
+    document.body.innerHTML = card('v5.32.0') + card('v5.31.0');
+
+    expect(releaseShareAnchors(new URL('https://github.com/laravel/installer/releases')).map(({ box, tag }) => [box.id, tag])).toEqual([
+      ['compare-v5.32.0', 'v5.32.0'],
+      ['compare-v5.31.0', 'v5.31.0'],
+    ]);
+  });
+
+  it("finds the Compare box of a release's own page, its tag from the URL", () => {
+    document.body.innerHTML = `
+      <div class="Box"><div class="Box-body"><div class="d-flex">
+        <h1>v5.32.0</h1>
+        <div class="d-flex tmp-mb-3" id="compare"><select-panel><button>Compare</button></select-panel></div>
+      </div></div></div>`;
+
+    expect(
+      releaseShareAnchors(new URL('https://github.com/laravel/installer/releases/tag/packages%2Fqueue-1.0')).map(({ box, tag }) => [box.id, tag]),
+    ).toEqual([['compare', 'packages/queue-1.0']]);
   });
 });
 

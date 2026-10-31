@@ -7,6 +7,10 @@ export type GitHubPage =
   /** `discussions` on the organization's discussions list, whose sidebar shows what /dev/null says of the organization. */
   | { kind: 'organization'; organization: string; discussions?: true }
   | { kind: 'repository'; owner: string; repository: string; url: string }
+  /** A repository's releases, a list or one: nothing to share as a whole, each release on its own. */
+  | { kind: 'releases'; owner: string; repository: string }
+  /** One release, shared from its card on a releases page. */
+  | { kind: 'release'; owner: string; repository: string; tag: string; url: string }
   | {
       kind: 'pull-request' | 'issue' | 'discussion';
       owner: string;
@@ -44,6 +48,8 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
   if (!repository) return { kind: 'other' };
 
   const base = `https://github.com/${owner}/${repository}`;
+
+  if (section === 'releases') return { kind: 'releases', owner, repository };
 
   if ((section === 'pull' || section === 'issues' || section === 'discussions') && number && /^\d+$/.test(number)) {
     const kind = section === 'pull' ? 'pull-request' : section === 'issues' ? 'issue' : 'discussion';

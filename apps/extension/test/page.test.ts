@@ -12,6 +12,18 @@ function documentWith(subject: string | null, title = '', repository: string | n
   } as unknown as Document;
 }
 
+describe('readPage, releases', () => {
+  it("reads a repository's releases, a list or one, where each release is shared on its own", () => {
+    for (const path of ['releases', 'releases/tag/v5.32.0', 'releases?page=2']) {
+      expect(readPage(new URL(`https://github.com/laravel/installer/${path}`), documentWith('repository:1'))).toEqual({
+        kind: 'releases',
+        owner: 'laravel',
+        repository: 'installer',
+      });
+    }
+  });
+});
+
 describe('readPage, discussions', () => {
   it("reads an organization's discussion, linked in the form of the repository it lives in", () => {
     expect(

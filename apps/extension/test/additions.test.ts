@@ -20,6 +20,20 @@ describe('addition sources', () => {
     expect(pageLink({ page: null, organization: 'laravel' })).toEqual([]);
   });
 
+  it('links a release as owner/repo@tag', () => {
+    const release = {
+      kind: 'release' as const,
+      owner: 'laravel',
+      repository: 'installer',
+      tag: 'v5.32.0',
+      url: 'https://github.com/laravel/installer/releases/tag/v5.32.0',
+    };
+
+    expect(pageLink({ page: release, organization: 'laravel' })[0]).toEqual(
+      expect.objectContaining({ text: release.url, label: 'laravel/installer@v5.32.0' }),
+    );
+  });
+
   it('links a discussion as owner/repo#number', () => {
     const discussion = { ...pull, kind: 'discussion' as const, repository: 'discussions', url: 'https://github.com/laravel/discussions/discussions/58112' };
 

@@ -46,6 +46,24 @@ export function selectedOrganizationTabs(): Element[] {
     .filter((tab) => !tab.hasAttribute('data-devnull-tab'));
 }
 
+/**
+ * Where each release of a releases page is shared from: the box of its Compare button, and its tag. On a list, the tag
+ * comes from the release's card (`section[aria-labelledby]`) link; on a release's own page, from the URL.
+ */
+export function releaseShareAnchors(location: URL): Array<{ box: Element; tag: string }> {
+  const ownTag = /\/releases\/tag\/(.+)$/.exec(location.pathname)?.[1];
+
+  return [...document.querySelectorAll('.Box-body select-panel')].flatMap((panel) => {
+    const button = panel.querySelector('button');
+    const box = panel.parentElement;
+    if (!box || !button?.textContent?.trim().startsWith('Compare')) return [];
+
+    const link = panel.closest('section[aria-labelledby]')?.querySelector('a[href*="/releases/tag/"]')?.getAttribute('href') ?? '';
+    const tag = /\/releases\/tag\/(.+)$/.exec(link)?.[1] ?? ownTag;
+    return tag ? [{ box, tag: decodeURIComponent(tag) }] : [];
+  });
+}
+
 /** The right sidebar of an organization's discussions list ("Most helpful"), not its categories on the left. */
 export function discussionsSidebar(): string {
   return '.Layout--sidebarPosition-end > .Layout-sidebar';

@@ -12,11 +12,14 @@ import {
   organizationContent,
   organizationTabs,
   organizationTabStyle,
+  releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
 } from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
+import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
+import type { SharedPage } from '../../lib/share.ts';
 import { panelToggle } from '../../lib/panel-toggle.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import '../../assets/tailwind.css';
@@ -67,6 +70,8 @@ async function mount(ctx: ContentScriptContext, page: GitHubPage): Promise<Mount
     case 'issue':
     case 'discussion':
       return [await shareButton(ctx, page)];
+    case 'releases':
+      return [releaseButtons(ctx, page)];
     default:
       return [];
   }
@@ -107,6 +112,50 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
       removeShareItems();
     },
   };
+}
+
+/**
+ * A share button for each release of a releases page, before its Compare button and at its size: the page as a whole
+ * has nothing to share. Releases GitHub adds or renders again get theirs too.
+ */
+function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { kind: 'releases' }>): Mounted {
+  const controller = new AbortController();
+  const anchors = () => releaseShareAnchors(new URL(window.location.href));
+
+  keepEachMounted({
+    find: () => anchors().map(({ box }) => box),
+    mount: async (box) => {
+      const tag = anchors().find((anchor) => anchor.box === box)?.tag ?? '';
+      const release: SharedPage = {
+        kind: 'release',
+        owner: page.owner,
+        repository: page.repository,
+        tag,
+        // A tag like packages/queue-1.0 keeps its slashes, as GitHub writes its URL.
+        url: `https://github.com/${page.owner}/${page.repository}/releases/tag/${tag.split('/').map(encodeURIComponent).join('/')}`,
+      };
+      const ui = await createShadowRootUi(ctx, {
+        name: 'devnull-share',
+        isolateEvents: true,
+        position: 'inline',
+        anchor: box,
+        append: (anchor, element) => {
+          (element as HTMLElement).style.display = 'inline-flex';
+          // As GitHub spaces the buttons of a release's header (mr-2).
+          (element as HTMLElement).style.marginRight = '8px';
+          anchor.prepend(element);
+        },
+        onMount: (container) => render(<ShareButton page={release} size="small" />, container),
+        onRemove: (container) => container && render(null, container),
+      });
+      ui.mount();
+      return { element: ui.shadowHost, remove: () => ui.remove() };
+    },
+    root: document.documentElement,
+    signal: AbortSignal.any([ctx.signal, controller.signal]),
+  });
+
+  return { remove: () => controller.abort() };
 }
 
 /** What /dev/null says of the organization, at the end of its discussions list's sidebar. */
