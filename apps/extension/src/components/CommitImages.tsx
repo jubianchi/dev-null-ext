@@ -72,19 +72,11 @@ export function AttachedImagesPreview({ images }: { images: AttachedImage[] }) {
   );
 }
 
-/** A local image, whose size is only known once loaded: a portrait one is shown whole in a grid cell. */
-function LocalImage({ url, alt, single }: { url: string; alt: string; single: boolean }) {
-  const [portrait, setPortrait] = useState(false);
+/** An image alone keeps its whole ratio; in a grid, as on dev-null.sh, it fills its cell, cropped. */
+const imageClass = (single: boolean) => (single ? 'block max-h-[32rem] w-full object-contain' : 'block h-full w-full object-cover');
 
-  return (
-    <img
-      src={url}
-      alt={alt}
-      decoding="async"
-      onLoad={(event) => setPortrait(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth)}
-      class={single ? 'block max-h-[32rem] w-full object-contain' : `block h-full w-full ${portrait ? 'object-contain' : 'object-cover'}`}
-    />
-  );
+function LocalImage({ url, alt, single }: { url: string; alt: string; single: boolean }) {
+  return <img src={url} alt={alt} decoding="async" class={imageClass(single)} />;
 }
 
 function Image({ image, hash, alt, single }: { image: CommitImage; hash: string; alt: string; single: boolean }) {
@@ -100,8 +92,6 @@ function Image({ image, hash, alt, single }: { image: CommitImage; hash: string;
       current = false;
     };
   }, [image.url]);
-
-  const portrait = image.height > image.width;
 
   if (!source) {
     return (
@@ -121,7 +111,7 @@ function Image({ image, hash, alt, single }: { image: CommitImage; hash: string;
       width={image.width}
       height={image.height}
       decoding="async"
-      class={single ? 'block max-h-[32rem] w-full object-contain' : `block h-full w-full ${portrait ? 'object-contain' : 'object-cover'}`}
+      class={imageClass(single)}
     />
   );
 }

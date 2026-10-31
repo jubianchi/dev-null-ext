@@ -62,6 +62,12 @@ describe('CommitImages', () => {
     expect(root.querySelector('a')?.getAttribute('href')).toBe('https://dev-null.sh/c1');
   });
 
+  it('fills each cell of the grid, cropping a portrait image as dev-null.sh does', async () => {
+    await show([{ ...image('a'), width: 800, height: 1200 }, image('b'), image('c')]);
+
+    for (const img of root.querySelectorAll('img')) expect(img.className).toContain('object-cover');
+  });
+
   it('draws plain images, not links, inside a link such as a quoted commit', async () => {
     await act(async () => {
       render(<CommitImages images={[image('a')]} hash="abc1234" link={null} />, root);

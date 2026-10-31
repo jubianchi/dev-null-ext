@@ -48,6 +48,7 @@ describe('PreviewPanel, images', () => {
     expect(images.map((image) => image.getAttribute('src'))).toEqual(['blob:https://github.com/a', 'blob:https://github.com/b', 'blob:https://github.com/c']);
     expect(images.map((image) => image.getAttribute('alt'))).toEqual(['The new popup', 'Attached image 2 of 3', 'Attached image 3 of 3']);
     expect(images[0]?.closest('[class*="row-span-2"]')).not.toBeNull();
+    for (const image of images) expect(image.className).toContain('object-cover');
   });
 
   it('previews images alone, without text', async () => {
