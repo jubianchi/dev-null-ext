@@ -113,9 +113,10 @@ and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`
 - an addition is a piece of text with a label, a **reason** it can tell the user, and a pattern to find it;
 - **sources** propose them from the composer's context (the page, the organization); a new idea is a new source,
   listed in `SOURCES`, and no composer changes;
-- additions are **prefilled into the text**, at the end, one per line, the caret above them: the user sees what is
-  sent, and can move, edit or remove any of them. **The text is the only truth**: the body is the text, and the
-  counter and the preview show exactly what is sent;
+- a composer opens **empty, its placeholder showing**, with the additions **pending**: they already count, preview
+  and commit as part of the commit. The user's **first keystroke** puts them into the text, below what they write,
+  one per line after a blank line; from then on the user sees, moves, edits or removes them there, and **the text is
+  the only truth**: the counter and the preview show exactly what is sent;
 - under "In your commit", each addition shows whether it is in the text, however it got there (typed by hand too),
   with its reason: in, its × takes it out of the text; out, a click puts it back at the caret. Both edits can be
   undone (Cmd+Z). **Every addition is removable**, and a commit made of additions alone is allowed.

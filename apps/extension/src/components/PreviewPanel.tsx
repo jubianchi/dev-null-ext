@@ -7,9 +7,9 @@ import { CommitBody } from './CommitBody.tsx';
 type Preview = { status: 'loading' } | { status: 'loaded'; preview: CommitPreview } | { status: 'failed' };
 
 /** A commit as /dev/null will publish it, asked for when shown, for both composers. */
-export function PreviewPanel({ text, body }: { text: string; body: string }) {
+export function PreviewPanel({ body }: { body: string }) {
   const [preview, setPreview] = useState<Preview>({ status: 'loading' });
-  const empty = text.trim() === '';
+  const empty = body === '';
 
   useEffect(() => {
     if (empty) return;

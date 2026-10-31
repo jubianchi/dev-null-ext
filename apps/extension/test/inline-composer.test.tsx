@@ -101,10 +101,28 @@ describe('InlineComposer', () => {
     expect(root.textContent).toContain('19 / 4000');
   });
 
-  it('prefills its additions into the text, below a blank line for the user to write in', () => {
-    expect(root.querySelector('textarea')?.value).toBe('\n\n@laravel');
+  it('opens empty, its placeholder showing, with its additions pending in the commit', () => {
+    const textarea = root.querySelector('textarea')!;
+    expect(textarea.value).toBe('');
+    expect(textarea.getAttribute('placeholder')).toBe('What did you ship?');
     expect(root.querySelector('[data-additions]')?.textContent).toContain('In your commit');
     expect(root.querySelector('[data-additions]')?.textContent).toContain("so the commit shows on the organization's /dev/null page");
+    expect(button('Remove @laravel from your commit')).not.toBeNull();
+    expect(root.textContent).toContain('8 / 4000');
+  });
+
+  it('takes the pending additions into the text with the first keystroke, below it', async () => {
+    await replace('H');
+
+    expect(root.querySelector('textarea')?.value).toBe('H\n\n@laravel');
+  });
+
+  it('leaves out a pending addition removed before the first keystroke', async () => {
+    await act(async () => button('Remove @laravel from your commit')!.click());
+    expect(button('Add @laravel to your commit')).not.toBeNull();
+
+    await replace('Hi');
+    expect(root.querySelector('textarea')?.value).toBe('Hi');
   });
 
   it('takes an addition out of the text, and puts it back at the caret', async () => {
@@ -120,6 +138,7 @@ describe('InlineComposer', () => {
 
   it('tells an addition is in the commit however it got there, typed by hand too', async () => {
     await replace('Shipped');
+    await act(async () => button('Remove @laravel from your commit')!.click());
     expect(button('Add @laravel to your commit')).not.toBeNull();
 
     await replace('Shipped, thanks @Laravel');
@@ -156,7 +175,8 @@ describe('InlineComposer', () => {
 
     expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Shipped\n\n@laravel' });
     expect(onCommitted).toHaveBeenCalledWith(committed);
-    expect(root.querySelector('textarea')?.value).toBe('\n\n@laravel');
+    expect(root.querySelector('textarea')?.value).toBe('');
+    expect(button('Remove @laravel from your commit')).not.toBeNull();
     expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')?.textContent).toBe('Commit');
   });
 });

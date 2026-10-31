@@ -69,9 +69,15 @@ export function additionsFor(context: ComposerContext, sources: AdditionSource[]
   return sources.flatMap((source) => source(context));
 }
 
-/** The text a composer opens with: a blank line for the user to write in, then the additions, one per line. */
-export function prefill(additions: Addition[]): string {
-  return additions.length === 0 ? '' : `\n\n${additions.map((addition) => addition.text).join('\n')}`;
+/**
+ * The text with the additions still pending below what the user wrote, one per line after a blank line; the additions
+ * alone while they wrote nothing. A composer opens empty, its placeholder showing, the additions pending: they go
+ * into the text with the user's first keystroke.
+ */
+export function withPending(text: string, pending: Addition[]): string {
+  const additions = pending.map((addition) => addition.text).join('\n');
+
+  return [text, additions].filter(Boolean).join('\n\n');
 }
 
 export function isIn(addition: Addition, text: string): boolean {

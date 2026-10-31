@@ -62,14 +62,18 @@ describe('Composer', () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 
     const textarea = root.querySelector('textarea')!;
-    expect(textarea.value).toBe(`\n\n${page.url}\n@laravel`);
-    expect([textarea.selectionStart, textarea.selectionEnd]).toEqual([0, 0]);
+    expect(textarea.value).toBe('');
     expect(root.querySelector('[data-additions]')?.textContent).toContain('In your commit');
     expect(root.querySelector('button[aria-label="Remove laravel/framework from your commit"]')).not.toBeNull();
 
     await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
-    expect(textarea.value).toBe(`\n\n${page.url}`);
     expect(root.querySelector('button[aria-label="Add @laravel to your commit"]')).not.toBeNull();
+
+    await act(async () => {
+      textarea.value = 'Merged';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(textarea.value).toBe(`Merged\n\n${page.url}`);
   });
 
   it('commits without the link once removed', async () => {

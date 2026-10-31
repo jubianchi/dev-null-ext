@@ -2,7 +2,7 @@ import type { CurrentUser } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
-import { Additions, additionEditor } from './Additions.tsx';
+import { Additions } from './Additions.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -11,19 +11,12 @@ export type { Target } from '../lib/use-commit-draft.ts';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
-  const { state, text, setText, additions, body, length, canCommit, submit } = useCommitDraft(target);
+  const { state, text, input, additions, inCommit, add, remove, body, length, canCommit, submit } = useCommitDraft(target);
   const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
-  const caretPlaced = useRef(false);
 
   useEffect(() => {
-    const element = textarea.current;
-    if (state.step !== 'writing' || previewing || !element) return;
-
-    element.focus();
-    // The additions are prefilled at the end: the user starts writing above them.
-    if (!caretPlaced.current) element.setSelectionRange(0, 0);
-    caretPlaced.current = true;
+    if (state.step === 'writing' && !previewing) textarea.current?.focus();
   }, [state.step, previewing]);
 
   return (
@@ -66,13 +59,13 @@ export function Composer({ target }: { target: Target }) {
             <div>
             {previewing ? (
               <div class="max-h-[50vh] min-h-12 overflow-y-auto py-2 text-base">
-                <PreviewPanel text={text} body={body} />
+                <PreviewPanel body={body} />
               </div>
             ) : (
               <textarea
                 ref={textarea}
                 value={text}
-                onInput={(event) => setText(event.currentTarget.value)}
+                onInput={(event) => input(event.currentTarget)}
                 rows={2}
                 placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
                 class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
@@ -82,7 +75,12 @@ export function Composer({ target }: { target: Target }) {
             </div>
 
             <div class="mt-2">
-              <Additions additions={additions} text={text} editor={additionEditor(textarea.current, text, setText)} />
+              <Additions
+                additions={additions}
+                inCommit={inCommit}
+                onAdd={(addition) => add(addition, textarea.current)}
+                onRemove={(addition) => remove(addition, textarea.current)}
+              />
             </div>
 
             {state.step === 'failed' && <CommitError error={state.error} />}

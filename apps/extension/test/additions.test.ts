@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { additionsFor, isIn, organizationMention, pageLink, prefill, withAddition, withoutAddition } from '../src/lib/additions.ts';
+import { additionsFor, isIn, organizationMention, pageLink, withAddition, withPending, withoutAddition } from '../src/lib/additions.ts';
 
 const pull = {
   kind: 'pull-request' as const,
@@ -32,10 +32,14 @@ describe('addition sources', () => {
   });
 });
 
-describe('prefill', () => {
-  it('puts the additions at the end, one per line, after a blank line for the user to write in', () => {
-    expect(prefill([link!, mention!])).toBe(`\n\n${pull.url}\n@laravel`);
-    expect(prefill([])).toBe('');
+describe('withPending', () => {
+  it('puts the pending additions below what the user starts writing, one per line', () => {
+    expect(withPending('H', [link!, mention!])).toBe(`H\n\n${pull.url}\n@laravel`);
+    expect(withPending('H', [])).toBe('H');
+  });
+
+  it('is the additions alone while the user has written nothing', () => {
+    expect(withPending('', [link!, mention!])).toBe(`${pull.url}\n@laravel`);
   });
 });
 
