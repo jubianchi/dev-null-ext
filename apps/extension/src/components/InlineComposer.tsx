@@ -2,7 +2,7 @@ import type { Commit } from '@devnull-github/client';
 import { useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
-import { Additions } from './Additions.tsx';
+import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { CommitError } from './CommitError.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
@@ -14,7 +14,7 @@ type Tab = 'write' | 'preview';
  * limit. It stays open after a commit, for the next one.
  */
 export function InlineComposer({ organization, onCommitted }: { organization: string; onCommitted?: (commit: Commit) => void }) {
-  const { state, text, input, additions, inCommit, add, remove, body, length, canCommit, submit } = useCommitDraft(
+  const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = useCommitDraft(
     { page: null, organization },
     onCommitted,
   );
@@ -56,6 +56,9 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
               {name === 'write' ? 'Write' : 'Preview'}
             </button>
           ))}
+          <div role="toolbar" aria-label="Commit tools" class="ml-auto flex items-center gap-1 pb-1">
+            <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
+          </div>
         </div>
 
         <div role="tabpanel" class="p-2">
@@ -63,7 +66,7 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
             <textarea
               ref={textarea}
               value={text}
-              onInput={(event) => input(event.currentTarget)}
+              onInput={(event) => setText(event.currentTarget.value)}
               rows={4}
               aria-label="Commit message"
               placeholder="What did you ship?"
@@ -77,14 +80,11 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
           )}
         </div>
 
-        <div class="px-3 pb-2">
-          <Additions
-            additions={additions}
-            inCommit={inCommit}
-            onAdd={(addition) => add(addition, textarea.current)}
-            onRemove={(addition) => remove(addition, textarea.current)}
-          />
-        </div>
+        {warnings.length > 0 && (
+          <div class="px-3 pb-2">
+            <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
+          </div>
+        )}
 
         <div class="flex flex-wrap items-center gap-3 border-t border-border-muted px-3 py-2 text-xs text-fg-muted">
           <span>Links, @mentions, :emoji: and `code` are supported</span>

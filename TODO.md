@@ -37,6 +37,9 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 - [ ] Poll: 2 to 4 options of 50 characters at most, for 1 hour, 1, 3 or 7 days; not with images, a reply or a quote.
 - [ ] Schedule: `/api/v1/scheduled-commits`, up to 30 days ahead, 10 pending at most.
 
+- [ ] Keyboard shortcuts to insert the additions (the page's link, the organization's mention), shown in their
+      tooltips.
+
 ## 5. Polish
 
 - [x] The organization's @mention, added below the text, is visible and removable in both composers: the counter

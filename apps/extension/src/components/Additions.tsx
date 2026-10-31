@@ -1,60 +1,57 @@
 import type { Addition } from '../lib/additions.ts';
-import { Octicon } from './Octicon.tsx';
+import { Octicon, type OcticonName } from './Octicon.tsx';
+
+const ICONS: Record<Addition['kind'], OcticonName> = { link: 'link', mention: 'mention' };
 
 /**
- * Which additions are in the commit: in, as a chip whose × takes it out; out, as a dashed chip that puts it back. Each
- * tells why it is proposed. A link gets an icon; a mention's @ says enough.
+ * The additions as toolbar buttons, as GitHub's editor inserts a link or a mention: each inserts its text at the caret.
+ * A discreet check says it is already in the text, typed by hand too.
  */
-export function Additions({
+export function AdditionTools({
   additions,
   inCommit,
-  onAdd,
-  onRemove,
+  onInsert,
 }: {
   additions: Addition[];
   inCommit: (addition: Addition) => boolean;
-  onAdd: (addition: Addition) => void;
-  onRemove: (addition: Addition) => void;
+  onInsert: (addition: Addition) => void;
 }) {
-  if (additions.length === 0) return null;
-
   return (
-    <div data-additions class="text-xs">
-      <p class="m-0 mb-1 font-medium text-fg-muted">In your commit</p>
-      <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
-        {additions.map((addition) => (
-          <li key={addition.id}>
-            {inCommit(addition) ? (
-              <span
-                title={addition.reason}
-                class="inline-flex items-center gap-1 rounded-full border border-border bg-canvas-muted py-0.5 pl-2 pr-0.5 font-mono text-fg"
-              >
-                {addition.kind === 'link' && <Octicon name="link" class="size-3 text-fg-muted" />}
-                {addition.label}
-                <span class="sr-only">{addition.reason}</span>
-                <button
-                  type="button"
-                  onClick={() => onRemove(addition)}
-                  aria-label={`Remove ${addition.label} from your commit`}
-                  class="flex size-4 items-center justify-center rounded-full text-fg-muted hover:bg-button-hover hover:text-fg"
-                >
-                  ×
-                </button>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onAdd(addition)}
-                aria-label={`Add ${addition.label} to your commit`}
-                title={addition.reason}
-                class="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2 py-0.5 font-mono text-fg-muted hover:border-fg-accent hover:text-fg-accent"
-              >
-                {addition.kind === 'link' && <Octicon name="link" class="size-3" />}+ {addition.label}
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      {additions.map((addition) => {
+        const present = inCommit(addition);
+
+        return (
+          <button
+            key={addition.id}
+            type="button"
+            onClick={() => onInsert(addition)}
+            aria-label={`Insert ${addition.label}${present ? ' (already in your commit)' : ''}`}
+            title={`Insert ${addition.label}: ${addition.reason}`}
+            data-in-commit={present || undefined}
+            class="relative rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg"
+          >
+            <Octicon name={ICONS[addition.kind]} />
+            {present && <span class="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-fg-success" aria-hidden="true" />}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
+/** What leaving an addition out would mean, with a way to insert it. */
+export function AdditionWarnings({ warnings, onInsert }: { warnings: Addition[]; onInsert: (addition: Addition) => void }) {
+  return (
+    <>
+      {warnings.map((addition) => (
+        <p key={addition.id} role="status" class="m-0 flex flex-wrap items-center gap-1 text-xs text-fg-attention">
+          {addition.missing}
+          <button type="button" onClick={() => onInsert(addition)} class="font-medium text-fg-accent hover:underline">
+            Insert {addition.label}
+          </button>
+        </p>
+      ))}
+    </>
   );
 }

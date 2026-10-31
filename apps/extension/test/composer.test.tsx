@@ -58,45 +58,35 @@ describe('Composer', () => {
     expect(root.querySelector('textarea')).not.toBeNull();
   });
 
-  it("says it adds the page's link and the organization's mention, each removable", async () => {
+  it("offers the page's link and the organization's mention in its toolbar, inserting nothing by itself", async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 
     const textarea = root.querySelector('textarea')!;
+    const toolbar = root.querySelector('[role="toolbar"]')!;
     expect(textarea.value).toBe('');
-    expect(root.querySelector('[data-additions]')?.textContent).toContain('In your commit');
-    expect(root.querySelector('button[aria-label="Remove laravel/framework from your commit"]')).not.toBeNull();
+    expect(toolbar.querySelector('button[aria-label="Insert laravel/framework"] svg.octicon-link')).not.toBeNull();
+    expect(toolbar.querySelector('button[aria-label="Insert @laravel"] svg.octicon-mention')).not.toBeNull();
 
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove @laravel from your commit"]')!.click());
-    expect(root.querySelector('button[aria-label="Add @laravel to your commit"]')).not.toBeNull();
+    await act(async () => toolbar.querySelector<HTMLButtonElement>('button[aria-label="Insert laravel/framework"]')!.click());
+    expect(textarea.value).toBe(page.url);
+    expect(toolbar.querySelector('button[aria-label="Insert laravel/framework (already in your commit)"]')).not.toBeNull();
+  });
 
+  it("doesn't warn about the organization's mention when sharing a page", async () => {
+    await mount(<Composer target={{ page, organization: 'laravel' }} />);
+    const textarea = root.querySelector('textarea')!;
     await act(async () => {
       textarea.value = 'Merged';
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    expect(textarea.value).toBe(`Merged\n\n${page.url}`);
-  });
 
-  it('commits without the link once removed', async () => {
-    await mount(<Composer target={{ page, organization: null }} />);
-    ask.mockResolvedValueOnce({ id: 'c', status: 'approved', html_url: 'https://dev-null.sh/c' });
-
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove laravel/framework from your commit"]')!.click());
-    const textarea = root.querySelector('textarea')!;
-    await act(async () => {
-      textarea.value = `Hello${textarea.value}`;
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    await act(async () => {
-      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    });
-
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
+    expect(root.querySelector('[role="status"]')).toBeNull();
   });
 
   it('previews the commit from the eye in its toolbar, as dev-null.sh does', async () => {
     await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
     ask.mockResolvedValueOnce({
-      body: 'Run `npm i`\n\n@laravel',
+      body: 'Run `npm i`',
       body_segments: [
         { type: 'text', text: 'Run ' },
         { type: 'code', code: 'npm i' },
@@ -117,12 +107,12 @@ describe('Composer', () => {
     await act(async () => {});
 
     expect(eye.getAttribute('aria-pressed')).toBe('true');
-    expect(ask).toHaveBeenLastCalledWith({ type: 'preview', body: 'Run `npm i`\n\n@laravel' });
+    expect(ask).toHaveBeenLastCalledWith({ type: 'preview', body: 'Run `npm i`' });
     expect(root.querySelector('textarea')).toBeNull();
     expect(root.querySelector('code')?.textContent).toBe('npm i');
 
     await act(async () => eye.click());
-    expect(root.querySelector('textarea')?.value).toBe('Run `npm i`\n\n@laravel');
+    expect(root.querySelector('textarea')?.value).toBe('Run `npm i`');
   });
 
   it('commits what the user wrote', async () => {
@@ -138,7 +128,7 @@ describe('Composer', () => {
       root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello\n\n@laravel' });
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
     expect(root.textContent).toContain('View on /dev/null');
   });
 });

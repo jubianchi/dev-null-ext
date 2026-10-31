@@ -2,7 +2,7 @@ import type { CurrentUser } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
-import { Additions } from './Additions.tsx';
+import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -11,7 +11,7 @@ export type { Target } from '../lib/use-commit-draft.ts';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
-  const { state, text, input, additions, inCommit, add, remove, body, length, canCommit, submit } = useCommitDraft(target);
+  const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = useCommitDraft(target);
   const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
 
@@ -65,7 +65,7 @@ export function Composer({ target }: { target: Target }) {
               <textarea
                 ref={textarea}
                 value={text}
-                onInput={(event) => input(event.currentTarget)}
+                onInput={(event) => setText(event.currentTarget.value)}
                 rows={2}
                 placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
                 class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
@@ -74,19 +74,13 @@ export function Composer({ target }: { target: Target }) {
             )}
             </div>
 
-            <div class="mt-2">
-              <Additions
-                additions={additions}
-                inCommit={inCommit}
-                onAdd={(addition) => add(addition, textarea.current)}
-                onRemove={(addition) => remove(addition, textarea.current)}
-              />
-            </div>
+            <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
 
             {state.step === 'failed' && <CommitError error={state.error} />}
 
             <div class="mt-3 flex items-center gap-1">
               <div role="toolbar" aria-label="Commit tools" class="flex items-center gap-1">
+                <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
                 <button
                   type="button"
                   aria-label="Preview"

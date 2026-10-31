@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { additionsFor, isIn, organizationMention, pageLink, withAddition, withPending, withoutAddition } from '../src/lib/additions.ts';
+import { additionsFor, isIn, organizationMention, pageLink, withAddition } from '../src/lib/additions.ts';
 
 const pull = {
   kind: 'pull-request' as const,
@@ -30,16 +30,10 @@ describe('addition sources', () => {
   it('gives every addition a reason to show the user', () => {
     for (const addition of additionsFor({ page: pull, organization: 'laravel' })) expect(addition.reason).not.toBe('');
   });
-});
 
-describe('withPending', () => {
-  it('puts the pending additions below what the user starts writing, one per line', () => {
-    expect(withPending('H', [link!, mention!])).toBe(`H\n\n${pull.url}\n@laravel`);
-    expect(withPending('H', [])).toBe('H');
-  });
-
-  it('is the additions alone while the user has written nothing', () => {
-    expect(withPending('', [link!, mention!])).toBe(`${pull.url}\n@laravel`);
+  it("warns when the organization's log is written to without mentioning it, where the commit wouldn't show", () => {
+    expect(organizationMention({ page: null, organization: 'laravel' })[0]?.missing).toBe("Not mentioning @laravel: this commit won't show here.");
+    expect(organizationMention({ page: pull, organization: 'laravel' })[0]?.missing).toBeUndefined();
   });
 });
 
@@ -65,20 +59,5 @@ describe('withAddition', () => {
     expect(withAddition('Thanks for it', mention!, 6)).toEqual({ value: 'Thanks @laravel for it', caret: 15 });
     expect(withAddition('Thanks ', mention!, 7)).toEqual({ value: 'Thanks @laravel', caret: 15 });
     expect(withAddition('', mention!, 0)).toEqual({ value: '@laravel', caret: 8 });
-  });
-});
-
-describe('withoutAddition', () => {
-  it('removes the line an addition stands alone on', () => {
-    expect(withoutAddition(`Merged!\n\n${pull.url}\n@laravel`, mention!)).toBe(`Merged!\n\n${pull.url}`);
-    expect(withoutAddition(`Merged!\n\n${pull.url}\n@laravel`, link!)).toBe('Merged!\n\n@laravel');
-  });
-
-  it('removes it from a sentence, keeping one space between the words', () => {
-    expect(withoutAddition('Thanks @laravel for it, @Laravel', mention!)).toBe('Thanks for it,');
-  });
-
-  it('leaves the rest of the text as it is', () => {
-    expect(withoutAddition('```\na\n\n\n  b\n```\n@laravel', mention!)).toBe('```\na\n\n\n  b\n```');
   });
 });
