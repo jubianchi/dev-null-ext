@@ -48,6 +48,8 @@ export interface RecordedRequest {
   url: URL;
   headers: Record<string, string>;
   body: string;
+  /** A multipart request's parts. */
+  form?: FormData;
 }
 
 /** A fetch that answers from a queue and records what it was sent. */
@@ -59,6 +61,7 @@ export function fakeFetch(responses: Array<[number, unknown]>): typeof fetch & {
       url: new URL(input.toString()),
       headers: (init?.headers ?? {}) as Record<string, string>,
       body: typeof init?.body === 'string' ? init.body : '',
+      ...(init?.body instanceof FormData ? { form: init.body } : {}),
     });
     const next = responses.shift();
     if (!next) throw new Error('No more fake responses.');

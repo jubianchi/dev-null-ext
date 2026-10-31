@@ -97,6 +97,14 @@ export interface Page<T> {
   meta: { next_cursor: string | null };
 }
 
+export interface NewCommitImage {
+  bytes: Uint8Array;
+  /** image/jpeg, image/png or image/webp. */
+  type: string;
+  /** Its alt text. */
+  description?: string | null;
+}
+
 export interface NewCommit {
   body: string;
   parent_id?: string;
