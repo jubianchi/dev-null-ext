@@ -49,6 +49,28 @@ describe('signed requests', () => {
     expect(fetch.requests[0]?.headers['X-SSH-Signature']).toBeUndefined();
   });
 
+  it("previews a commit's body, signed, as /dev/null will render it", async () => {
+    const preview = {
+      body: 'Shipped `npm i`',
+      body_segments: [
+        { type: 'text', text: 'Shipped ' },
+        { type: 'code', code: 'npm i' },
+      ],
+      preview_segments: null,
+      mentions: [],
+    };
+    const fetch = fakeFetch([[200, { data: preview }]]);
+    const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });
+
+    expect(await client.previewCommit('Shipped `npm i`')).toEqual(preview);
+
+    const [request] = fetch.requests;
+    expect(request?.method).toBe('POST');
+    expect(request?.url.pathname).toBe('/api/v1/commits/preview');
+    expect(request?.body).toBe('{"body":"Shipped `npm i`"}');
+    expect(request?.headers['X-SSH-Signature']).toBeTypeOf('string');
+  });
+
   it('turns API errors into ApiError with their code', async () => {
     const fetch = fakeFetch([[403, { message: 'Accept the commit rules on the web first.', code: 'commit_rules_required' }]]);
     const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });

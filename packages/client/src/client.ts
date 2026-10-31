@@ -2,7 +2,7 @@ import { type Clock, systemClock } from './clock.ts';
 import { ApiError } from './errors.ts';
 import { signatureHeaders } from './signed-request.ts';
 import type { Signer } from './signer.ts';
-import type { Commit, CurrentUser, Device, NewCommit, Organization, Page } from './types.ts';
+import type { Commit, CommitPreview, CurrentUser, Device, NewCommit, Organization, Page } from './types.ts';
 
 export const DEFAULT_BASE_URL = 'https://dev-null.sh';
 
@@ -100,6 +100,11 @@ export class DevNullClient {
 
   async createCommit(commit: NewCommit): Promise<Commit> {
     return (await this.request<Wrapped<Commit>>('POST', '/api/v1/commits', { body: commit, signed: true })).data;
+  }
+
+  /** How /dev/null will render a body, without storing anything or counting toward the commit rate limit. */
+  async previewCommit(body: string): Promise<CommitPreview> {
+    return (await this.request<Wrapped<CommitPreview>>('POST', '/api/v1/commits/preview', { body: { body }, signed: true })).data;
   }
 
   async devices(): Promise<Device[]> {

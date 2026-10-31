@@ -52,6 +52,34 @@ export interface NewCommit {
   quoted_commit_id?: string;
 }
 
+/**
+ * A commit body cut into prose and code (App\Services\CodeSpans). Links, mentions and emoji are left in `text`, for
+ * the client to find; `block.html` is the highlighter's escaped output, with `hl-*` classes only.
+ */
+export type BodySegment =
+  | { type: 'text'; text: string }
+  | { type: 'code'; code: string }
+  | { type: 'block'; language: string | null; filename: string | null; html: string };
+
+export interface BodyMention {
+  /** Without the @, in its original case. */
+  handle: string;
+  /** In code points of `body`, the @ included. */
+  offset: number;
+  length: number;
+  /** Unknown handles come as `user`: only organizations are looked up. */
+  kind: 'user' | 'organization';
+}
+
+export interface CommitPreview {
+  /** The body as /dev/null stores it, emoji shortcodes replaced. */
+  body: string;
+  body_segments: BodySegment[];
+  /** The folded excerpt lists show, or null when the body fits. */
+  preview_segments: BodySegment[] | null;
+  mentions: BodyMention[];
+}
+
 export interface Device {
   id: string;
   name: string;
