@@ -38,7 +38,7 @@ jobs:
       - name: Keep the archives, to try this build
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: devnull-github-${{ github.sha }}
+          name: dev-null-ext-${{ github.sha }}
           path: |
             apps/extension/.output/*-chrome.zip
             apps/extension/.output/*-firefox.zip

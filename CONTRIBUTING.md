@@ -209,7 +209,7 @@ Workflows share `.github/actions/setup`, and every action is pinned to a commit.
 
 - Firefox requires `data_collection_permissions` in `browser_specific_settings.gecko` for new add-ons: decide what to
   declare (the extension sends what the user writes to dev-null.sh, and owner names to api.github.com).
-- The Gecko id `devnull-github@jubianchi.fr` is a placeholder.
+- The Gecko id `dev-null-ext@jubianchi.fr` can't change once the add-on is published: confirm it before.
 - Add the Playwright run against github.com (Chrome) and a `web-ext` smoke test (Firefox).
 
 ## Supply chain

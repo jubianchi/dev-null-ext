@@ -1,6 +1,7 @@
-# /dev/null for GitHub
+# dev-null-ext
 
-A WXT browser extension (Preact, Tailwind CSS v4) that brings dev-null.sh into github.com. Read
+The /dev/null browser extension (WXT, Preact, Tailwind CSS v4), which brings dev-null.sh into github.com for now. Its
+displayed name is `/dev/null`; the project, its packages (`@dev-null-ext/*`) and archives are `dev-null-ext`. Read
 [CONTRIBUTING.md](CONTRIBUTING.md) before changing code: architecture, workflow and UI principles are there, not here.
 
 ## Commands

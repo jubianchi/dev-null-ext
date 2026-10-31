@@ -1,7 +1,8 @@
-# /dev/null for GitHub
+# dev-null-ext
 
-A browser extension that makes [/dev/null](https://dev-null.sh) feel like a GitHub feature: read what developers ship
-about an organization, and commit about what you're looking at, without leaving GitHub.
+**/dev/null**, the browser extension: it brings [/dev/null](https://dev-null.sh) to the sites developers work on. For
+now, it makes /dev/null feel like a GitHub feature: read what developers ship about an organization, and commit about
+what you're looking at, without leaving GitHub.
 
 It looks like GitHub, in its light, dark and high-contrast themes, and speaks like /dev/null.
 
@@ -41,13 +42,13 @@ The extension's popup shows your /dev/null profile, and lets you turn off anythi
 ## Install
 
 The extension isn't on the Chrome Web Store or Firefox Add-ons yet. Download it from the
-[latest release](https://github.com/jubianchi/github-dev-null/releases/latest):
+[latest release](https://github.com/jubianchi/dev-null-ext/releases/latest):
 
-- **Chrome 137+** (and other Chromium browsers): unzip `devnull-github-<version>-chrome.zip`, open
+- **Chrome 137+** (and other Chromium browsers): unzip `dev-null-ext-<version>-chrome.zip`, open
   `chrome://extensions`, turn on **Developer mode**, then **Load unpacked** and pick the unzipped folder.
 - **Firefox 129+**: the archive isn't signed yet, so Firefox only loads it until it restarts. Open
   `about:debugging#/runtime/this-firefox`, then **Load Temporary Add-on** and pick
-  `devnull-github-<version>-firefox.zip`.
+  `dev-null-ext-<version>-firefox.zip`.
 
 You can also build it from source, as described in [CONTRIBUTING.md](CONTRIBUTING.md#getting-started).
 
