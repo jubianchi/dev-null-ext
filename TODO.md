@@ -1,7 +1,7 @@
 # TODO
 
 The extension compared with dev-null.sh, in priority order. Check items off as they land, and keep this list as the
-thread to follow. The UI principles in the [README](README.md#ui-principles) apply to every item.
+thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#ui-principles) apply to every item.
 
 ## 1. Lose no content in the log
 
