@@ -70,7 +70,7 @@ export function Composer({ target }: { target: Target }) {
             <div>
             {previewing ? (
               <div class="max-h-[50vh] min-h-12 overflow-y-auto py-2 text-base">
-                <PreviewPanel body={body} />
+                <PreviewPanel body={body} images={draft.images} />
               </div>
             ) : (
               <textarea

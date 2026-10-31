@@ -1,13 +1,18 @@
 import type { CommitPreview } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
+import type { AttachedImage } from '../lib/use-commit-draft.ts';
 import { CommitBody } from './CommitBody.tsx';
+import { AttachedImagesPreview } from './CommitImages.tsx';
 
 /** The preview /dev/null renders, or the plain text when it can't (offline, signed out, invalid body). */
 type Preview = { status: 'loading' } | { status: 'loaded'; preview: CommitPreview } | { status: 'failed' };
 
-/** A commit as /dev/null will publish it, asked for when shown, for both composers. */
-export function PreviewPanel({ body }: { body: string }) {
+/**
+ * A commit as /dev/null will publish it, for both composers: its text, asked for when shown, then its images, laid out
+ * as the log lays them out.
+ */
+export function PreviewPanel({ body, images = [] }: { body: string; images?: AttachedImage[] }) {
   const [preview, setPreview] = useState<Preview>({ status: 'loading' });
   const empty = body === '';
 
@@ -25,9 +30,14 @@ export function PreviewPanel({ body }: { body: string }) {
     };
   }, [body, empty]);
 
-  if (empty) return <span class="text-fg-muted">Nothing to preview</span>;
-  if (preview.status === 'loading') return <span class="text-fg-muted">Loading preview…</span>;
-  if (preview.status === 'failed') return <div class="whitespace-pre-wrap break-words text-fg">{body}</div>;
+  if (empty && images.length === 0) return <span class="text-fg-muted">Nothing to preview</span>;
 
-  return <CommitBody segments={preview.preview.body_segments} mentions={preview.preview.mentions} />;
+  return (
+    <>
+      {!empty && preview.status === 'loading' && <span class="text-fg-muted">Loading preview…</span>}
+      {!empty && preview.status === 'failed' && <div class="whitespace-pre-wrap break-words text-fg">{body}</div>}
+      {!empty && preview.status === 'loaded' && <CommitBody segments={preview.preview.body_segments} mentions={preview.preview.mentions} />}
+      <AttachedImagesPreview images={images} />
+    </>
+  );
 }

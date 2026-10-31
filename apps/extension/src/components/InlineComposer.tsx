@@ -108,7 +108,7 @@ export function InlineComposer({
             />
           ) : (
             <div class="min-h-24 px-3 py-2 text-sm">
-              <PreviewPanel body={body} />
+              <PreviewPanel body={body} images={draft.images} />
             </div>
           )}
           <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />

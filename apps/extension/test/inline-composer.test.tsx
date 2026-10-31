@@ -143,6 +143,14 @@ describe('InlineComposer, images', () => {
     expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(0);
   });
 
+  it('previews the attached images, even without text', async () => {
+    await attach(png());
+    await openPreview();
+
+    expect(root.querySelector('[role="tabpanel"]')?.textContent).not.toContain('Nothing to preview');
+    expect(root.querySelector('[role="tabpanel"] img')?.getAttribute('alt')).toBe('Attached image');
+  });
+
   it('attaches pasted images', async () => {
     const textarea = root.querySelector('textarea')!;
     const paste = new Event('paste', { bubbles: true, cancelable: true });
