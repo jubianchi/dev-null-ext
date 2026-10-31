@@ -192,6 +192,12 @@ and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`
   git tag v1.2.3 && git push origin v1.2.3
   ```
 
+- **Chrome Web Store** (`.github/workflows/chrome-web-store.yml`): run it by hand from the Actions tab with a released
+  tag. It builds the Chrome archive of that version and checks its manifest against the store's rules (version,
+  128×128 icon, description of 132 characters at most, no `key`). The run's summary lists the permissions to justify on
+  the store. Download the `chrome-web-store-<tag>` artifact, unzip it once, and upload the archive inside on the
+  developer dashboard.
+
 Workflows share `.github/actions/setup`, and every action is pinned to a commit.
 
 ## Before publishing anywhere

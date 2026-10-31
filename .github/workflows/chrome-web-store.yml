@@ -1,0 +1,100 @@
+name: Chrome Web Store
+
+# Builds the archive to upload on the Chrome Web Store's developer dashboard, from a released version.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The released version to package, e.g. v1.2.3
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package for the Chrome Web Store
+    runs-on: ubuntu-latest
+    steps:
+      # The store refuses a version it already has, or one lower: only a version tag goes there.
+      - name: Read the version from the tag
+        id: version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::The tag must be vMAJOR.MINOR.PATCH, e.g. v1.2.3; got $TAG."
+            exit 1
+          fi
+          echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Set the extension's version
+        working-directory: apps/extension
+        run: npm pkg set version="${{ steps.version.outputs.version }}"
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build the Chrome archive
+        run: pnpm --filter @devnull-github/extension zip
+
+      - name: Check the manifest
+        working-directory: apps/extension/.output/chrome-mv3
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const manifest = JSON.parse(readFileSync("manifest.json", "utf8"));
+            const problems = [];
+            if (manifest.manifest_version !== 3) problems.push("manifest_version must be 3");
+            if (manifest.version !== process.env.VERSION) problems.push(`version is ${manifest.version}, not ${process.env.VERSION}`);
+            if (!manifest.icons?.["128"]) problems.push("a 128×128 icon is required");
+            if (manifest.description.length > 132) problems.push("the description must be 132 characters at most");
+            if (manifest.key) problems.push("the store refuses a manifest with a key");
+            for (const problem of problems) console.log(`::error::${problem}`);
+            process.exit(problems.length ? 1 : 0);
+          '
+
+      - name: Keep the archive
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: chrome-web-store-${{ inputs.tag }}
+          path: apps/extension/.output/*-chrome.zip
+          if-no-files-found: error
+
+      - name: Say what to declare on the store
+        working-directory: apps/extension/.output/chrome-mv3
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const manifest = JSON.parse(readFileSync("manifest.json", "utf8"));
+            const list = (items) => (items ?? []).map((item) => `- \`${item}\``).join("\n") || "- none";
+            console.log(`## ${manifest.name} ${manifest.version}
+
+          Download the **chrome-web-store-${process.env.TAG}** artifact, unzip it once to get the extension archive,
+          and upload that archive on the developer dashboard (Package → Upload new package).
+
+          ### Permissions to justify on the Privacy tab
+
+          ${list(manifest.permissions)}
+
+          Optional:
+
+          ${list(manifest.optional_permissions)}
+
+          Hosts:
+
+          ${list(manifest.host_permissions)}
+          `);
+          ' >> "$GITHUB_STEP_SUMMARY"
+        env:
+          TAG: ${{ inputs.tag }}
