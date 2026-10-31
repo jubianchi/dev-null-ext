@@ -4,6 +4,7 @@ import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { OrganizationPanel } from '../../components/OrganizationPanel.tsx';
+import { organizationTabLink } from '../../components/OrganizationTab.tsx';
 import { ShareButton } from '../../components/ShareButton.tsx';
 import {
   organizationContent,
@@ -132,12 +133,7 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
     onMount: (li) => {
       const style = organizationTabStyle() ?? { item: 'd-flex', link: 'UnderlineNav-item' };
       li.className = style.item;
-      const link = document.createElement('a');
-      link.href = TAB_HASH;
-      link.className = style.link;
-      link.dataset['devnullTab'] = '';
-      link.textContent = '/dev/null';
-      li.replaceChildren(link);
+      li.replaceChildren(organizationTabLink({ href: TAB_HASH, className: style.link }));
       void sync();
     },
   });
