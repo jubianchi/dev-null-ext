@@ -1,15 +1,11 @@
-import type { Commit, CommitPreview } from '@devnull-github/client';
-import { useEffect, useState } from 'preact/hooks';
-import { ask } from '../lib/messages.ts';
+import type { Commit } from '@devnull-github/client';
+import { useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
-import { CommitBody } from './CommitBody.tsx';
 import { CommitError } from './CommitError.tsx';
+import { PreviewPanel } from './PreviewPanel.tsx';
 
 type Tab = 'write' | 'preview';
-
-/** The preview /dev/null renders, or the plain text when it can't (offline, signed out, invalid body). */
-type Preview = { status: 'loading' } | { status: 'loaded'; preview: CommitPreview } | { status: 'failed' };
 
 /**
  * The composer inline above an organization's log, drawn as GitHub's comment box (Write and Preview tabs, a footer
@@ -19,21 +15,6 @@ type Preview = { status: 'loading' } | { status: 'loaded'; preview: CommitPrevie
 export function InlineComposer({ organization, onCommitted }: { organization: string; onCommitted?: (commit: Commit) => void }) {
   const { state, text, setText, body, length, canCommit, submit } = useCommitDraft({ page: null, organization }, onCommitted);
   const [tab, setTab] = useState<Tab>('write');
-  const [preview, setPreview] = useState<Preview>({ status: 'loading' });
-
-  useEffect(() => {
-    if (tab !== 'preview' || text.trim() === '') return;
-
-    let current = true;
-    setPreview({ status: 'loading' });
-    ask({ type: 'preview', body }).then(
-      (result) => current && setPreview({ status: 'loaded', preview: result }),
-      () => current && setPreview({ status: 'failed' }),
-    );
-    return () => {
-      current = false;
-    };
-  }, [tab, body]);
 
   if (state.step === 'loading') return null;
 
@@ -85,12 +66,7 @@ export function InlineComposer({ organization, onCommitted }: { organization: st
             />
           ) : (
             <div class="min-h-24 px-3 py-2 text-sm">
-              {text.trim() === '' && <span class="text-fg-muted">Nothing to preview</span>}
-              {text.trim() !== '' && preview.status === 'loading' && <span class="text-fg-muted">Loading preview…</span>}
-              {text.trim() !== '' && preview.status === 'loaded' && (
-                <CommitBody segments={preview.preview.body_segments} mentions={preview.preview.mentions} />
-              )}
-              {text.trim() !== '' && preview.status === 'failed' && <div class="whitespace-pre-wrap break-words text-fg">{body}</div>}
+              <PreviewPanel text={text} body={body} />
             </div>
           )}
         </div>

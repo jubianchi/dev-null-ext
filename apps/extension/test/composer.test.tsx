@@ -60,11 +60,43 @@ describe('Composer', () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 
     const toolbar = root.querySelector('[role="toolbar"]');
-    const mention = toolbar?.querySelector<HTMLButtonElement>('button[aria-pressed]');
+    const mention = [...(toolbar?.querySelectorAll<HTMLButtonElement>('button[aria-pressed]') ?? [])].find((button) => button.textContent === '@laravel');
     expect(mention?.getAttribute('aria-pressed')).toBe('true');
 
     await act(async () => mention?.click());
     expect(mention?.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('previews the commit from the eye in its toolbar, as dev-null.sh does', async () => {
+    await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
+    ask.mockResolvedValueOnce({
+      body: 'Run `npm i`\n\n@laravel',
+      body_segments: [
+        { type: 'text', text: 'Run ' },
+        { type: 'code', code: 'npm i' },
+      ],
+      preview_segments: null,
+      mentions: [],
+    });
+
+    const textarea = root.querySelector('textarea')!;
+    await act(async () => {
+      textarea.value = 'Run `npm i`';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const eye = root.querySelector<HTMLButtonElement>('[role="toolbar"] button[aria-label="Preview"]')!;
+    expect(eye.querySelector('svg.octicon-eye')).not.toBeNull();
+
+    await act(async () => eye.click());
+    await act(async () => {});
+
+    expect(eye.getAttribute('aria-pressed')).toBe('true');
+    expect(ask).toHaveBeenLastCalledWith({ type: 'preview', body: 'Run `npm i`\n\n@laravel' });
+    expect(root.querySelector('textarea')).toBeNull();
+    expect(root.querySelector('code')?.textContent).toBe('npm i');
+
+    await act(async () => eye.click());
+    expect(root.querySelector('textarea')?.value).toBe('Run `npm i`');
   });
 
   it('commits what the user wrote', async () => {

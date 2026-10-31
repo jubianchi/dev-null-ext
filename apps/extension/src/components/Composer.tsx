@@ -1,19 +1,22 @@
 import type { CurrentUser } from '@devnull-github/client';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { CommitError } from './CommitError.tsx';
+import { Octicon } from './Octicon.tsx';
+import { PreviewPanel } from './PreviewPanel.tsx';
 
 export type { Target } from '../lib/use-commit-draft.ts';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
-  const { state, text, setText, mention, setMention, length, canCommit, submit } = useCommitDraft(target);
+  const { state, text, setText, mention, setMention, body, length, canCommit, submit } = useCommitDraft(target);
+  const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (state.step === 'writing') textarea.current?.focus();
-  }, [state.step]);
+    if (state.step === 'writing' && !previewing) textarea.current?.focus();
+  }, [state.step, previewing]);
 
   return (
     <div
@@ -52,15 +55,23 @@ export function Composer({ target }: { target: Target }) {
           <Avatar user={state.user} />
 
           <div class="min-w-0 flex-1">
-            <textarea
-              ref={textarea}
-              value={text}
-              onInput={(event) => setText(event.currentTarget.value)}
-              rows={2}
-              placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
-              class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
-              disabled={state.step === 'sending'}
-            />
+            <div>
+            {previewing ? (
+              <div class="max-h-[50vh] min-h-12 overflow-y-auto py-2 text-base">
+                <PreviewPanel text={text} body={body} />
+              </div>
+            ) : (
+              <textarea
+                ref={textarea}
+                value={text}
+                onInput={(event) => setText(event.currentTarget.value)}
+                rows={2}
+                placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
+                class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
+                disabled={state.step === 'sending'}
+              />
+            )}
+            </div>
 
             {target.page && (
               <p class="m-0 mt-1 text-xs text-fg-muted">
@@ -72,6 +83,16 @@ export function Composer({ target }: { target: Target }) {
 
             <div class="mt-3 flex items-center gap-1">
               <div role="toolbar" aria-label="Commit tools" class="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="Preview"
+                  aria-pressed={previewing}
+                  title={previewing ? 'Back to writing' : 'Preview the commit as /dev/null will publish it'}
+                  onClick={() => setPreviewing(!previewing)}
+                  class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg aria-pressed:bg-button aria-pressed:text-fg-accent"
+                >
+                  <Octicon name="eye" />
+                </button>
                 {target.organization && target.page && (
                   <button
                     type="button"
