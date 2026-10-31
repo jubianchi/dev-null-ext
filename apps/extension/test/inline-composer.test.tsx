@@ -92,18 +92,28 @@ describe('InlineComposer, images', () => {
     expect(root.querySelector('[data-attached-image] img')?.getAttribute('alt')).toBe('shot.png');
   });
 
-  it('describes an image, and removes it', async () => {
+  it('describes an image from its ALT badge, as dev-null.sh does, and removes it', async () => {
     await attach(png());
-    const description = root.querySelector<HTMLInputElement>('[data-attached-image] input[type="text"]')!;
-    expect(description.getAttribute('aria-label')).toBe('Describe shot.png');
+    const badge = root.querySelector<HTMLButtonElement>('[data-attached-image] button[aria-label="Describe image 1"]')!;
+    expect(badge.textContent).toBe('+ALT');
+    expect(root.querySelector('[data-image-description]')).toBeNull();
+
+    await act(async () => badge.click());
+    const description = root.querySelector<HTMLTextAreaElement>('[data-image-description] textarea')!;
+    expect(root.querySelector('[data-image-description]')?.textContent).toContain('Description of image 1');
+    expect(description.getAttribute('placeholder')).toBe("Describe the image for people who can't see it");
 
     await act(async () => {
       description.value = 'The new popup';
       description.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    expect(root.querySelector<HTMLInputElement>('[data-attached-image] input[type="text"]')?.value).toBe('The new popup');
+    expect(root.querySelector('[data-image-description]')?.textContent).toContain('13/1000');
 
-    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove shot.png"]')!.click());
+    await act(async () => [...root.querySelectorAll<HTMLButtonElement>('[data-image-description] button')].find((button) => button.textContent === 'Done')!.click());
+    expect(root.querySelector('[data-image-description]')).toBeNull();
+    expect(badge.textContent).toBe('ALT');
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove image 1"]')!.click());
     expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(0);
   });
 
@@ -116,8 +126,9 @@ describe('InlineComposer, images', () => {
 
   it('commits images without text, with their descriptions', async () => {
     await attach(png());
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Describe image 1"]')!.click());
     await act(async () => {
-      const description = root.querySelector<HTMLInputElement>('[data-attached-image] input[type="text"]')!;
+      const description = root.querySelector<HTMLTextAreaElement>('[data-image-description] textarea')!;
       description.value = 'The new popup';
       description.dispatchEvent(new Event('input', { bubbles: true }));
     });
