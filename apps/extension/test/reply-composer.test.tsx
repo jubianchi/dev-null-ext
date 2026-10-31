@@ -88,6 +88,14 @@ async function send() {
 }
 
 describe('Replying from a log', () => {
+  it('offers a Reply button among the actions, as dev-null.sh does, apart from the replies count', async () => {
+    await show();
+
+    expect(replyButton()?.textContent).toBe('Reply');
+    expect(replyButton()?.querySelector('svg.octicon-reply')).not.toBeNull();
+    expect(root.querySelector('a[aria-label="0 replies"]')?.getAttribute('href')).toBe(commit.html_url);
+  });
+
   it('opens a reply composer under the commit from its Reply button, and closes it the same way', async () => {
     await show();
     expect(textarea()).toBeNull();
@@ -118,7 +126,7 @@ describe('Replying from a log', () => {
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Congrats!', parentId: 'c1' });
     expect(textarea()).toBeNull();
     expect(root.querySelector('[data-reply]')?.textContent).toContain('Congrats!');
-    expect(replyButton()?.textContent).toBe('1');
+    expect(root.querySelector('a[aria-label="1 reply"]')?.textContent).toBe('1');
   });
 
   it("says why a reply wasn't sent, and keeps it", async () => {

@@ -42,36 +42,35 @@ export function CommitItem({ commit, canReply = false }: { commit: Commit; canRe
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
         <div class="mt-2 flex items-center gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
-          {repliesCount !== undefined &&
-            (canReply ? (
-              <button
-                type="button"
-                onClick={() => setReplying(!replying)}
-                aria-label={`Reply to @${commit.author.handle}`}
-                aria-expanded={replying}
-                title={plural(repliesCount, 'reply', 'replies')}
-                class={`${ACTION} cursor-pointer border-0 bg-transparent p-0`}
-              >
-                <Octicon name="comment" />
-                {repliesCount}
-              </button>
-            ) : (
-              <a
-                href={commit.html_url}
-                target="_blank"
-                rel="noopener"
-                title="Reply on /dev/null"
-                class={ACTION}
-                aria-label={plural(repliesCount, 'reply', 'replies')}
-              >
-                <Octicon name="comment" />
-                {repliesCount}
-              </a>
-            ))}
+          {repliesCount !== undefined && (
+            <a
+              href={commit.html_url}
+              target="_blank"
+              rel="noopener"
+              title={canReply ? 'The thread on /dev/null' : 'Reply on /dev/null'}
+              class={ACTION}
+              aria-label={plural(repliesCount, 'reply', 'replies')}
+            >
+              <Octicon name="comment" />
+              {repliesCount}
+            </a>
+          )}
           <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
             <Octicon name="quote" />
             Quote
           </a>
+          {canReply && (
+            <button
+              type="button"
+              onClick={() => setReplying(!replying)}
+              aria-label={`Reply to @${commit.author.handle}`}
+              aria-expanded={replying}
+              class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit] aria-expanded:text-fg-accent`}
+            >
+              <Octicon name="reply" />
+              Reply
+            </button>
+          )}
           {commit.status === 'pending' && <span class="text-fg-attention">Pending review</span>}
         </div>
         {replying && (
