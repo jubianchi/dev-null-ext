@@ -57,8 +57,9 @@ export interface ShareButtonAnchor {
 
 /** The containers of GitHub's own header buttons, from the most to the least specific page. */
 const SHARE_BUTTON_ANCHORS: ShareButtonAnchor[] = [
-  // An issue: with New issue and Copy link, not with the title's actions above them.
-  { selector: '[data-component="PageHeader.ContextAreaActions"] > div', size: 'medium', item: false },
+  // An issue: with New issue and Copy link, in the title's actions. GitHub renders them twice, the other copy in the
+  // ContextArea, which only shows on narrow screens.
+  { selector: '[data-component="PH_Actions"] [class*="menuActionsContainer"]', size: 'medium', item: false },
   // A pull request: with Edit and Code.
   { selector: '[data-component="PH_Actions"]', size: 'medium', item: false },
   // A repository: with Watch, Fork and Star.

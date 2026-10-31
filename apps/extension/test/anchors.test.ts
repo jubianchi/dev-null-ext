@@ -84,16 +84,25 @@ describe('share button anchor', () => {
     return anchor && { ...anchor, element: document.querySelector(anchor.selector)?.id };
   };
 
-  it("goes with an issue's own buttons, New issue and Copy link, not against its title", () => {
+  it("goes with an issue's visible buttons, New issue and Copy link, not their copy for narrow screens", () => {
     document.body.innerHTML = `
       <div data-component="PageHeader">
-        <div data-component="PH_Actions" id="title-actions"></div>
-        <div data-component="PageHeader.ContextArea">
-          <div data-component="PageHeader.ContextAreaActions"><div id="issue-actions"><div><a>New issue</a></div><button>Copy</button></div></div>
+        <div data-component="PageHeader.ContextArea" style="display: none">
+          <div data-component="PageHeader.ContextAreaActions">
+            <div class="menuActionsContainer__S_GMw3" id="narrow-actions"><div><a>New issue</a></div><button>Copy</button></div>
+          </div>
+        </div>
+        <div data-component="PH_Actions">
+          <div class="menuActionsContainer__S_GMw3" id="issue-actions"><div><a>New issue</a></div><button>Copy</button></div>
         </div>
       </div>`;
 
-    expect(at()).toEqual({ selector: '[data-component="PageHeader.ContextAreaActions"] > div', size: 'medium', item: false, element: 'issue-actions' });
+    expect(at()).toEqual({
+      selector: '[data-component="PH_Actions"] [class*="menuActionsContainer"]',
+      size: 'medium',
+      item: false,
+      element: 'issue-actions',
+    });
   });
 
   it("goes with a pull request's own buttons, Edit and Code", () => {
