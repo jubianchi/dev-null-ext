@@ -30,7 +30,7 @@ const ownerTypesItem = storage.defineItem<Record<string, Exclude<OwnerType, null
 async function deviceName(): Promise<string> {
   const { os } = await browser.runtime.getPlatformInfo();
   const browserName = import.meta.env.FIREFOX ? 'Firefox' : 'Chrome';
-  return `GitHub extension (${browserName}, ${os})`;
+  return `Browser extension (${browserName}, ${os})`;
 }
 
 /**

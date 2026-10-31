@@ -33,7 +33,7 @@ export async function prepareLoopbackSignIn(
 ): Promise<LoopbackSignIn> {
   const verifier = createVerifier();
   const state = toBase64Url(randomBytes(16));
-  const redirectUri = `http://127.0.0.1:${port}/devnull-github/callback`;
+  const redirectUri = `http://127.0.0.1:${port}/dev-null-ext/callback`;
 
   const url = new URL(`${client.baseUrl}/mobile/authorize`);
   url.search = new URLSearchParams({

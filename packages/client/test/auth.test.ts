@@ -105,7 +105,7 @@ describe('loopback fallback', () => {
     const params = new URL(opened).searchParams;
     expect(new URL(opened).pathname).toBe('/mobile/authorize');
     expect(params.get('fingerprint')).toBe(signer.fingerprint);
-    expect(params.get('redirect_uri')).toMatch(/^http:\/\/127\.0\.0\.1:\d{5}\/devnull-github\/callback$/);
+    expect(params.get('redirect_uri')).toMatch(/^http:\/\/127\.0\.0\.1:\d{5}\/dev-null-ext\/callback$/);
     expect(params.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(result.flow).toBe('loopback');
 
