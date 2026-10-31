@@ -1,4 +1,4 @@
-import type { BodyMention, BodySegment, Commit } from '@devnull-github/client';
+import type { BodyMention, BodySegment, Commit, DeletedCommit } from '@devnull-github/client';
 import { useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
@@ -64,6 +64,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
           </a>
           <code class="ml-auto font-mono text-xs text-fg-muted">{commit.short_hash}</code>
         </div>
+        {commit.parent_id && commit.parent !== undefined && <ReplyingTo parent={commit.parent} />}
         <FoldedBody
           segments={commit.body_segments ?? segmentBody(commit.body)}
           excerpt={commit.preview_segments ?? null}
@@ -98,7 +99,24 @@ export function CommitItem({ commit }: { commit: Commit }) {
   );
 }
 
-const ACTION = 'inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-fg-muted hover:bg-canvas-muted hover:text-fg-accent';
+/** The commit a reply replies to, as one line under its header, as dev-null.sh does rather than the parent's card. */
+function ReplyingTo({ parent }: { parent: Commit | DeletedCommit | null }) {
+  if (parent === null || 'deleted_at' in parent) {
+    return (
+      <p class="m-0 mb-1 text-xs text-fg-muted">
+        ↳ replying to <span class="font-mono">[{parent === null ? 'unavailable' : 'deleted'}]</span>
+      </p>
+    );
+  }
+
+  return (
+    <a href={parent.html_url} target="_blank" rel="noopener" class="mb-1 block text-xs text-fg-muted hover:text-fg-accent hover:underline">
+      ↳ replying to @{parent.author.handle}
+    </a>
+  );
+}
+
+const ACTION ='inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-fg-muted hover:bg-canvas-muted hover:text-fg-accent';
 
 /** The star counter, which stars and unstars the commit: at once, and back as it was if /dev/null refuses. */
 function Star({ commit, count }: { commit: Commit; count: number }) {

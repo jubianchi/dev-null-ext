@@ -180,6 +180,23 @@ describe('CommitItem', () => {
     expect(quote?.querySelector('svg.octicon-quote')).not.toBeNull();
   });
 
+  it('says which commit a reply replies to, linking to it', () => {
+    const parent = { ...commit, id: 'p1', html_url: 'https://dev-null.sh/@njames/commits/p1', author: { ...commit.author, handle: 'njames' } };
+    render(<CommitItem commit={{ ...commit, parent_id: 'p1', parent }} />, root);
+
+    const link = [...root.querySelectorAll('a')].find((element) => element.textContent?.includes('replying to'));
+    expect(link?.textContent).toBe('↳ replying to @njames');
+    expect(link?.getAttribute('href')).toBe(parent.html_url);
+  });
+
+  it('says when the parent of a reply was deleted or is not visible', () => {
+    render(<CommitItem commit={{ ...commit, parent_id: 'p1', parent: { id: 'p1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />, root);
+    expect(root.textContent).toContain('↳ replying to [deleted]');
+
+    render(<CommitItem commit={{ ...commit, parent_id: 'p1', parent: null }} />, root);
+    expect(root.textContent).toContain('↳ replying to [unavailable]');
+  });
+
   it('fills the star of a commit the user starred', () => {
     render(<CommitItem commit={{ ...commit, starred: true }} />, root);
 
