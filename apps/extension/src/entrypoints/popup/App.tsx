@@ -5,6 +5,7 @@ import { storage } from 'wxt/utils/storage';
 import { Glyph } from '../../components/Glyph.tsx';
 import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
+import { PopupWelcome } from '../../components/PopupWelcome.tsx';
 import { type GitHubPage, readPage } from '../../lib/github/page.ts';
 import { type SignInState, ask } from '../../lib/messages.ts';
 import { type Settings, readSettings } from '../../lib/settings.ts';
@@ -95,6 +96,8 @@ export function App() {
 
       {user && <PopupProfile user={user} page={page} settings={settings} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))} />}
 
+      {user === null && signIn.status === 'idle' && <PopupWelcome developers={null} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
+
       <div class="px-4 pb-4">
       {!hostAccess && (
         <section class="mb-4 space-y-2">
@@ -106,16 +109,6 @@ export function App() {
       )}
 
       {user === undefined && <p class="m-0 text-fg-muted">Checking your session…</p>}
-
-
-      {user === null && signIn.status === 'idle' && (
-        <section class="space-y-2">
-          <p class="m-0 text-fg-muted">Connect your /dev/null account to commit from GitHub. Reading works without it.</p>
-          <button type="button" class={primary} onClick={() => run(() => ask({ type: 'sign-in' }))}>
-            Connect /dev/null
-          </button>
-        </section>
-      )}
 
       {user === null && signIn.status === 'waiting' && signIn.flow === 'device-grant' && (
         <section class="space-y-2">
