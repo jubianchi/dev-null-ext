@@ -17,6 +17,7 @@ import {
   shareButtonAnchor,
 } from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
+import { styleHost } from '../../lib/host-style.ts';
 import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
 import type { SharedPage } from '../../lib/share.ts';
@@ -88,10 +89,9 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     append: (anchor, element) => {
       removeShareItems();
       const placement = shareButtonAnchor();
-      (element as HTMLElement).style.display = 'inline-flex';
+      styleHost(element, { display: 'inline-flex' });
       if (placement?.position === 'after') {
-        (element as HTMLElement).style.alignSelf = 'flex-start';
-        (element as HTMLElement).style.marginLeft = '8px';
+        styleHost(element, { 'align-self': 'flex-start', 'margin-left': '8px' });
         return anchor.after(element);
       }
       if (!placement?.item) return anchor.prepend(element);
@@ -140,9 +140,8 @@ function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { k
         position: 'inline',
         anchor: box,
         append: (anchor, element) => {
-          (element as HTMLElement).style.display = 'inline-flex';
           // As GitHub spaces the buttons of a release's header (mr-2).
-          (element as HTMLElement).style.marginRight = '8px';
+          styleHost(element, { display: 'inline-flex', 'margin-right': '8px' });
           anchor.prepend(element);
         },
         onMount: (container) => render(<ShareButton page={release} size="small" />, container),
