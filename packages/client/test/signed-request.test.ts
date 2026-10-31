@@ -89,6 +89,27 @@ describe('signed requests', () => {
     expect(request?.headers['X-SSH-Signature']).toBeTypeOf('string');
   });
 
+  it('asks who to mention in a reply, the thread first', async () => {
+    const fetch = fakeFetch([[200, { data: [], organizations: [] }]]);
+    const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });
+
+    await client.mentionSuggestions('', { reply: 'c1' });
+
+    const [request] = fetch.requests;
+    expect(request?.url.pathname + request!.url.search).toBe('/api/v1/search/mentions?q=&reply=c1');
+  });
+
+  it('replies to a commit, signed, with its parent', async () => {
+    const fetch = fakeFetch([[201, { data: { id: 'r1', parent_id: 'c1' } }]]);
+    const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });
+
+    await client.createCommit({ body: 'Nice!', parent_id: 'c1' });
+
+    const [request] = fetch.requests;
+    expect(request?.url.pathname).toBe('/api/v1/commits');
+    expect(JSON.parse(request?.body ?? '')).toEqual({ body: 'Nice!', parent_id: 'c1' });
+  });
+
   it("pages a commit's replies, newest first to follow its reply preview, signed", async () => {
     const page = { data: [], meta: { next_cursor: null } };
     const fetch = fakeFetch([[200, page]]);

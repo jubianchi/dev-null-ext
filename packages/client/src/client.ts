@@ -163,9 +163,10 @@ export class DevNullClient {
    * Who to mention, as dev-null.sh's composer suggests: for an empty query, the people the user follows, most recently
    * followed first; otherwise the users and organizations whose handle or name contains it, followed ones first.
    */
-  async mentionSuggestions(query: string): Promise<MentionSuggestions> {
+  async mentionSuggestions(query: string, options: { reply?: string | null } = {}): Promise<MentionSuggestions> {
     const { data, organizations } = await this.request<{ data: User[]; organizations: Organization[] }>('GET', '/api/v1/search/mentions', {
-      query: { q: query },
+      // In a reply, the commit replied to: its author, the thread's root author and contributors come first.
+      query: { q: query, reply: options.reply },
       signed: true,
     });
     return { users: data, organizations };

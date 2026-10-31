@@ -9,9 +9,9 @@ import type { TransferredImage } from './images.ts';
 export type Request =
   | { type: 'session' }
   | { type: 'mentions'; organization: string; cursor: string | null }
-  | { type: 'commit'; body: string; images?: TransferredImage[] }
+  | { type: 'commit'; body: string; images?: TransferredImage[]; parentId?: string }
   | { type: 'preview'; body: string }
-  | { type: 'mention-suggestions'; query: string }
+  | { type: 'mention-suggestions'; query: string; reply?: string }
   | { type: 'image'; url: string }
   | { type: 'star'; commitId: string; starred: boolean }
   | { type: 'replies'; commitId: string; cursor: string | null }

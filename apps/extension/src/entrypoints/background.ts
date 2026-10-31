@@ -231,11 +231,14 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
     case 'mentions':
       return (await readingClient()).organizationMentions(request.organization, request.cursor);
     case 'commit':
-      return (await client({ signed: true })).createCommit({ body: request.body }, (request.images ?? []).map(fromTransfer));
+      return (await client({ signed: true })).createCommit(
+        request.parentId ? { body: request.body, parent_id: request.parentId } : { body: request.body },
+        (request.images ?? []).map(fromTransfer),
+      );
     case 'preview':
       return (await client({ signed: true })).previewCommit(request.body);
     case 'mention-suggestions':
-      return (await client({ signed: true })).mentionSuggestions(request.query);
+      return (await client({ signed: true })).mentionSuggestions(request.query, { reply: request.reply });
     case 'image':
       return fetchImageAsDataUrl(request.url);
     case 'replies':
