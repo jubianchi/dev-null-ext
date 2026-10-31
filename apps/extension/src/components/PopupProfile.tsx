@@ -2,6 +2,7 @@ import type { CurrentUser } from '@devnull-github/client';
 import type { GitHubPage } from '../lib/github/page.ts';
 import { type Settings, shareFeatureFor } from '../lib/settings.ts';
 import { shareLabel } from '../lib/share.ts';
+import { laneColor } from './CommitParts.tsx';
 import { Octicon } from './Octicon.tsx';
 
 /**
@@ -29,7 +30,7 @@ export function PopupProfile({
   return (
     <>
       <section class="mx-3 flex flex-col items-center gap-2.5 rounded-xl border border-solid border-zinc-200 px-4 py-5 text-center">
-        <div class="size-[72px] rounded-full border-2 border-dashed border-teal-700 p-[3px]">
+        <div data-lane-ring class="size-[72px] rounded-full border-2 border-dashed p-[3px]" style={{ borderColor: laneColor(user, 'var(--color-lane-3)') }}>
           {user.avatar_url ? (
             <img src={user.avatar_url} alt="" class="size-full rounded-full" />
           ) : (

@@ -8,10 +8,12 @@ export interface User {
   bio: string | null;
   github_url: string;
   html_url: string;
-  /** When the API sends them. */
+  /** When the API counts them: always on /me and users/{handle}. */
   commits_count?: number;
   following_count?: number;
   followers_count?: number;
+  /** Signed requests only: an index into the six lanes, or a custom colour. */
+  lane?: number | string;
 }
 
 export interface CurrentUser extends User {

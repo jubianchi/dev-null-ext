@@ -4,7 +4,7 @@ import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
-import { ACTION, FoldedBody, Star, lane, plural } from './CommitParts.tsx';
+import { ACTION, FoldedBody, Star, laneColor, plural } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 
 type Reply = Commit | DeletedCommit;
@@ -74,7 +74,7 @@ function ReplyItem({ reply, parentId }: { reply: Reply; parentId: string }) {
   const quotes = reply.quoted_commit_id === parentId;
 
   return (
-    <div data-reply class="ml-1 flex gap-2 border-l-2 border-dashed py-2 pl-3" style={{ borderColor: lane(reply) }}>
+    <div data-reply class="ml-1 flex gap-2 border-l-2 border-dashed py-2 pl-3" style={{ borderColor: laneColor(reply.author) }}>
       {reply.author.avatar_url ? (
         <img src={reply.author.avatar_url} alt="" class="size-6 shrink-0 rounded-full" loading="lazy" />
       ) : (

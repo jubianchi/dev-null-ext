@@ -61,6 +61,14 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 - [ ] Date separators in the log, as dev-null.sh does.
 - [ ] Follow the session: connecting from the popup should show the log and the buttons without reloading the page.
 
+## Popup
+
+- [x] Redesign the popup as dev-null.sh's profile card (design B), with a settings view to turn off every decoration.
+- [ ] Tell guests how many developers are on /dev/null ("Join 12,000+ developers."): the count
+      (`DevelopersCountQuery`) is not in the API; it needs an unsigned endpoint in dev-null.sh, e.g.
+      `GET /api/v1/stats` returning `{ developers_count }`. `PopupWelcome` already takes it.
+- [ ] Restyle the sign-in steps (the code to approve, the permission to grant, a failure) as design B.
+
 ## Not now
 
 - The organization's profile (bio, followers, admins, Follow): GitHub's page already shows the organization.

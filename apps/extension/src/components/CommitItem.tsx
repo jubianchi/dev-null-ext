@@ -2,7 +2,7 @@ import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/clie
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
-import { ACTION, FoldedBody, Star, lane, plural } from './CommitParts.tsx';
+import { ACTION, FoldedBody, Star, laneColor, plural } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 import { Octicon } from './Octicon.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
@@ -11,7 +11,7 @@ import { Replies } from './Replies.tsx';
 export function CommitItem({ commit }: { commit: Commit }) {
   return (
     <li class="flex gap-3 border-b border-border-muted px-4 py-3 last:border-b-0">
-      <span class="w-0.5 shrink-0 self-stretch rounded-full" style={{ background: lane(commit) }} aria-hidden="true" />
+      <span class="w-0.5 shrink-0 self-stretch rounded-full" style={{ background: laneColor(commit.author) }} aria-hidden="true" />
       <img src={commit.author.avatar_url ?? ''} alt="" class="size-8 shrink-0 rounded-full" loading="lazy" />
       <div class="min-w-0 flex-1">
         <div class="mb-1 flex flex-wrap items-baseline gap-x-2 text-sm">

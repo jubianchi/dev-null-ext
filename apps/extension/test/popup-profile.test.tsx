@@ -66,6 +66,15 @@ describe('PopupProfile', () => {
     expect(root.textContent).not.toContain('commits');
   });
 
+  it("rings the avatar in the user's lane, a palette index or a custom colour", async () => {
+    await show({ user: { ...user, lane: 2 } });
+    expect(root.querySelector<HTMLElement>('[data-lane-ring]')?.style.borderColor).toBe('var(--color-lane-2)');
+
+    render(null, root);
+    await show({ user: { ...user, lane: '#ff00aa' } });
+    expect(root.querySelector<HTMLElement>('[data-lane-ring]')?.style.borderColor).toBe('#ff00aa');
+  });
+
   it('says where to commit about the GitHub page in the current tab', async () => {
     await show({ page: issue });
 

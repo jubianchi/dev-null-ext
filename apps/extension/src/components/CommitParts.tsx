@@ -10,11 +10,11 @@ import { Octicon } from './Octicon.tsx';
  * The author's lane as a CSS colour, when the API says (signed requests): one of the six lanes, or a custom colour.
  * A style rather than a class, for the rail and the reply's dashed line alike.
  */
-export function lane(commit: Commit): string {
-  const value = (commit.author as { lane?: number | string }).lane;
+export function laneColor(user: { lane?: number | string }, fallback = 'var(--color-border)'): string {
+  const value = user.lane;
   if (typeof value === 'number') return `var(--color-lane-${value % 6})`;
   if (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)) return value;
-  return 'var(--color-border)';
+  return fallback;
 }
 
 export function plural(count: number, one: string, many: string): string {
