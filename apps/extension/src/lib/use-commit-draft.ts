@@ -1,11 +1,20 @@
 import type { Commit, CurrentUser } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
 import { type Addition, type ComposerContext, additionsFor, isIn, withAddition } from './additions.ts';
+import { imageProblem, toTransfer } from './images.ts';
 import { BackgroundError, ask } from './messages.ts';
 import { MAX_COMMIT_LENGTH, commitLength } from './share.ts';
 import { replaceText } from './textarea.ts';
 
 export type Target = ComposerContext;
+
+/** An image attached to the draft: the file, a URL to show it, and its description (alt text). */
+export interface AttachedImage {
+  id: string;
+  file: File;
+  url: string;
+  description: string;
+}
 
 export type DraftState =
   | { step: 'loading' }
@@ -31,9 +40,38 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     );
   }, []);
 
+  const [images, setImages] = useState<AttachedImage[]>([]);
+  const [imageErrors, setImageErrors] = useState<string[]>([]);
+
   const body = text.trim();
   const length = commitLength(body);
-  const canCommit = body !== '' && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
+  // With images, the text may be empty, as /dev/null allows.
+  const canCommit =
+    (body !== '' || images.length > 0) && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
+
+  /** Attaches the images /dev/null would take, in order, and says why it leaves out the others. */
+  function attach(files: Iterable<File>) {
+    const attached = [...images];
+    const errors: string[] = [];
+    for (const file of files) {
+      const problem = imageProblem(file, attached.length);
+      if (problem) errors.push(problem);
+      else attached.push({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file), description: '' });
+    }
+    setImages(attached);
+    setImageErrors(errors);
+  }
+
+  function detach(id: string) {
+    const image = images.find((candidate) => candidate.id === id);
+    if (image) URL.revokeObjectURL(image.url);
+    setImages(images.filter((candidate) => candidate.id !== id));
+    setImageErrors([]);
+  }
+
+  function describe(id: string, description: string) {
+    setImages(images.map((image) => (image.id === id ? { ...image, description } : image)));
+  }
   /** Once the user writes, the additions whose absence has a consequence they should know of. */
   const warnings = body === '' ? [] : additions.filter((addition) => addition.missing && !isIn(addition, text));
 
@@ -49,9 +87,13 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     const { user } = state;
     setState({ step: 'sending', user });
     try {
-      const commit = await ask({ type: 'commit', body });
+      const transferred = await Promise.all(images.map((image) => toTransfer(image.file, image.description)));
+      const commit = await ask(transferred.length > 0 ? { type: 'commit', body, images: transferred } : { type: 'commit', body });
       setState({ step: 'sent', user, commit });
       setText('');
+      for (const image of images) URL.revokeObjectURL(image.url);
+      setImages([]);
+      setImageErrors([]);
       onCommitted?.(commit);
     } catch (error) {
       setState({ step: 'failed', user, error: error instanceof BackgroundError ? error : new BackgroundError({ message: String(error) }) });
@@ -66,6 +108,11 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     inCommit: (addition: Addition) => isIn(addition, text),
     insert,
     warnings,
+    images,
+    imageErrors,
+    attach,
+    detach,
+    describe,
     body,
     length,
     canCommit,

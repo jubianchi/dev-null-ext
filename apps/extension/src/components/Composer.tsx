@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
+import { AttachedImages, ImagePicker, filesOf } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -11,9 +12,11 @@ export type { Target } from '../lib/use-commit-draft.ts';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
-  const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = useCommitDraft(target);
+  const draft = useCommitDraft(target);
+  const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = draft;
   const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const picker = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state.step === 'writing' && !previewing) textarea.current?.focus();
@@ -51,8 +54,16 @@ export function Composer({ target }: { target: Target }) {
             event.preventDefault();
             void submit();
           }}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            const files = filesOf(event.dataTransfer);
+            if (files.length === 0) return;
+            event.preventDefault();
+            draft.attach(files);
+          }}
           class="flex gap-3"
         >
+          <ImagePicker picker={picker} onFiles={draft.attach} />
           <Avatar user={state.user} />
 
           <div class="min-w-0 flex-1">
@@ -66,6 +77,12 @@ export function Composer({ target }: { target: Target }) {
                 ref={textarea}
                 value={text}
                 onInput={(event) => setText(event.currentTarget.value)}
+                onPaste={(event) => {
+                  const files = filesOf(event.clipboardData);
+                  if (files.length === 0) return;
+                  event.preventDefault();
+                  draft.attach(files);
+                }}
                 rows={2}
                 placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
                 class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
@@ -74,12 +91,23 @@ export function Composer({ target }: { target: Target }) {
             )}
             </div>
 
+            <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
+
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
 
             {state.step === 'failed' && <CommitError error={state.error} />}
 
             <div class="mt-3 flex items-center gap-1">
               <div role="toolbar" aria-label="Commit tools" class="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => picker.current?.click()}
+                  aria-label="Attach images"
+                  title="Attach images: up to 3, JPEG, PNG or WebP"
+                  class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg"
+                >
+                  <Octicon name="image" />
+                </button>
                 <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
                 <button
                   type="button"

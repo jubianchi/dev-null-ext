@@ -3,7 +3,9 @@ import { useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
+import { AttachedImages, ImagePicker, filesOf } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
+import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
 type Tab = 'write' | 'preview';
@@ -23,12 +25,11 @@ export function InlineComposer({
   /** The additions the user turned off in the extension's settings. */
   disabled?: ReadonlySet<string>;
 }) {
-  const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = useCommitDraft(
-    { page: null, organization, disabled },
-    onCommitted,
-  );
+  const draft = useCommitDraft({ page: null, organization, disabled }, onCommitted);
+  const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = draft;
   const [tab, setTab] = useState<Tab>('write');
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const picker = useRef<HTMLInputElement>(null);
 
   if (state.step === 'loading') return null;
 
@@ -50,7 +51,15 @@ export function InlineComposer({
       onKeyDown={(event) => {
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) void submit();
       }}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        const files = filesOf(event.dataTransfer);
+        if (files.length === 0) return;
+        event.preventDefault();
+        draft.attach(files);
+      }}
     >
+      <ImagePicker picker={picker} onFiles={draft.attach} />
       <div class="rounded-md border border-border bg-canvas">
         <div role="tablist" aria-label="Commit" class="flex rounded-t-md border-b border-border bg-canvas-muted px-2 pt-2">
           {(['write', 'preview'] as const).map((name) => (
@@ -66,6 +75,15 @@ export function InlineComposer({
             </button>
           ))}
           <div role="toolbar" aria-label="Commit tools" class="ml-auto flex items-center gap-1 pb-1">
+            <button
+              type="button"
+              onClick={() => picker.current?.click()}
+              aria-label="Attach images"
+              title="Attach images: up to 3, JPEG, PNG or WebP"
+              class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg"
+            >
+              <Octicon name="image" />
+            </button>
             <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
           </div>
         </div>
@@ -76,6 +94,12 @@ export function InlineComposer({
               ref={textarea}
               value={text}
               onInput={(event) => setText(event.currentTarget.value)}
+              onPaste={(event) => {
+                const files = filesOf(event.clipboardData);
+                if (files.length === 0) return;
+                event.preventDefault();
+                draft.attach(files);
+              }}
               rows={4}
               aria-label="Commit message"
               placeholder="What did you ship?"
@@ -87,6 +111,7 @@ export function InlineComposer({
               <PreviewPanel body={body} />
             </div>
           )}
+          <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
         </div>
 
         {warnings.length > 0 && (
@@ -97,6 +122,14 @@ export function InlineComposer({
 
         <div class="flex flex-wrap items-center gap-3 border-t border-border-muted px-3 py-2 text-xs text-fg-muted">
           <span>Links, @mentions, :emoji: and `code` are supported</span>
+          <button
+            type="button"
+            onClick={() => picker.current?.click()}
+            class="flex cursor-pointer items-center gap-1 border-0 border-l border-solid border-border-muted bg-transparent pl-3 text-xs font-medium text-fg-muted hover:text-fg-accent"
+          >
+            <Octicon name="image" />
+            Paste, drop, or click to add files
+          </button>
           <span class={`ml-auto ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : ''}`}>
             {length} / {MAX_COMMIT_LENGTH}
           </span>

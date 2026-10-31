@@ -70,6 +70,82 @@ async function openPreview() {
 const tab = (name: string) => [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find((element) => element.textContent === name)!;
 const button = (label: string) => root.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`);
 
+async function attach(...files: File[]) {
+  const input = root.querySelector<HTMLInputElement>('input[type="file"]')!;
+  Object.defineProperty(input, 'files', { value: files, configurable: true });
+  await act(async () => {
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await act(async () => {});
+}
+
+const png = (name = 'shot.png') => new File([new Uint8Array([137, 80, 78, 71])], name, { type: 'image/png' });
+
+describe('InlineComposer, images', () => {
+  it('attaches images from its toolbar, GitHub style footer and file picker, showing them', async () => {
+    expect(root.querySelector('input[type="file"]')?.getAttribute('accept')).toBe('image/jpeg,image/png,image/webp');
+    expect(root.textContent).toContain('Paste, drop, or click to add files');
+
+    await attach(png());
+
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(1);
+    expect(root.querySelector('[data-attached-image] img')?.getAttribute('alt')).toBe('shot.png');
+  });
+
+  it('describes an image, and removes it', async () => {
+    await attach(png());
+    const description = root.querySelector<HTMLInputElement>('[data-attached-image] input[type="text"]')!;
+    expect(description.getAttribute('aria-label')).toBe('Describe shot.png');
+
+    await act(async () => {
+      description.value = 'The new popup';
+      description.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(root.querySelector<HTMLInputElement>('[data-attached-image] input[type="text"]')?.value).toBe('The new popup');
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Remove shot.png"]')!.click());
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(0);
+  });
+
+  it('says why it refuses an image, and keeps the others', async () => {
+    await attach(png('a.png'), new File(['gif'], 'b.gif', { type: 'image/gif' }));
+
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(1);
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('b.gif: only JPEG, PNG and WebP images can be attached.');
+  });
+
+  it('commits images without text, with their descriptions', async () => {
+    await attach(png());
+    await act(async () => {
+      const description = root.querySelector<HTMLInputElement>('[data-attached-image] input[type="text"]')!;
+      description.value = 'The new popup';
+      description.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await submit();
+    await act(async () => {});
+
+    expect(ask).toHaveBeenLastCalledWith({
+      type: 'commit',
+      body: '',
+      images: [{ data: btoa(String.fromCharCode(137, 80, 78, 71)), type: 'image/png', description: 'The new popup' }],
+    });
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(0);
+  });
+
+  it('attaches pasted images', async () => {
+    const textarea = root.querySelector('textarea')!;
+    const paste = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(paste, 'clipboardData', { value: { files: [png()] } });
+    await act(async () => {
+      textarea.dispatchEvent(paste);
+    });
+    await act(async () => {});
+
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(1);
+    expect(paste.defaultPrevented).toBe(true);
+  });
+});
+
 describe('InlineComposer', () => {
   it("has GitHub's Write and Preview tabs, Write first", () => {
     expect([...root.querySelectorAll('[role="tab"]')].map((element) => element.textContent)).toEqual(['Write', 'Preview']);

@@ -43,7 +43,7 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 ## 4. Composer
 
 - [x] Preview in the modal composer too (only the inline composer has it).
-- [ ] Images: up to 3 JPEG, PNG or WebP, 10 MB each, with descriptions. The request becomes multipart and is signed
+- [x] Images: up to 3 JPEG, PNG or WebP, 10 MB each, with descriptions. The request becomes multipart and is signed
       with the `devnull-api-images` namespace and the images' SHA-256.
 - [ ] Poll: 2 to 4 options of 50 characters at most, for 1 hour, 1, 3 or 7 days; not with images, a reply or a quote.
 - [ ] Schedule: `/api/v1/scheduled-commits`, up to 30 days ahead, 10 pending at most.

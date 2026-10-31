@@ -179,6 +179,28 @@ describe('Composer', () => {
     expect(root.querySelector('textarea')?.value).toBe('Run `npm i`');
   });
 
+  it('attaches images from the first button of its toolbar, and commits them', async () => {
+    await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
+    ask.mockResolvedValueOnce({ id: 'c', status: 'approved', html_url: 'https://dev-null.sh/c' });
+
+    const toolbar = root.querySelector('[role="toolbar"]')!;
+    expect(toolbar.firstElementChild?.getAttribute('aria-label')).toBe('Attach images');
+
+    const input = root.querySelector<HTMLInputElement>('input[type="file"]')!;
+    Object.defineProperty(input, 'files', { value: [new File([new Uint8Array([1, 2])], 'shot.png', { type: 'image/png' })], configurable: true });
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(1);
+
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await act(async () => {});
+
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: '', images: [{ data: btoa(String.fromCharCode(1, 2)), type: 'image/png', description: null }] });
+  });
+
   it('commits what the user wrote', async () => {
     await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
     ask.mockResolvedValueOnce({ id: 'c', status: 'approved', html_url: 'https://dev-null.sh/c' });
@@ -191,6 +213,7 @@ describe('Composer', () => {
     await act(async () => {
       root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });
+    await act(async () => {});
 
     expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
     expect(root.textContent).toContain('View on /dev/null');
