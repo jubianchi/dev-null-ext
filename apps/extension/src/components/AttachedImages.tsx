@@ -51,7 +51,7 @@ export function AttachedImages({
   if (images.length === 0 && errors.length === 0) return null;
 
   return (
-    <div class="mt-2 space-y-2">
+    <div class="mt-2 flex flex-col gap-2">
       {images.length > 0 && (
         <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
           {images.map((attached, index) => (
