@@ -5,7 +5,13 @@ import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { OrganizationPanel } from '../../components/OrganizationPanel.tsx';
 import { ShareButton } from '../../components/ShareButton.tsx';
-import { organizationContent, organizationTabs, shareButtonAnchor } from '../../lib/github/anchors.ts';
+import {
+  organizationContent,
+  organizationTabs,
+  organizationTabStyle,
+  selectedOrganizationTabs,
+  shareButtonAnchor,
+} from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import '../../assets/tailwind.css';
@@ -63,7 +69,7 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     // Keep keystrokes in the composer from reaching GitHub's own shortcuts (c, t, /, …).
     isolateEvents: true,
     position: 'inline',
-    anchor: () => shareButtonAnchor()?.anchor,
+    anchor: () => shareButtonAnchor()?.selector,
     append: (anchor, element) => {
       const placement = shareButtonAnchor();
       if (placement?.append === 'first') anchor.prepend(element);
@@ -81,13 +87,14 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
 }
 
 /**
- * A tab in the organization's own tab bar, drawn with GitHub's classes so it is one of them. Opening it (#dev-null)
- * hides the overview and shows the organization's commits on /dev/null in its place; leaving it puts the page back.
+ * A tab in the organization's tab bar, drawn with its neighbours' classes so it is one of them. Opening it (#dev-null)
+ * hides the page's content and shows the organization's commits on /dev/null in its place; leaving it puts the page
+ * back.
  */
 function organizationTab(ctx: ContentScriptContext, organization: string): Mounted {
   let panel: Mounted | null = null;
   let hidden: HTMLElement | null = null;
-  let deselected: Element[] = [];
+  let deselected: Array<{ tab: Element; hadSelectedClass: boolean }> = [];
 
   const tab = createIntegratedUi(ctx, {
     tag: 'li',
@@ -95,10 +102,11 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
     anchor: organizationTabs,
     append: 'last',
     onMount: (li) => {
-      li.className = 'd-flex';
+      const style = organizationTabStyle() ?? { item: 'd-flex', link: 'UnderlineNav-item' };
+      li.className = style.item;
       const link = document.createElement('a');
       link.href = TAB_HASH;
-      link.className = 'UnderlineNav-item';
+      link.className = style.link;
       link.dataset['devnullTab'] = '';
       link.textContent = '/dev/null';
       li.append(link);
@@ -114,13 +122,13 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
     hidden = content;
     content.hidden = true;
 
-    for (const item of document.querySelectorAll('nav[aria-label="Organization"] .UnderlineNav-item.selected')) {
-      item.classList.remove('selected');
-      item.removeAttribute('aria-current');
-      deselected.push(item);
+    for (const selected of selectedOrganizationTabs()) {
+      deselected.push({ tab: selected, hadSelectedClass: selected.classList.contains('selected') });
+      selected.classList.remove('selected');
+      selected.removeAttribute('aria-current');
     }
     const link = document.querySelector('[data-devnull-tab]');
-    link?.classList.add('selected');
+    if (deselected.some(({ hadSelectedClass }) => hadSelectedClass)) link?.classList.add('selected');
     link?.setAttribute('aria-current', 'page');
 
     const ui = await createShadowRootUi(ctx, {
@@ -145,9 +153,9 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
     const link = document.querySelector('[data-devnull-tab]');
     link?.classList.remove('selected');
     link?.removeAttribute('aria-current');
-    for (const item of deselected) {
-      item.classList.add('selected');
-      item.setAttribute('aria-current', 'page');
+    for (const { tab: selected, hadSelectedClass } of deselected) {
+      if (hadSelectedClass) selected.classList.add('selected');
+      selected.setAttribute('aria-current', 'page');
     }
     deselected = [];
   }

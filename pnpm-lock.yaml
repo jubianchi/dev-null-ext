@@ -19,10 +19,13 @@ importers:
     devDependencies:
       '@preact/preset-vite':
         specifier: ^2.10.0
-        version: 2.10.6(@babel/core@7.29.7)(preact@10.29.8)(vite@8.3.4(jiti@2.7.0))
+        version: 2.10.6(@babel/core@7.29.7)(preact@10.29.8)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
       '@tailwindcss/vite':
         specifier: ^4.1.0
-        version: 4.3.3(vite@8.3.4(jiti@2.7.0))
+        version: 4.3.3(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
+      happy-dom:
+        specifier: ^21.0.3
+        version: 21.0.3
       tailwindcss:
         specifier: ^4.1.0
         version: 4.3.3
@@ -31,10 +34,10 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.0
-        version: 4.1.12(vite@8.3.4(jiti@2.7.0))
+        version: 4.1.12(@types/node@26.6.5)(happy-dom@21.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
       wxt:
         specifier: ^0.21.0
-        version: 0.21.4(rolldown@1.2.14)(typescript@5.9.3)(vite@8.3.4(jiti@2.7.0))
+        version: 0.21.4(rolldown@1.2.14)(typescript@5.9.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
 
   packages/client:
     devDependencies:
@@ -43,7 +46,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.0
-        version: 4.1.12(vite@8.3.4(jiti@2.7.0))
+        version: 4.1.12(@types/node@26.6.5)(happy-dom@21.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
 
 packages:
 
@@ -431,6 +434,15 @@ packages:
   '@types/har-format@1.2.16':
     resolution: {integrity: sha512-fluxdy7ryD3MV6h8pTfTYpy/xQzCFC7m89nOH9y94cNqJ1mDIDPut7MnRHI3F6qRmh/cT2fUjG1MLdCNb4hE9A==}
 
+  '@types/node@26.6.5':
+    resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
+
+  '@types/whatwg-mimetype@3.0.2':
+    resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
+
+  '@types/ws@8.18.2':
+    resolution: {integrity: sha512-67MQl+fpWKVTT1NYdnmo3U4sc/xPo/zQBncVnI74qmQa0z/b+1g6iYqNmGCPbxO+zz2aklb08a0oHfegiVd0/w==}
+
   '@vitest/expect@4.1.12':
     resolution: {integrity: sha512-vFlTt+YEu9WBpNjdGayNmlMVzrWPi1+sv853/7t2FU7hpO5gAFBKHzQmkCq5Xjpr+evegF2994LQT3hF3mRlqQ==}
 
@@ -513,6 +525,10 @@ packages:
     resolution: {integrity: sha512-1R4kiYKXGViqEN0CnoDrXc1StD9niAwu+j2dukWzrD4bJgsD4lDmEp0CRbc6E/vYJIfTHwPmwyaKtVSudICdPA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
+
+  buffer-image-size@0.6.4:
+    resolution: {integrity: sha512-nEh+kZOPY1w+gcCMobZ6ETUp9WfibndnosbpwB1iJk/8Gt5ZF2bhS6+B6bPYz424KtwsR6Rflc3tCz1/ghX2dQ==}
+    engines: {node: '>=4.0'}
 
   c12@3.3.4:
     resolution: {integrity: sha512-cM0ApFQSBXuourJejzwv/AuPRvAxordTyParRVcHjjtXirtkzM0uK2L9TTn9s0cXZbG7E55jCivRQzoxYmRAlA==}
@@ -723,6 +739,10 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  happy-dom@21.0.3:
+    resolution: {integrity: sha512-PesNgu5BnIEmAwzKGewB3K1ORFeznFZJ4JrRz89ea1wkHnxskdpzX9sN/+zb4KO6k8oSMhyJSj/cwXAFrYBBNA==}
+    engines: {node: '>=20.0.0'}
 
   he@1.2.0:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
@@ -1141,6 +1161,9 @@ packages:
   uhyphen@0.2.0:
     resolution: {integrity: sha512-qz3o9CHXmJJPGBdqzab7qAYuW8kQGKNEuoHFYrBwV6hWIMcpAmxDLXojcHfFr9US1Pe6zUswEIJIbLI610fuqA==}
 
+  undici-types@8.9.0:
+    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
+
   unimport@6.5.0:
     resolution: {integrity: sha512-t0KLJLRbebz3f7NrQe+vy2ObeugVeM1XqI2oeYnauddmHSglYj3U6bxOJ65IbXmOFkcAGFJK2OyGH7aqHPM6Ug==}
     engines: {node: '>=18.12.0'}
@@ -1291,6 +1314,10 @@ packages:
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
+  whatwg-mimetype@3.0.0:
+    resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
+    engines: {node: '>=12'}
+
   why-is-node-running@2.3.0:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
@@ -1299,6 +1326,18 @@ packages:
   wrap-ansi@7.0.0:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
     engines: {node: '>=10'}
+
+  ws@8.22.0:
+    resolution: {integrity: sha512-Ydggc987+RO0AnWtZ/7Wq9FtNvcrL1b/RO0ud9mWjUPgDrsAAwQSF51sm2hm1XofbU/4jkpGEsLFsZZxU+1DOg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   wxt@0.21.4:
     resolution: {integrity: sha512-iyVMTXb37BQAbsPHCuPzrK3ZxnO9pZmvbKl7VJWIHe3RG40On2NyP2FOjArtOITO96plEYnh3o+iUlRp9qE90w==}
@@ -1501,19 +1540,19 @@ snapshots:
 
   '@oxc-project/types@0.154.0': {}
 
-  '@preact/preset-vite@2.10.6(@babel/core@7.29.7)(preact@10.29.8)(vite@8.3.4(jiti@2.7.0))':
+  '@preact/preset-vite@2.10.6(@babel/core@7.29.7)(preact@10.29.8)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-react-jsx': 7.29.7(@babel/core@7.29.7)
       '@babel/plugin-transform-react-jsx-development': 7.29.7(@babel/core@7.29.7)
-      '@prefresh/vite': 2.4.12(preact@10.29.8)(vite@8.3.4(jiti@2.7.0))
+      '@prefresh/vite': 2.4.12(preact@10.29.8)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
       '@rollup/pluginutils': 5.4.0
       babel-plugin-transform-hook-names: 1.0.2(@babel/core@7.29.7)
       debug: 4.4.3
       magic-string: 0.30.21
       picocolors: 1.1.1
-      vite: 8.3.4(jiti@2.7.0)
-      vite-prerender-plugin: 0.5.14(vite@8.3.4(jiti@2.7.0))
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
+      vite-prerender-plugin: 0.5.14(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
       zimmerframe: 1.1.5
     transitivePeerDependencies:
       - preact
@@ -1530,7 +1569,7 @@ snapshots:
 
   '@prefresh/utils@1.2.1': {}
 
-  '@prefresh/vite@2.4.12(preact@10.29.8)(vite@8.3.4(jiti@2.7.0))':
+  '@prefresh/vite@2.4.12(preact@10.29.8)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))':
     dependencies:
       '@babel/core': 7.29.7
       '@prefresh/babel-plugin': 0.5.4(@babel/core@7.29.7)
@@ -1538,7 +1577,7 @@ snapshots:
       '@prefresh/utils': 1.2.1
       '@rollup/pluginutils': 4.2.1
       preact: 10.29.8
-      vite: 8.3.4(jiti@2.7.0)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -1663,12 +1702,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.3
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.3
 
-  '@tailwindcss/vite@4.3.3(vite@8.3.4(jiti@2.7.0))':
+  '@tailwindcss/vite@4.3.3(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))':
     dependencies:
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.3.4(jiti@2.7.0)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
 
   '@topcli/prompts@4.0.0': {}
 
@@ -1689,6 +1728,16 @@ snapshots:
 
   '@types/har-format@1.2.16': {}
 
+  '@types/node@26.6.5':
+    dependencies:
+      undici-types: 8.9.0
+
+  '@types/whatwg-mimetype@3.0.2': {}
+
+  '@types/ws@8.18.2':
+    dependencies:
+      '@types/node': 26.6.5
+
   '@vitest/expect@4.1.12':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -1698,13 +1747,13 @@ snapshots:
       chai: 6.3.0
       tinyrainbow: 3.2.0
 
-  '@vitest/mocker@4.1.12(vite@8.3.4(jiti@2.7.0))':
+  '@vitest/mocker@4.1.12(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))':
     dependencies:
       '@vitest/spy': 4.1.12
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.3.4(jiti@2.7.0)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
 
   '@vitest/pretty-format@4.1.12':
     dependencies:
@@ -1778,6 +1827,10 @@ snapshots:
       electron-to-chromium: 1.5.458
       node-releases: 2.0.59
       update-browserslist-db: 1.3.4(browserslist@4.29.3)
+
+  buffer-image-size@0.6.4:
+    dependencies:
+      '@types/node': 26.6.5
 
   c12@3.3.4(magicast@0.5.5):
     dependencies:
@@ -1953,6 +2006,19 @@ snapshots:
   giget@3.3.1: {}
 
   graceful-fs@4.2.11: {}
+
+  happy-dom@21.0.3:
+    dependencies:
+      '@types/node': 26.6.5
+      '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.2
+      buffer-image-size: 0.6.4
+      entities: 7.0.1
+      whatwg-mimetype: 3.0.0
+      ws: 8.22.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   he@1.2.0: {}
 
@@ -2294,7 +2360,9 @@ snapshots:
 
   uhyphen@0.2.0: {}
 
-  unimport@6.5.0(rolldown@1.2.14)(vite@8.3.4(jiti@2.7.0)):
+  undici-types@8.9.0: {}
+
+  unimport@6.5.0(rolldown@1.2.14)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)):
     dependencies:
       acorn: 8.19.0
       escape-string-regexp: 5.0.0
@@ -2308,7 +2376,7 @@ snapshots:
       scule: 1.3.0
       strip-literal: 4.0.0
       tinyglobby: 0.2.17
-      unplugin: 3.4.0(rolldown@1.2.14)(vite@8.3.4(jiti@2.7.0))
+      unplugin: 3.4.0(rolldown@1.2.14)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
       unplugin-utils: 0.3.2
     optionalDependencies:
       rolldown: 1.2.14
@@ -2328,14 +2396,14 @@ snapshots:
       pathe: 2.0.3
       picomatch: 4.0.7
 
-  unplugin@3.4.0(rolldown@1.2.14)(vite@8.3.4(jiti@2.7.0)):
+  unplugin@3.4.0(rolldown@1.2.14)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.7
       webpack-virtual-modules: 0.6.2
     optionalDependencies:
       rolldown: 1.2.14
-      vite: 8.3.4(jiti@2.7.0)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
 
   update-browserslist-db@1.3.4(browserslist@4.29.3):
     dependencies:
@@ -2343,7 +2411,7 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  vite-prerender-plugin@0.5.14(vite@8.3.4(jiti@2.7.0)):
+  vite-prerender-plugin@0.5.14(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)):
     dependencies:
       kolorist: 1.8.0
       magic-string: 0.30.21
@@ -2351,9 +2419,9 @@ snapshots:
       simple-code-frame: 1.3.0
       source-map: 0.7.6
       stack-trace: 1.0.0
-      vite: 8.3.4(jiti@2.7.0)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
 
-  vite@8.3.4(jiti@2.7.0):
+  vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -2361,13 +2429,14 @@ snapshots:
       rolldown: 1.2.14
       tinyglobby: 0.2.17
     optionalDependencies:
+      '@types/node': 26.6.5
       fsevents: 2.3.3
       jiti: 2.7.0
 
-  vitest@4.1.12(vite@8.3.4(jiti@2.7.0)):
+  vitest@4.1.12(@types/node@26.6.5)(happy-dom@21.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)):
     dependencies:
       '@vitest/expect': 4.1.12
-      '@vitest/mocker': 4.1.12(vite@8.3.4(jiti@2.7.0))
+      '@vitest/mocker': 4.1.12(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
       '@vitest/pretty-format': 4.1.12
       '@vitest/runner': 4.1.12
       '@vitest/snapshot': 4.1.12
@@ -2384,12 +2453,17 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tinyrainbow: 3.2.0
-      vite: 8.3.4(jiti@2.7.0)
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
       why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@types/node': 26.6.5
+      happy-dom: 21.0.3
     transitivePeerDependencies:
       - msw
 
   webpack-virtual-modules@0.6.2: {}
+
+  whatwg-mimetype@3.0.0: {}
 
   why-is-node-running@2.3.0:
     dependencies:
@@ -2402,7 +2476,9 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
 
-  wxt@0.21.4(rolldown@1.2.14)(typescript@5.9.3)(vite@8.3.4(jiti@2.7.0)):
+  ws@8.22.0: {}
+
+  wxt@0.21.4(rolldown@1.2.14)(typescript@5.9.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)):
     dependencies:
       '@1natsu/wait-element': 4.2.0
       '@aklinker1/rollup-plugin-visualizer': 5.12.0
@@ -2432,8 +2508,8 @@ snapshots:
       tiny-open: 1.3.0
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      unimport: 6.5.0(rolldown@1.2.14)(vite@8.3.4(jiti@2.7.0))
-      vite: 8.3.4(jiti@2.7.0)
+      unimport: 6.5.0(rolldown@1.2.14)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
+      vite: 8.3.4(@types/node@26.6.5)(jiti@2.7.0)
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
