@@ -1,5 +1,6 @@
 import type { BodyMention, BodySegment, Commit } from '@devnull-github/client';
 import { useState } from 'preact/hooks';
+import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
 import { Octicon } from './Octicon.tsx';
@@ -13,8 +14,6 @@ function lane(commit: Commit): { class: string; style?: string } {
   if (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)) return { class: '', style: `background:${value}` };
   return { class: 'bg-border' };
 }
-
-const URL_PATTERN = /(https?:\/\/[^\s<>]+)/g;
 
 /**
  * The body as dev-null.sh shows it in a list (FoldedCommitBody): its excerpt when it has one, and Show more to unfold
@@ -33,23 +32,6 @@ function FoldedBody({ segments, excerpt, mentions }: { segments: BodySegment[]; 
         </button>
       )}
     </>
-  );
-}
-
-/** Plain text with its links clickable, for a body /dev/null did not segment (a guest's request). */
-function Body({ text }: { text: string }) {
-  return (
-    <p class="m-0 whitespace-pre-wrap break-words text-sm leading-normal text-fg">
-      {text.split(URL_PATTERN).map((part, index) =>
-        index % 2 === 1 ? (
-          <a key={index} href={part} class="text-fg-accent hover:underline" target="_blank" rel="noopener noreferrer">
-            {part.replace(/^https?:\/\/(www\.)?/, '')}
-          </a>
-        ) : (
-          part
-        ),
-      )}
-    </p>
   );
 }
 
@@ -78,11 +60,11 @@ export function CommitItem({ commit }: { commit: Commit }) {
           </a>
           <code class="ml-auto font-mono text-xs text-fg-muted">{commit.short_hash}</code>
         </div>
-        {commit.body_segments ? (
-          <FoldedBody segments={commit.body_segments} excerpt={commit.preview_segments ?? null} mentions={commit.mentions ?? []} />
-        ) : (
-          <Body text={commit.body} />
-        )}
+        <FoldedBody
+          segments={commit.body_segments ?? segmentBody(commit.body)}
+          excerpt={commit.preview_segments ?? null}
+          mentions={commit.mentions ?? []}
+        />
         <div class="mt-2 flex gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && (
             <span class="inline-flex items-center gap-1" aria-label={plural(commit.stars_count, 'star', 'stars')}>

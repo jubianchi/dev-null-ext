@@ -88,10 +88,13 @@ describe('CommitItem', () => {
     expect([...root.querySelectorAll('button')].some((button) => button.textContent === 'Show more')).toBe(false);
   });
 
-  it('falls back to the raw body when it is not segmented (signed out)', () => {
-    render(<CommitItem commit={{ ...commit, body: 'see https://example.com' }} />, root);
+  it('segments the body itself when /dev/null sends it raw (signed out), without highlighting', () => {
+    render(<CommitItem commit={{ ...commit, body: 'see https://example.com\n```php title="a.php"\necho 1;\n```' }} />, root);
 
     expect(root.querySelector('a[href="https://example.com"]')).not.toBeNull();
+    expect(root.querySelector('figcaption')?.textContent).toBe('a.php');
+    expect(root.querySelector('pre')?.textContent).toBe('echo 1;');
+    expect(root.textContent).not.toContain('```');
   });
 
   it('fills the star of a commit the user starred', () => {
