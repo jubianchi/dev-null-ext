@@ -116,8 +116,10 @@ and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`
 - **sources** propose them from the composer's context (the page, the organization); a new idea is a new source,
   listed in `SOURCES`, and no composer changes;
 - **nothing is added by default**: like an image, the user inserts an addition from the composer's toolbar, as
-  GitHub's editor inserts a link or a mention. It goes in at the caret, as an edit they can undo (Cmd+Z); a dot on its
-  button says it is already in the text, typed by hand too. A composer opens empty, its placeholder showing;
+  GitHub's editor inserts a link or a mention: one button per kind, a menu to choose from when a kind has several
+  (the author and the organization). It goes in at the caret, as an edit they can undo (Cmd+Z); a dot on its button,
+  a check in its menu, says it is already in the text, typed by hand too. A composer opens empty, its placeholder
+  showing;
 - **the text is the only truth**: the body is the text, and the counter and the preview show exactly what is sent;
 - an addition can say what leaving it out would mean (`missing`): written from an organization's log without its
   mention, the composer warns that the commit won't show there, with a way to insert it. The user decides.

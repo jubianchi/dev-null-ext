@@ -89,6 +89,43 @@ describe('Composer', () => {
     expect(root.querySelector('[role="toolbar"] button[aria-label="Insert @jubianchi"]')).toBeNull();
   });
 
+  it('gathers several mentions under one @ button, a menu to choose from, as GitHub does', async () => {
+    await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: 'laravel' }} />);
+    const toolbar = root.querySelector('[role="toolbar"]')!;
+    const mentions = toolbar.querySelector<HTMLButtonElement>('button[aria-label="Insert a mention"]')!;
+
+    expect(mentions.getAttribute('aria-haspopup')).toBe('menu');
+    expect(mentions.getAttribute('aria-expanded')).toBe('false');
+    expect(toolbar.querySelector('button[aria-label="Insert @taylorotwell"]')).toBeNull();
+
+    await act(async () => mentions.click());
+    const items = [...root.querySelectorAll<HTMLButtonElement>('[role="menu"] [role="menuitem"]')];
+    expect(mentions.getAttribute('aria-expanded')).toBe('true');
+    expect(items.map((item) => item.querySelector('[data-label]')?.textContent)).toEqual(['@taylorotwell', '@laravel']);
+    expect(items[0]?.textContent).toContain('who opened this issue');
+
+    await act(async () => items[1]!.click());
+    expect(root.querySelector('textarea')?.value).toBe('@laravel');
+    expect(root.querySelector('[role="menu"]')).toBeNull();
+
+    await act(async () => mentions.click());
+    expect(root.querySelector('[role="menu"] [role="menuitem"]:last-child')?.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('closes the menu on Escape without closing anything else', async () => {
+    await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: 'laravel' }} />);
+    const mentions = root.querySelector<HTMLButtonElement>('button[aria-label="Insert a mention"]')!;
+    await act(async () => mentions.click());
+
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    await act(async () => {
+      root.querySelector('[role="menu"]')!.dispatchEvent(escape);
+    });
+
+    expect(root.querySelector('[role="menu"]')).toBeNull();
+    expect(escape.defaultPrevented).toBe(true);
+  });
+
   it("doesn't warn about the organization's mention when sharing a page", async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
     const textarea = root.querySelector('textarea')!;

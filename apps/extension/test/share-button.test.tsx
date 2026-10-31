@@ -68,7 +68,8 @@ describe('ShareButton', () => {
     await act(async () => root.querySelector('button')!.click());
     await act(async () => {});
 
-    expect(root.querySelector('[role="toolbar"] button[aria-label="Insert @taylorotwell"]')).not.toBeNull();
+    await act(async () => root.querySelector<HTMLButtonElement>('[role="toolbar"] button[aria-label="Insert a mention"]')!.click());
+    expect([...root.querySelectorAll('[role="menuitem"] [data-label]')].map((label) => label.textContent)).toContain('@taylorotwell');
     document.getElementById('author')?.remove();
   });
 
