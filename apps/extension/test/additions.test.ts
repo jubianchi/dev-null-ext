@@ -108,7 +108,10 @@ describe('isIn', () => {
 describe('withAddition', () => {
   it('inserts the addition at the caret, spaced from the words around it', () => {
     expect(withAddition('Thanks for it', mention!, 6)).toEqual({ value: 'Thanks @laravel for it', caret: 15 });
-    expect(withAddition('Thanks ', mention!, 7)).toEqual({ value: 'Thanks @laravel', caret: 15 });
-    expect(withAddition('', mention!, 0)).toEqual({ value: '@laravel', caret: 8 });
+  });
+
+  it('ends with a space at the end of the text, so what is typed next stays apart', () => {
+    expect(withAddition('Thanks ', mention!, 7)).toEqual({ value: 'Thanks @laravel ', caret: 16 });
+    expect(withAddition('', link!, 0)).toEqual({ value: `${pull.url} `, caret: pull.url.length + 1 });
   });
 });

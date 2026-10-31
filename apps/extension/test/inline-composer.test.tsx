@@ -305,7 +305,7 @@ describe('InlineComposer', () => {
     expect(root.querySelector('[role="status"]')?.textContent).toContain("Not mentioning @laravel: this commit won't show here.");
 
     await act(async () => [...root.querySelectorAll<HTMLButtonElement>('[role="status"] button')][0]!.click());
-    expect(root.querySelector('textarea')?.value).toBe('Shipped @laravel');
+    expect(root.querySelector('textarea')?.value).toBe('Shipped @laravel ');
     expect(root.querySelector('[role="status"]')).toBeNull();
   });
 

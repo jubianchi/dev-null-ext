@@ -101,7 +101,7 @@ describe('Composer', () => {
     expect(toolbar.querySelector('button[aria-label="Insert @laravel"] svg.octicon-mention')).not.toBeNull();
 
     await act(async () => toolbar.querySelector<HTMLButtonElement>('button[aria-label="Insert laravel/framework"]')!.click());
-    expect(textarea.value).toBe(page.url);
+    expect(textarea.value).toBe(`${page.url} `);
     expect(toolbar.querySelector('button[aria-label="Insert laravel/framework (already in your commit)"]')).not.toBeNull();
   });
 
@@ -130,7 +130,7 @@ describe('Composer', () => {
     expect(items[0]?.textContent).toContain('who opened this issue');
 
     await act(async () => items[1]!.click());
-    expect(root.querySelector('textarea')?.value).toBe('@laravel');
+    expect(root.querySelector('textarea')?.value).toBe('@laravel ');
     expect(root.querySelector('[role="menu"]')).toBeNull();
 
     await act(async () => mentions.click());

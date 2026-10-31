@@ -106,12 +106,15 @@ export function isIn(addition: Addition, text: string): boolean {
   return addition.pattern.test(text);
 }
 
-/** The text with the addition inserted at the caret, spaced from the words around it, and where the caret goes next. */
+/**
+ * The text with the addition inserted at the caret, spaced from the words around it, and where the caret goes next:
+ * after a space, even at the end of the text, so what is typed next doesn't stick to it (the body is trimmed).
+ */
 export function withAddition(text: string, addition: Addition, at: number): { value: string; caret: number } {
   const before = text.slice(0, at);
   const after = text.slice(at);
   const lead = before === '' || /\s$/.test(before) ? '' : ' ';
-  const trail = after === '' || /^\s/.test(after) ? '' : ' ';
+  const trail = /^\s/.test(after) ? '' : ' ';
 
   return { value: `${before}${lead}${addition.text}${trail}${after}`, caret: at + lead.length + addition.text.length + trail.length };
 }
