@@ -13,6 +13,7 @@ import {
   shareButtonAnchor,
 } from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
+import { keepMounted } from '../../lib/keep-mounted.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import '../../assets/tailwind.css';
 
@@ -81,9 +82,36 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     onMount: (container) => render(<ShareButton page={page} />, container),
     onRemove: (container) => container && render(null, container),
   });
-  ui.autoMount();
 
-  return ui;
+  return keptMounted(ctx, ui, () => ui.shadowHost, () => shareButtonAnchor()?.selector);
+}
+
+/** Mounts a WXT UI and keeps it mounted while its anchor is there, even when GitHub's React replaces the anchor. */
+function keptMounted(
+  ctx: ContentScriptContext,
+  ui: { mount(): void; remove(): void },
+  element: () => Element,
+  selector: () => string | undefined,
+): Mounted {
+  const controller = new AbortController();
+
+  keepMounted({
+    element,
+    anchor: () => {
+      const current = selector();
+      return current ? document.querySelector(current) : null;
+    },
+    mount: () => ui.mount(),
+    root: document.documentElement,
+    signal: AbortSignal.any([ctx.signal, controller.signal]),
+  });
+
+  return {
+    remove() {
+      controller.abort();
+      ui.remove();
+    },
+  };
 }
 
 /**
@@ -109,11 +137,11 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
       link.className = style.link;
       link.dataset['devnullTab'] = '';
       link.textContent = '/dev/null';
-      li.append(link);
+      li.replaceChildren(link);
       void sync();
     },
   });
-  tab.autoMount();
+  const kept = keptMounted(ctx, tab, () => tab.wrapper, organizationTabs);
 
   async function open() {
     const content = organizationContent();
@@ -170,7 +198,7 @@ function organizationTab(ctx: ContentScriptContext, organization: string): Mount
   return {
     remove() {
       close();
-      tab.remove();
+      kept.remove();
     },
   };
 }
