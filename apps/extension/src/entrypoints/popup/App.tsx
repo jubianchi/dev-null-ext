@@ -3,7 +3,10 @@ import { useEffect, useState } from 'preact/hooks';
 import { browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 import { Glyph } from '../../components/Glyph.tsx';
+import { PopupSettings } from '../../components/PopupSettings.tsx';
 import { type SignInState, ask } from '../../lib/messages.ts';
+import { type Settings, readSettings } from '../../lib/settings.ts';
+import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
 
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
@@ -20,19 +23,39 @@ export function App() {
   const [signIn, setSignIn] = useState<SignInState>({ status: 'idle' });
   const [hostAccess, setHostAccess] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<'home' | 'settings'>('home');
+  const [settings, setSettings] = useState<Settings>(() => readSettings(undefined));
 
   useEffect(() => {
     void browser.permissions.contains({ origins: ORIGINS }).then(setHostAccess);
     void signInItem.getValue().then(setSignIn);
+    void loadSettings().then(setSettings);
     ask({ type: 'session' }).then(setUser, () => setUser(null));
 
     const unwatchSignIn = signInItem.watch(setSignIn);
     const unwatchUser = userItem.watch(setUser);
+    const unwatchSettings = watchSettings(setSettings);
     return () => {
       unwatchSignIn();
       unwatchUser();
+      unwatchSettings();
     };
   }, []);
+
+  if (view === 'settings') {
+    return (
+      <main class="w-80 bg-white font-sans text-sm text-zinc-900">
+        <PopupSettings
+          settings={settings}
+          onChange={(id, on) => {
+            setSettings({ ...settings, [id]: on });
+            void saveSetting(id, on);
+          }}
+          onBack={() => setView('home')}
+        />
+      </main>
+    );
+  }
 
   async function run(action: () => Promise<unknown>) {
     setError(null);
@@ -48,6 +71,18 @@ export function App() {
       <header class="mb-4 flex items-center gap-2">
         <Glyph class="size-5" />
         <h1 class="m-0 text-base font-semibold">/dev/null for GitHub</h1>
+        <button
+          type="button"
+          onClick={() => setView('settings')}
+          aria-label="Settings"
+          title="Settings"
+          class="ml-auto flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-fg-muted hover:bg-button-hover hover:text-fg"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <circle cx="8" cy="8" r="2.2" />
+            <path d="M8 1.5v1.8M8 12.7v1.8M14.5 8h-1.8M3.3 8H1.5M12.6 3.4l-1.3 1.3M4.7 11.3l-1.3 1.3M12.6 12.6l-1.3-1.3M4.7 4.7 3.4 3.4" />
+          </svg>
+        </button>
       </header>
 
       {!hostAccess && (
