@@ -14,6 +14,12 @@ import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-sto
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
 
+/**
+ * How many developers are on /dev/null, as dev-null.sh tells its guests on 2026-10-31 (rounded down, so it stays true
+ * as the network grows). Hard-coded until the API tells it: see TODO.md.
+ */
+const DEVELOPERS = 12_000;
+
 /** Firefox grants host access at the user's discretion, even when the manifest lists it. */
 const ORIGINS = ['https://github.com/*', 'https://dev-null.sh/*', 'https://api.github.com/*'];
 
@@ -96,7 +102,7 @@ export function App() {
 
       {user && <PopupProfile user={user} page={page} settings={settings} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))} />}
 
-      {user === null && signIn.status === 'idle' && <PopupWelcome developers={null} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
+      {user === null && signIn.status === 'idle' && <PopupWelcome developers={DEVELOPERS} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
 
       <div class="px-4 pb-4">
       {!hostAccess && (
