@@ -1,5 +1,6 @@
 import type { BodyMention, BodySegment } from '@devnull-github/client';
 import type { ComponentChild } from 'preact';
+import { withoutTrailingPunctuation } from '../lib/urls.ts';
 
 const TOKEN_PATTERN = /(https?:\/\/[^\s<>]+)|(?<![\w@])@([A-Za-z0-9][A-Za-z0-9-]*)/g;
 const WORDMARK_PATTERN = /(?<![\p{L}\p{M}\p{N}_./-])(\/dev\/null)(?![\p{L}\p{M}\p{N}_/-])/u;
@@ -88,7 +89,9 @@ function linkify(text: string, known: Map<string, string>, Anchor: LinkComponent
   let last = 0;
 
   for (const match of text.matchAll(TOKEN_PATTERN)) {
-    const [token, url, handle] = match;
+    const [found, raw, handle] = match;
+    const url = raw ? withoutTrailingPunctuation(raw) : undefined;
+    const token = url ?? found;
     const mentioned = handle ? known.get(handle.toLowerCase()) : undefined;
     if (!url && !mentioned) continue;
 

@@ -31,6 +31,17 @@ describe('CommitBody', () => {
     expect(link?.getAttribute('rel')).toContain('noopener');
   });
 
+  it('leaves the punctuation that ends a sentence out of a link, but not the brackets the URL opened', () => {
+    show([{ type: 'text', text: 'see https://example.com/a. Or (https://example.com/b), https://en.wikipedia.org/wiki/Foo_(bar)!' }]);
+
+    expect([...root.querySelectorAll('a')].map((link) => link.getAttribute('href'))).toEqual([
+      'https://example.com/a',
+      'https://example.com/b',
+      'https://en.wikipedia.org/wiki/Foo_(bar)',
+    ]);
+    expect(root.textContent).toBe('see example.com/a. Or (example.com/b), en.wikipedia.org/wiki/Foo_(bar)!');
+  });
+
   it('links the mentions /dev/null found to their profile', () => {
     show([{ type: 'text', text: 'Thanks @Laravel and @nobody@example' }], [{ handle: 'Laravel', offset: 7, length: 8, kind: 'organization' }]);
 
