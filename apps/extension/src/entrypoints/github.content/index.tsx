@@ -219,20 +219,6 @@ function organizationTab(ctx: ContentScriptContext, organization: string, disabl
   let hidden: HTMLElement | null = null;
   let deselected: Array<{ tab: Element; hadSelectedClass: boolean }> = [];
 
-  const tab = createIntegratedUi(ctx, {
-    tag: 'li',
-    position: 'inline',
-    anchor: organizationTabs,
-    append: 'last',
-    onMount: (li) => {
-      const style = organizationTabStyle() ?? { item: 'd-flex', link: 'UnderlineNav-item' };
-      li.className = style.item;
-      li.replaceChildren(organizationTabLink({ href: TAB_HASH, className: style.link }));
-      void sync();
-    },
-  });
-  const kept = keptMounted(ctx, tab, () => tab.wrapper, organizationTabs);
-
   const panel = panelToggle(async () => {
     const content = organizationContent();
     if (!content) return { remove() {} };
@@ -252,6 +238,21 @@ function organizationTab(ctx: ContentScriptContext, organization: string, disabl
     ui.mount();
     return ui;
   });
+
+  // Mounting the tab syncs the panel at once when the page opens on #dev-null: the panel must exist by then.
+  const tab = createIntegratedUi(ctx, {
+    tag: 'li',
+    position: 'inline',
+    anchor: organizationTabs,
+    append: 'last',
+    onMount: (li) => {
+      const style = organizationTabStyle() ?? { item: 'd-flex', link: 'UnderlineNav-item' };
+      li.className = style.item;
+      li.replaceChildren(organizationTabLink({ href: TAB_HASH, className: style.link }));
+      void sync();
+    },
+  });
+  const kept = keptMounted(ctx, tab, () => tab.wrapper, organizationTabs);
 
   function close() {
     panel.hide();
