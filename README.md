@@ -62,6 +62,8 @@ dev-null.sh, as you would a phone. Disconnecting revokes it.
 - Your key is generated in the browser and can't be read back, not even by the extension: it only signs.
 - It only uses /dev/null's public API and its existing sign-in.
 
+The details are in the [privacy policy](PRIVACY.md).
+
 ## Contributing
 
 Bug reports and ideas are welcome in the issues. To work on the code, see [CONTRIBUTING.md](CONTRIBUTING.md); what's
