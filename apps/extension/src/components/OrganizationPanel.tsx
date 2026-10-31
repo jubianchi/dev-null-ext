@@ -2,7 +2,7 @@ import type { Commit } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
 import { BackgroundError, ask } from '../lib/messages.ts';
 import { CommitItem } from './CommitItem.tsx';
-import { Composer } from './Composer.tsx';
+import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
 
 type State =
@@ -47,7 +47,7 @@ export function OrganizationPanel({ organization }: { organization: string }) {
           </a>
           <button
             type="button"
-            onClick={() => setWriting(!writing)}
+            onClick={() => setWriting(true)}
             class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
           >
             Commit
@@ -55,11 +55,7 @@ export function OrganizationPanel({ organization }: { organization: string }) {
         </div>
       </header>
 
-      {writing && (
-        <div class="mb-4">
-          <Composer target={{ page: null, organization }} onClose={() => setWriting(false)} />
-        </div>
-      )}
+      {writing && <ComposerDialog target={{ page: null, organization }} onClose={() => setWriting(false)} />}
 
       <div class="overflow-hidden rounded-md border border-border bg-canvas">
         {state.step === 'loading' && <p class="m-0 p-4 text-sm text-fg-muted">Reading the log…</p>}

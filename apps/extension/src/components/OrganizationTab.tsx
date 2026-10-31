@@ -14,7 +14,7 @@ export function organizationTabLink({ href, className }: { href: string; classNa
   render(
     <>
       <span data-component="icon">
-        <Glyph class="octicon UnderlineNav-octicon" />
+        <Glyph class="octicon" />
       </span>
       <span data-component="text" data-content="/dev/null">
         /dev/null
