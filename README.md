@@ -110,12 +110,15 @@ the text, the tools below it.
 The extension may add to a commit what the user did not write: the GitHub page's link, the organization's mention,
 and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`):
 
-- an addition is a piece of the body with a label and a **reason** it can tell the user;
+- an addition is a piece of text with a label, a **reason** it can tell the user, and a pattern to find it;
 - **sources** propose them from the composer's context (the page, the organization); a new idea is a new source,
   listed in `SOURCES`, and no composer changes;
-- additions go below what the user writes, one per line, so what they type is only their own words;
-- both composers show them under "Added to your commit", each with its reason, and **every addition is removable**:
-  a removed one stays in place, struck through, to add back. The counter and the preview show the result.
+- additions are **prefilled into the text**, at the end, one per line, the caret above them: the user sees what is
+  sent, and can move, edit or remove any of them. **The text is the only truth**: the body is the text, and the
+  counter and the preview show exactly what is sent;
+- under "In your commit", each addition shows whether it is in the text, however it got there (typed by hand too),
+  with its reason: in, its × takes it out of the text; out, a click puts it back at the caret. Both edits can be
+  undone (Cmd+Z). **Every addition is removable**, and a commit made of additions alone is allowed.
 
 ## Before publishing anywhere
 
