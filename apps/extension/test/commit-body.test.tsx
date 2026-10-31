@@ -42,6 +42,31 @@ describe('CommitBody', () => {
     expect(root.textContent).toBe('see example.com/a. Or (example.com/b), en.wikipedia.org/wiki/Foo_(bar)!');
   });
 
+  it('shows a GitHub link as GitHub writes it, keeping the whole URL in the text to copy', () => {
+    const url = 'https://github.com/dev-null-sh/dev-null.sh/pull/585';
+    show([{ type: 'text', text: `see ${url}.` }]);
+
+    const link = root.querySelector('a')!;
+    const label = link.querySelector('[aria-hidden="true"]');
+    expect(link.getAttribute('href')).toBe(url);
+    expect(link.getAttribute('title')).toBe(url);
+    expect(link.getAttribute('aria-label')).toBe('dev-null-sh/dev-null.sh pull request #585 on GitHub');
+    expect(label?.textContent).toBe('dev-null-sh/dev-null.sh#585');
+    expect(label?.querySelector('svg.octicon-mark-github')).not.toBeNull();
+    expect(link.textContent).toBe(`${url}dev-null-sh/dev-null.sh#585`);
+    expect(root.textContent).toBe(`see ${url}dev-null-sh/dev-null.sh#585.`);
+  });
+
+  it('draws a GitHub link without making it clickable inside a link', () => {
+    render(
+      <CommitBody segments={[{ type: 'text', text: 'https://github.com/laravel/framework' }]} mentions={[]} interactive={false} />,
+      root,
+    );
+
+    expect(root.querySelector('a')).toBeNull();
+    expect(root.querySelector('[title="https://github.com/laravel/framework"]')?.textContent).toContain('laravel/framework');
+  });
+
   it('links the mentions /dev/null found to their profile', () => {
     show([{ type: 'text', text: 'Thanks @Laravel and @nobody@example' }], [{ handle: 'Laravel', offset: 7, length: 8, kind: 'organization' }]);
 

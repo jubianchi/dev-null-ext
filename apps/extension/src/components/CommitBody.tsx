@@ -1,6 +1,8 @@
 import type { BodyMention, BodySegment } from '@devnull-github/client';
 import type { ComponentChild } from 'preact';
+import { type GitHubLinkTarget, gitHubLinkTo } from '../lib/github/links.ts';
 import { withoutTrailingPunctuation } from '../lib/urls.ts';
+import { Octicon } from './Octicon.tsx';
 
 const TOKEN_PATTERN = /(https?:\/\/[^\s<>]+)|(?<![\w@])@([A-Za-z0-9][A-Za-z0-9-]*)/g;
 const WORDMARK_PATTERN = /(?<![\p{L}\p{M}\p{N}_./-])(\/dev\/null)(?![\p{L}\p{M}\p{N}_/-])/u;
@@ -40,18 +42,61 @@ export function CommitBody({
   );
 }
 
-type LinkComponent = (props: { href: string; class: string; children: ComponentChild }) => ComponentChild;
+interface LinkProps {
+  href: string;
+  class: string;
+  children: ComponentChild;
+  title?: string;
+  label?: string;
+}
 
-function Link({ href, class: className, children }: { href: string; class: string; children: ComponentChild }) {
+type LinkComponent = (props: LinkProps) => ComponentChild;
+
+function Link({ href, class: className, children, title, label }: LinkProps) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer nofollow ugc" class={className}>
+    <a href={href} target="_blank" rel="noopener noreferrer nofollow ugc" class={className} title={title} aria-label={label}>
       {children}
     </a>
   );
 }
 
-function Static({ class: className, children }: { href: string; class: string; children: ComponentChild }) {
-  return <span class={className}>{children}</span>;
+function Static({ class: className, children, title }: LinkProps) {
+  return (
+    <span class={className} title={title}>
+      {children}
+    </span>
+  );
+}
+
+/**
+ * A GitHub link as GitHub writes it, as dev-null.sh draws it (ForgeLink): the mark, the owner muted, the repository and
+ * what in it. The whole URL stays in the text, at no size, so copying the commit keeps the link.
+ */
+function GitHubLink({ url, target, Anchor }: { url: string; target: GitHubLinkTarget; Anchor: LinkComponent }) {
+  const { owner, repository, item } = target;
+  const name = repository === null ? owner : `${owner}/${repository}`;
+
+  return (
+    <Anchor href={url} title={url} label={`${name}${item ? ` ${item.description}` : ''} on GitHub`} class="text-fg-accent hover:underline">
+      <span class="text-[0px]">{url}</span>
+      <span aria-hidden="true" class="select-none font-mono text-[0.92em] [overflow-wrap:anywhere]">
+        {/* The mark never wraps onto a line of its own. */}
+        <span class={`whitespace-nowrap ${repository === null ? '' : 'text-fg-muted'}`}>
+          <Octicon name="mark-github" class="mr-[0.2em] size-[1.15em] align-[-0.25em] text-fg" />
+          {owner.charAt(0)}
+        </span>
+        {repository === null ? (
+          owner.slice(1)
+        ) : (
+          <>
+            <span class="text-fg-muted">{owner.slice(1)}/</span>
+            {repository}
+            {item?.suffix}
+          </>
+        )}
+      </span>
+    </Anchor>
+  );
 }
 
 function Prose({ text, known, link }: { text: string; known: Map<string, string>; link: LinkComponent }) {
@@ -96,8 +141,11 @@ function linkify(text: string, known: Map<string, string>, Anchor: LinkComponent
     if (!url && !mentioned) continue;
 
     parts.push(...wordmarks(text.slice(last, match.index)));
+    const gitHub = url ? gitHubLinkTo(url) : null;
     parts.push(
-      url ? (
+      url && gitHub ? (
+        <GitHubLink url={url} target={gitHub} Anchor={Anchor} />
+      ) : url ? (
         <Anchor href={url} class="text-fg-accent [overflow-wrap:anywhere] hover:underline">
           {url.replace(/^https?:\/\/(www\.)?/, '')}
         </Anchor>

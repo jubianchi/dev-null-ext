@@ -37,6 +37,9 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 - [ ] Poll: 2 to 4 options of 50 characters at most, for 1 hour, 1, 3 or 7 days; not with images, a reply or a quote.
 - [ ] Schedule: `/api/v1/scheduled-commits`, up to 30 days ahead, 10 pending at most.
 
+- [ ] In the preview, show where the first link's card will go, as dev-null.sh does ("Unfurls into a link card
+      after you commit.").
+- [ ] Format GitLab and Codeberg links as dev-null.sh does, as GitHub's are.
 - [ ] Keyboard shortcuts to insert the additions (the page's link, the organization's mention), shown in their
       tooltips.
 
