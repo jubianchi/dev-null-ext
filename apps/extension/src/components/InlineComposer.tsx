@@ -78,9 +78,10 @@ export function InlineComposer({
             <button
               type="button"
               onClick={() => picker.current?.click()}
+              disabled={!draft.canAttach}
               aria-label="Attach images"
               title="Attach images: up to 3, JPEG, PNG or WebP"
-              class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg"
+              class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
             >
               <Octicon name="image" />
             </button>
@@ -125,7 +126,8 @@ export function InlineComposer({
           <button
             type="button"
             onClick={() => picker.current?.click()}
-            class="flex cursor-pointer items-center gap-1 border-0 border-l border-solid border-border-muted bg-transparent pl-3 text-xs font-medium text-fg-muted hover:text-fg-accent"
+            disabled={!draft.canAttach}
+            class="flex cursor-pointer items-center gap-1 border-0 border-l border-solid border-border-muted bg-transparent pl-3 text-xs font-medium text-fg-muted hover:text-fg-accent disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:text-fg-muted"
           >
             <Octicon name="image" />
             Paste, drop, or click to add files

@@ -66,6 +66,18 @@ describe('Composer', () => {
     expect(root.querySelector('textarea')).not.toBeNull();
   });
 
+  it('disables adding images once it has 3, as dev-null.sh does', async () => {
+    await mount(<Composer target={{ page, organization: null }} />);
+    const input = root.querySelector<HTMLInputElement>('input[type="file"]')!;
+    const png = (name: string) => new File([new Uint8Array([1])], name, { type: 'image/png' });
+    Object.defineProperty(input, 'files', { value: [png('a.png'), png('b.png'), png('c.png')], configurable: true });
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    expect(root.querySelector<HTMLButtonElement>('button[aria-label="Attach images"]')?.disabled).toBe(true);
+  });
+
   it("offers the page's link and the organization's mention in its toolbar, inserting nothing by itself", async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 

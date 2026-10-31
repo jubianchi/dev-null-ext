@@ -143,6 +143,20 @@ describe('InlineComposer, images', () => {
     expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(0);
   });
 
+  it('disables adding images once it has 3, as dev-null.sh does, until one is removed', async () => {
+    const footer = () => [...root.querySelectorAll<HTMLButtonElement>('button')].find((element) => element.textContent?.includes('Paste, drop'))!;
+    await attach(png('a.png'), png('b.png'));
+    expect(button('Attach images')?.disabled).toBe(false);
+
+    await attach(png('c.png'));
+    expect(button('Attach images')?.disabled).toBe(true);
+    expect(footer().disabled).toBe(true);
+
+    await act(async () => button('Remove image 1')!.click());
+    expect(button('Attach images')?.disabled).toBe(false);
+    expect(footer().disabled).toBe(false);
+  });
+
   it('previews the attached images, even without text', async () => {
     await attach(png());
     await openPreview();

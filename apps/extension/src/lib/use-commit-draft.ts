@@ -1,7 +1,7 @@
 import type { Commit, CurrentUser } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
 import { type Addition, type ComposerContext, additionsFor, isIn, withAddition } from './additions.ts';
-import { imageProblem, toTransfer } from './images.ts';
+import { MAX_IMAGES, imageProblem, toTransfer } from './images.ts';
 import { BackgroundError, ask } from './messages.ts';
 import { MAX_COMMIT_LENGTH, commitLength } from './share.ts';
 import { replaceText } from './textarea.ts';
@@ -110,6 +110,7 @@ export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) =>
     warnings,
     images,
     imageErrors,
+    canAttach: images.length < MAX_IMAGES,
     attach,
     detach,
     describe,

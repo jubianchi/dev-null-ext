@@ -102,9 +102,10 @@ export function Composer({ target }: { target: Target }) {
                 <button
                   type="button"
                   onClick={() => picker.current?.click()}
+                  disabled={!draft.canAttach}
                   aria-label="Attach images"
                   title="Attach images: up to 3, JPEG, PNG or WebP"
-                  class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg"
+                  class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
                 >
                   <Octicon name="image" />
                 </button>
