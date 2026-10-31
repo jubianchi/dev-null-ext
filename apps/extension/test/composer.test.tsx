@@ -78,6 +78,19 @@ describe('Composer', () => {
     expect(root.querySelector<HTMLButtonElement>('button[aria-label="Attach images"]')?.disabled).toBe(true);
   });
 
+  it('hides the thumbnails while previewing, as dev-null.sh does', async () => {
+    await mount(<Composer target={{ page, organization: null }} />);
+    const input = root.querySelector<HTMLInputElement>('input[type="file"]')!;
+    Object.defineProperty(input, 'files', { value: [new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })], configurable: true });
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(1);
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Preview"]')!.click());
+    expect(root.querySelector('[data-attached-image]')).toBeNull();
+  });
+
   it("offers the page's link and the organization's mention in its toolbar, inserting nothing by itself", async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
 

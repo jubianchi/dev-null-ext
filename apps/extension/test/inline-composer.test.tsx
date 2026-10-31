@@ -165,6 +165,15 @@ describe('InlineComposer, images', () => {
     expect(root.querySelector('[role="tabpanel"] img')?.getAttribute('alt')).toBe('Attached image');
   });
 
+  it('hides the thumbnails while previewing, as dev-null.sh does', async () => {
+    await attach(png());
+    await openPreview();
+    expect(root.querySelector('[data-attached-image]')).toBeNull();
+
+    await act(async () => tab('Write').click());
+    expect(root.querySelectorAll('[data-attached-image]')).toHaveLength(1);
+  });
+
   it('attaches pasted images', async () => {
     const textarea = root.querySelector('textarea')!;
     const paste = new Event('paste', { bubbles: true, cancelable: true });

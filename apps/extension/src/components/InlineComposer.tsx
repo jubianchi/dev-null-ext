@@ -112,7 +112,9 @@ export function InlineComposer({
               <PreviewPanel body={body} images={draft.images} />
             </div>
           )}
-          <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
+          {tab === 'write' && (
+            <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
+          )}
         </div>
 
         {warnings.length > 0 && (

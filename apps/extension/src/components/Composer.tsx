@@ -91,7 +91,9 @@ export function Composer({ target }: { target: Target }) {
             )}
             </div>
 
-            <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
+            {!previewing && (
+              <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
+            )}
 
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
 
