@@ -18,7 +18,7 @@ type State =
  * beside the text, the tools below it. The link and the @mention are added below what the user writes, so what they
  * type is only their own words.
  */
-export function Composer({ target }: { target: Target }) {
+export function Composer({ target, autoFocus = true }: { target: Target; autoFocus?: boolean }) {
   const [state, setState] = useState<State>({ step: 'loading' });
   const [text, setText] = useState('');
   const [mention, setMention] = useState(target.organization !== null);
@@ -32,7 +32,7 @@ export function Composer({ target }: { target: Target }) {
   }, []);
 
   useEffect(() => {
-    if (state.step === 'writing') textarea.current?.focus();
+    if (autoFocus && state.step === 'writing') textarea.current?.focus();
   }, [state.step]);
 
   const organization = mention ? target.organization : null;

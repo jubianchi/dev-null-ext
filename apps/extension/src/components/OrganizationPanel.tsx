@@ -1,7 +1,9 @@
 import type { Commit } from '@devnull-github/client';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { composerMode } from '../lib/composer-mode.ts';
 import { BackgroundError, ask } from '../lib/messages.ts';
 import { CommitItem } from './CommitItem.tsx';
+import { Composer } from './Composer.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
 
@@ -14,6 +16,8 @@ type State =
 export function OrganizationPanel({ organization }: { organization: string }) {
   const [state, setState] = useState<State>({ step: 'loading' });
   const [writing, setWriting] = useState(false);
+  const [topInView, setTopInView] = useState(true);
+  const inline = useRef<HTMLDivElement>(null);
 
   async function load(cursor: string | null, previous: Commit[]) {
     try {
@@ -34,11 +38,26 @@ export function OrganizationPanel({ organization }: { organization: string }) {
     void load(null, []);
   }, [organization]);
 
+  useEffect(() => {
+    const element = inline.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(([entry]) => setTopInView(entry?.isIntersecting ?? false));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  function commit() {
+    if (composerMode({ log: true, topInView }) === 'modal') return setWriting(true);
+
+    inline.current?.querySelector('textarea')?.focus();
+  }
+
   const profile = `https://dev-null.sh/@${organization}`;
 
   return (
     <section class="mx-auto my-6 max-w-[1012px] px-4 font-sans text-fg">
-      <header class="mb-4 flex flex-wrap items-center gap-3">
+      <header class="sticky top-0 z-10 -mx-4 mb-4 flex flex-wrap items-center gap-3 bg-canvas px-4 py-2">
         <Glyph class="size-5" />
         <h2 class="m-0 text-xl font-semibold">Commits mentioning @{organization}</h2>
         <div class="ml-auto flex items-center gap-2">
@@ -47,13 +66,17 @@ export function OrganizationPanel({ organization }: { organization: string }) {
           </a>
           <button
             type="button"
-            onClick={() => setWriting(true)}
+            onClick={commit}
             class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
           >
             Commit
           </button>
         </div>
       </header>
+
+      <div ref={inline} class="mb-4 overflow-hidden rounded-md border border-border bg-canvas">
+        <Composer target={{ page: null, organization }} autoFocus={false} />
+      </div>
 
       {writing && <ComposerDialog target={{ page: null, organization }} onClose={() => setWriting(false)} />}
 
