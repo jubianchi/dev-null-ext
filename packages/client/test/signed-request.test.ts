@@ -71,6 +71,18 @@ describe('signed requests', () => {
     expect(request?.headers['X-SSH-Signature']).toBeTypeOf('string');
   });
 
+  it("pages a commit's replies, newest first to follow its reply preview, signed", async () => {
+    const page = { data: [], meta: { next_cursor: null } };
+    const fetch = fakeFetch([[200, page]]);
+    const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });
+
+    expect(await client.commitReplies('c1', { cursor: 'eyJpZCI6MX0', newest: true })).toEqual(page);
+
+    const [request] = fetch.requests;
+    expect(request?.url.pathname + request!.url.search).toBe('/api/v1/commits/c1/replies?newest=1&cursor=eyJpZCI6MX0');
+    expect(request?.headers['X-SSH-Signature']).toBeTypeOf('string');
+  });
+
   it('turns API errors into ApiError with their code', async () => {
     const fetch = fakeFetch([[403, { message: 'Accept the commit rules on the web first.', code: 'commit_rules_required' }]]);
     const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });

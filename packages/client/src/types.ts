@@ -47,6 +47,10 @@ export interface Commit {
   /** Only on signed requests. The quoted commit is null when the viewer may not see it. */
   quoted_commit_id?: string | null;
   quoted_commit?: Commit | DeletedCommit | null;
+  /** Only on signed lists: the newest reply (or quote), and the cursor to page on, newest first, through the rest. */
+  reply_preview?: { data: Array<Commit | DeletedCommit>; next_cursor: string | null };
+  /** Only on signed lists, for a reply: its parent, or null when the viewer may not see it. */
+  parent?: Commit | DeletedCommit | null;
 }
 
 /** What is left of a deleted commit (CommitResource's tombstone). */

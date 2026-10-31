@@ -102,6 +102,17 @@ export class DevNullClient {
     return (await this.request<Wrapped<Commit>>('POST', '/api/v1/commits', { body: commit, signed: true })).data;
   }
 
+  /**
+   * A commit's replies and quotes, 50 a page. `newest` sorts them newest first, which a reply preview's `next_cursor`
+   * pages on.
+   */
+  commitReplies(id: string, options: { cursor?: string | null; newest?: boolean } = {}): Promise<Page<Commit>> {
+    return this.request('GET', `/api/v1/commits/${encodeURIComponent(id)}/replies`, {
+      query: { newest: options.newest ? '1' : null, cursor: options.cursor },
+      signed: true,
+    });
+  }
+
   /** How /dev/null will render a body, without storing anything or counting toward the commit rate limit. */
   async previewCommit(body: string): Promise<CommitPreview> {
     return (await this.request<Wrapped<CommitPreview>>('POST', '/api/v1/commits/preview', { body: { body }, signed: true })).data;
