@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { Addition } from '../lib/additions.ts';
+import { menuPosition } from '../lib/menu-position.ts';
 import { Octicon, type OcticonName } from './Octicon.tsx';
 
 const ICONS: Record<Addition['kind'], OcticonName> = { link: 'link', mention: 'mention' };
@@ -69,6 +70,22 @@ function AdditionMenu({ kind, additions, inCommit, onInsert }: ToolProps & { kin
   const menu = useRef<HTMLDivElement>(null);
   const anyIn = additions.some(inCommit);
 
+  // In the top layer, as a popover, so the modal composer's dialog doesn't clip it; placed before it is painted.
+  useLayoutEffect(() => {
+    const element = menu.current;
+    const button = trigger.current;
+    if (!open || !element || !button) return;
+
+    if (typeof element.showPopover === 'function') element.showPopover();
+    const { top, left } = menuPosition(
+      button.getBoundingClientRect(),
+      { width: element.offsetWidth, height: element.offsetHeight },
+      { width: window.innerWidth, height: window.innerHeight },
+    );
+    element.style.top = `${top}px`;
+    element.style.left = `${left}px`;
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -123,9 +140,10 @@ function AdditionMenu({ kind, additions, inCommit, onInsert }: ToolProps & { kin
         <div
           ref={menu}
           role="menu"
+          popover="manual"
           aria-label={MENU_LABELS[kind]}
           onKeyDown={onKeyDown}
-          class="absolute bottom-full left-0 z-20 mb-1 w-72 rounded-xl border border-border bg-canvas-overlay p-2 shadow-overlay"
+          class="fixed inset-auto m-0 w-72 rounded-xl border border-border bg-canvas-overlay p-2 font-sans text-fg shadow-overlay"
         >
           {additions.map((addition) => {
             const present = inCommit(addition);
