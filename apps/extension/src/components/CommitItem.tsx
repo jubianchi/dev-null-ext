@@ -1,54 +1,17 @@
-import type { BodyMention, BodySegment, Commit, DeletedCommit } from '@devnull-github/client';
-import { useState } from 'preact/hooks';
-import { ask } from '../lib/messages.ts';
+import type { Commit, DeletedCommit } from '@devnull-github/client';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
-import { CommitBody } from './CommitBody.tsx';
 import { CommitImages } from './CommitImages.tsx';
+import { ACTION, FoldedBody, Star, lane, plural } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 import { Octicon } from './Octicon.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
-
-const LANES = ['bg-lane-0', 'bg-lane-1', 'bg-lane-2', 'bg-lane-3', 'bg-lane-4', 'bg-lane-5'];
-
-/** The author's lane, when the API says (signed requests): an index into the six lanes, or a custom colour. */
-function lane(commit: Commit): { class: string; style?: string } {
-  const value = (commit.author as { lane?: number | string }).lane;
-  if (typeof value === 'number') return { class: LANES[value % LANES.length] ?? 'bg-border' };
-  if (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)) return { class: '', style: `background:${value}` };
-  return { class: 'bg-border' };
-}
-
-/**
- * The body as dev-null.sh shows it in a list (FoldedCommitBody): its excerpt when it has one, and Show more to unfold
- * it in place, for good.
- */
-function FoldedBody({ segments, excerpt, mentions }: { segments: BodySegment[]; excerpt: BodySegment[] | null; mentions: BodyMention[] }) {
-  const [unfolded, setUnfolded] = useState(false);
-  const folded = excerpt !== null && !unfolded;
-
-  return (
-    <>
-      <CommitBody segments={folded ? excerpt : segments} mentions={mentions} />
-      {folded && (
-        <button type="button" onClick={() => setUnfolded(true)} class="mt-0.5 text-sm font-medium text-fg-accent hover:underline">
-          Show more
-        </button>
-      )}
-    </>
-  );
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
+import { Replies } from './Replies.tsx';
 
 export function CommitItem({ commit }: { commit: Commit }) {
-  const rail = lane(commit);
-
   return (
     <li class="flex gap-3 border-b border-border-muted px-4 py-3 last:border-b-0">
-      <span class={`w-0.5 shrink-0 self-stretch rounded-full ${rail.class}`} style={rail.style} aria-hidden="true" />
+      <span class="w-0.5 shrink-0 self-stretch rounded-full" style={{ background: lane(commit) }} aria-hidden="true" />
       <img src={commit.author.avatar_url ?? ''} alt="" class="size-8 shrink-0 rounded-full" loading="lazy" />
       <div class="min-w-0 flex-1">
         <div class="mb-1 flex flex-wrap items-baseline gap-x-2 text-sm">
@@ -94,6 +57,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
           </a>
           {commit.status === 'pending' && <span class="text-fg-attention">Pending review</span>}
         </div>
+        {commit.reply_preview && <Replies parent={commit} preview={commit.reply_preview} />}
       </div>
     </li>
   );
@@ -116,30 +80,3 @@ function ReplyingTo({ parent }: { parent: Commit | DeletedCommit | null }) {
   );
 }
 
-const ACTION ='inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-fg-muted hover:bg-canvas-muted hover:text-fg-accent';
-
-/** The star counter, which stars and unstars the commit: at once, and back as it was if /dev/null refuses. */
-function Star({ commit, count }: { commit: Commit; count: number }) {
-  const [state, setState] = useState({ starred: commit.starred ?? false, count });
-
-  function toggle() {
-    const previous = state;
-    const starred = !previous.starred;
-    setState({ starred, count: previous.count + (starred ? 1 : -1) });
-    ask({ type: 'star', commitId: commit.id, starred }).catch(() => setState(previous));
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-pressed={state.starred}
-      aria-label={plural(state.count, 'star', 'stars')}
-      title={state.starred ? 'Unstar' : 'Star'}
-      class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit]`}
-    >
-      <Octicon name={state.starred ? 'star-fill' : 'star'} class={state.starred ? 'text-fg-attention' : ''} />
-      {state.count}
-    </button>
-  );
-}

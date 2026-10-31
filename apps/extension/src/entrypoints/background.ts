@@ -234,6 +234,8 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return (await client({ signed: true })).previewCommit(request.body);
     case 'image':
       return fetchImageAsDataUrl(request.url);
+    case 'replies':
+      return (await client({ signed: true })).commitReplies(request.commitId, { cursor: request.cursor, newest: true });
     case 'star': {
       const signed = await client({ signed: true });
       await (request.starred ? signed.star(request.commitId) : signed.unstar(request.commitId));

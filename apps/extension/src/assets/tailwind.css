@@ -30,15 +30,17 @@
   --color-primary-hover: var(--button-primary-bgColor-hover, #1c8139);
   --color-primary-fg: var(--button-primary-fgColor-rest, #ffffff);
 
-  /* /dev/null lanes (DESIGN.md), light then dark. */
+  --shadow-overlay: var(--shadow-floating-small, 0 0 0 1px #d1d9e080, 0 6px 12px -3px #25292e0a, 0 6px 18px 0 #25292e1f);
+}
+
+/* /dev/null lanes (DESIGN.md), light then dark. Static: components use them as CSS variables, not only as classes. */
+@theme static {
   --color-lane-0: light-dark(#d9480f, #ff8a4c);
   --color-lane-1: light-dark(#2f9e44, #51cf66);
   --color-lane-2: light-dark(#9c36b5, #da77f2);
   --color-lane-3: light-dark(#0c8599, #3bc9db);
   --color-lane-4: light-dark(#c2255c, #f06595);
   --color-lane-5: light-dark(#b7791f, #fcc419);
-
-  --shadow-overlay: var(--shadow-floating-small, 0 0 0 1px #d1d9e080, 0 6px 12px -3px #25292e0a, 0 6px 18px 0 #25292e1f);
 }
 
 :host {

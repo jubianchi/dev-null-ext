@@ -1,4 +1,4 @@
-import type { Commit, CommitPreview, CurrentUser, Page } from '@devnull-github/client';
+import type { Commit, CommitPreview, CurrentUser, DeletedCommit, Page } from '@devnull-github/client';
 import { browser } from 'wxt/browser';
 
 /**
@@ -12,6 +12,7 @@ export type Request =
   | { type: 'preview'; body: string }
   | { type: 'image'; url: string }
   | { type: 'star'; commitId: string; starred: boolean }
+  | { type: 'replies'; commitId: string; cursor: string | null }
   | { type: 'owner-type'; login: string }
   | { type: 'sign-in' }
   | { type: 'sign-in:loopback' }
@@ -28,6 +29,8 @@ export interface Responses {
   /** A data URL: github.com's CSP blocks images from dev-null.sh. */
   image: string;
   star: null;
+  /** Newest first, to follow a reply preview. */
+  replies: Page<Commit | DeletedCommit>;
   'owner-type': OwnerType;
   'sign-in': SignInState;
   'sign-in:loopback': SignInState;
