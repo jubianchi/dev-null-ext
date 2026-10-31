@@ -25,6 +25,14 @@ const user: CurrentUser = {
 };
 
 const page = { kind: 'repository' as const, owner: 'laravel', repository: 'framework', url: 'https://github.com/laravel/framework' };
+const issue = {
+  kind: 'issue' as const,
+  owner: 'laravel',
+  repository: 'framework',
+  number: 1,
+  title: 'Bug',
+  url: 'https://github.com/laravel/framework/issues/1',
+};
 
 let root: HTMLElement;
 
@@ -70,6 +78,15 @@ describe('Composer', () => {
     await act(async () => toolbar.querySelector<HTMLButtonElement>('button[aria-label="Insert laravel/framework"]')!.click());
     expect(textarea.value).toBe(page.url);
     expect(toolbar.querySelector('button[aria-label="Insert laravel/framework (already in your commit)"]')).not.toBeNull();
+  });
+
+  it("offers to mention who opened the page, unless it's the user themselves", async () => {
+    await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: null }} />);
+    expect(root.querySelector('[role="toolbar"] button[aria-label="Insert @taylorotwell"]')).not.toBeNull();
+
+    render(null, root);
+    await mount(<Composer target={{ page: { ...issue, author: 'jubianchi' }, organization: null }} />);
+    expect(root.querySelector('[role="toolbar"] button[aria-label="Insert @jubianchi"]')).toBeNull();
   });
 
   it("doesn't warn about the organization's mention when sharing a page", async () => {

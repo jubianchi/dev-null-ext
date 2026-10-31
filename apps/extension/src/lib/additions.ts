@@ -8,8 +8,10 @@ import { type SharedPage, shareLabel } from './share.ts';
  * listing it in SOURCES, without touching the composers.
  */
 
-/** Where a commit is written from: a GitHub page, an organization, or both. */
-export type ComposerContext = { page: SharedPage; organization: string | null } | { page: null; organization: string };
+/** Where a commit is written from: a GitHub page, an organization, or both; and who writes it, once known. */
+export type ComposerContext = ({ page: SharedPage; organization: string | null } | { page: null; organization: string }) & {
+  viewer?: string | null;
+};
 
 export interface Addition {
   id: string;
@@ -47,6 +49,31 @@ export const pageLink: AdditionSource = ({ page }) =>
       ]
     : [];
 
+function mentionPattern(handle: string): RegExp {
+  return new RegExp(`(?<![\\w@./])@${escape(handle)}(?![\\w/-])`, 'i');
+}
+
+/**
+ * Who opened the issue or the pull request: their GitHub login, which is their /dev/null handle when they are there.
+ * Not a bot, nor the viewer themselves.
+ */
+export const authorMention: AdditionSource = ({ page, viewer }) => {
+  if (!page || !('author' in page) || !page.author || page.author.endsWith('[bot]')) return [];
+  if (viewer && viewer.toLowerCase() === page.author.toLowerCase()) return [];
+
+  const opened = page.kind === 'pull-request' ? 'pull request' : page.kind;
+  return [
+    {
+      id: 'author-mention',
+      kind: 'mention',
+      text: `@${page.author}`,
+      label: `@${page.author}`,
+      reason: `Mentions @${page.author}, who opened this ${opened}, if they are on /dev/null.`,
+      pattern: mentionPattern(page.author),
+    },
+  ];
+};
+
 /**
  * The organization, as a bare @mention: it files the commit under the organization's /dev/null page. `@org/repo` is
  * not a mention there, on purpose. Written from the organization's log, leaving it out means the commit won't show in
@@ -61,13 +88,13 @@ export const organizationMention: AdditionSource = ({ page, organization }) =>
           text: `@${organization}`,
           label: `@${organization}`,
           reason: `Mentions @${organization}, so the commit shows on the organization's /dev/null page.`,
-          pattern: new RegExp(`(?<![\\w@./])@${escape(organization)}(?![\\w/-])`, 'i'),
+          pattern: mentionPattern(organization),
           ...(page === null ? { missing: `Not mentioning @${organization}: this commit won't show here.` } : {}),
         },
       ]
     : [];
 
-export const SOURCES: AdditionSource[] = [pageLink, organizationMention];
+export const SOURCES: AdditionSource[] = [pageLink, authorMention, organizationMention];
 
 export function additionsFor(context: ComposerContext, sources: AdditionSource[] = SOURCES): Addition[] {
   return sources.flatMap((source) => source(context));

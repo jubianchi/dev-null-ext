@@ -61,6 +61,17 @@ describe('ShareButton', () => {
     expect(root.firstElementChild?.className).toContain('ml-2');
   });
 
+  it('reads who opened the issue when opening the composer, once GitHub has rendered it', async () => {
+    await mount(user);
+    document.body.insertAdjacentHTML('beforeend', '<a data-testid="issue-body-header-author" id="author">taylorotwell</a>');
+
+    await act(async () => root.querySelector('button')!.click());
+    await act(async () => {});
+
+    expect(root.querySelector('[role="toolbar"] button[aria-label="Insert @taylorotwell"]')).not.toBeNull();
+    document.getElementById('author')?.remove();
+  });
+
   it('shows nothing when signed out', async () => {
     await mount(null);
 

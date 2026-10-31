@@ -20,8 +20,8 @@ export type DraftState =
  * additions the user can insert, and what leaving one out would mean.
  */
 export function useCommitDraft(target: Target, onCommitted?: (commit: Commit) => void) {
-  const additions = additionsFor(target);
   const [state, setState] = useState<DraftState>({ step: 'loading' });
+  const additions = additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
   const [text, setText] = useState('');
 
   useEffect(() => {

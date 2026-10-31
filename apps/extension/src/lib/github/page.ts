@@ -18,6 +18,8 @@ export type GitHubPage =
       number: number;
       title: string | null;
       url: string;
+      /** Who opened it, read once the page is rendered (readAuthor). */
+      author?: string | null;
     }
   | { kind: 'other' };
 

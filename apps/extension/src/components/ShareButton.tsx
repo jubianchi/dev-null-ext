@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { readAuthor } from '../lib/github/page.ts';
 import { ask } from '../lib/messages.ts';
 import { useSession } from '../lib/use-session.ts';
 import type { SharedPage } from '../lib/share.ts';
@@ -21,6 +22,12 @@ const BUTTON =
   'hover:border-[var(--button-default-borderColor-hover,var(--color-button-border))] hover:bg-[var(--button-default-bgColor-hover,var(--color-button-hover))] ' +
   'active:bg-[var(--button-default-bgColor-active,var(--color-button-hover))]';
 
+/** The page with who opened it, read when the composer opens: by then GitHub has rendered it. */
+function withAuthor(page: SharedPage): SharedPage {
+  if (page.kind !== 'issue' && page.kind !== 'pull-request') return page;
+  return { ...page, author: readAuthor(page, document) };
+}
+
 /**
  * A button exactly like GitHub's own, among them, that opens the composer for the repository, pull request or issue
  * on screen. Only when connected to /dev/null: there is nothing to do with it otherwise.
@@ -39,7 +46,7 @@ export function ShareButton({
   spacing?: 'start' | 'end';
 }) {
   const user = useSession();
-  const [open, setOpen] = useState(false);
+  const [opened, setOpened] = useState<SharedPage | null>(null);
   const [organization, setOrganization] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,14 +62,14 @@ export function ShareButton({
     <span class={`inline-flex font-sans ${spacing === 'end' ? 'mr-2' : spacing === 'start' ? 'ml-2' : ''}`}>
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
+        onClick={() => setOpened(withAuthor(page))}
+        aria-expanded={opened !== null}
         class={`${SIZES[size]} ${BUTTON}`}
       >
         <Glyph class="size-4 shrink-0" />
         Commit
       </button>
-      {open && <ComposerDialog target={{ page, organization }} onClose={() => setOpen(false)} />}
+      {opened && <ComposerDialog target={{ page: opened, organization }} onClose={() => setOpened(null)} />}
     </span>
   );
 }

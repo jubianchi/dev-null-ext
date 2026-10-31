@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { additionsFor, isIn, organizationMention, pageLink, withAddition } from '../src/lib/additions.ts';
+import { additionsFor, authorMention, isIn, organizationMention, pageLink, withAddition } from '../src/lib/additions.ts';
 
 const pull = {
   kind: 'pull-request' as const,
@@ -18,6 +18,33 @@ describe('addition sources', () => {
       expect.objectContaining({ id: 'page-link', kind: 'link', text: pull.url, label: 'laravel/framework#58112' }),
     ]);
     expect(pageLink({ page: null, organization: 'laravel' })).toEqual([]);
+  });
+
+  it('mentions who opened the issue or the pull request', () => {
+    expect(authorMention({ page: { ...pull, author: 'taylorotwell' }, organization: 'laravel' })).toEqual([
+      expect.objectContaining({
+        id: 'author-mention',
+        kind: 'mention',
+        text: '@taylorotwell',
+        label: '@taylorotwell',
+        reason: 'Mentions @taylorotwell, who opened this pull request, if they are on /dev/null.',
+      }),
+    ]);
+    expect(authorMention({ page: { ...pull, kind: 'issue', author: 'taylorotwell' }, organization: null })[0]?.reason).toContain('who opened this issue');
+  });
+
+  it("doesn't mention a bot, the viewer themselves, or an author it doesn't know", () => {
+    expect(authorMention({ page: { ...pull, author: 'dependabot[bot]' }, organization: null })).toEqual([]);
+    expect(authorMention({ page: { ...pull, author: 'jubianchi' }, organization: null, viewer: 'JuBianchi' })).toEqual([]);
+    expect(authorMention({ page: pull, organization: null })).toEqual([]);
+  });
+
+  it('proposes the author before the organization', () => {
+    expect(additionsFor({ page: { ...pull, author: 'taylorotwell' }, organization: 'laravel' }).map((addition) => addition.id)).toEqual([
+      'page-link',
+      'author-mention',
+      'organization-mention',
+    ]);
   });
 
   it('links a release as owner/repo@tag', () => {
