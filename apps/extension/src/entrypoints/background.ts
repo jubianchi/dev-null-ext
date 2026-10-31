@@ -229,6 +229,8 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return (await readingClient()).organizationMentions(request.organization, request.cursor);
     case 'commit':
       return (await client({ signed: true })).createCommit({ body: request.body });
+    case 'preview':
+      return (await client({ signed: true })).previewCommit(request.body);
     case 'owner-type':
       return ownerType(request.login);
     case 'sign-in':

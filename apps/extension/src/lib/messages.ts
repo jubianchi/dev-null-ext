@@ -1,4 +1,4 @@
-import type { Commit, CurrentUser, Page } from '@devnull-github/client';
+import type { Commit, CommitPreview, CurrentUser, Page } from '@devnull-github/client';
 import { browser } from 'wxt/browser';
 
 /**
@@ -9,6 +9,7 @@ export type Request =
   | { type: 'session' }
   | { type: 'mentions'; organization: string; cursor: string | null }
   | { type: 'commit'; body: string }
+  | { type: 'preview'; body: string }
   | { type: 'owner-type'; login: string }
   | { type: 'sign-in' }
   | { type: 'sign-in:loopback' }
@@ -21,6 +22,7 @@ export interface Responses {
   session: CurrentUser | null;
   mentions: Page<Commit>;
   commit: Commit;
+  preview: CommitPreview;
   'owner-type': OwnerType;
   'sign-in': SignInState;
   'sign-in:loopback': SignInState;
