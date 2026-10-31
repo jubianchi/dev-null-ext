@@ -15,8 +15,8 @@ export default defineConfig({
   },
   manifest: ({ browser }) => ({
     name: '/dev/null for GitHub',
-    description:
-      'Share repositories, pull requests and issues on /dev/null, and read what /dev/null says about an organization, without leaving GitHub.',
+    // The Chrome Web Store takes 132 characters at most.
+    description: 'Read what /dev/null says about an organization, and share what you see on it, without leaving GitHub.',
     permissions: ['storage'],
     // Only for signing in on a /dev/null server without the device grant (dev-null-sh/dev-null.sh#585), and asked for
     // at that moment: it reads where tabs navigate, which a user should only grant knowingly.
