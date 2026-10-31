@@ -97,6 +97,42 @@ describe('CommitItem', () => {
     expect(root.textContent).not.toContain('```');
   });
 
+  it('shows the quoted commit as a card linking to it, under the body', () => {
+    render(
+      <CommitItem
+        commit={{
+          ...commit,
+          quoted_commit_id: 'q1',
+          quoted_commit: {
+            ...commit,
+            id: 'q1',
+            html_url: 'https://dev-null.sh/@njames/commits/q1',
+            author: { ...commit.author, handle: 'njames', name: 'Nigel James' },
+            body_segments: [{ type: 'block', language: null, filename: null, html: 'print(1)' }],
+            preview_segments: null,
+            mentions: [],
+          },
+        }}
+      />,
+      root,
+    );
+
+    const card = root.querySelector<HTMLAnchorElement>('a[href="https://dev-null.sh/@njames/commits/q1"]');
+    expect(card?.textContent).toContain('Quoting');
+    expect(card?.textContent).toContain('Nigel James');
+    expect(card?.textContent).toContain('@njames');
+    expect(card?.querySelector('pre')?.textContent).toBe('print(1)');
+    expect(card?.querySelector('a')).toBeNull();
+  });
+
+  it('says when the quoted commit was deleted or is not visible', () => {
+    render(<CommitItem commit={{ ...commit, quoted_commit_id: 'q1', quoted_commit: { id: 'q1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />, root);
+    expect(root.textContent).toContain('This commit was deleted.');
+
+    render(<CommitItem commit={{ ...commit, quoted_commit_id: 'q2', quoted_commit: null }} />, root);
+    expect(root.textContent).toContain("This commit isn't available.");
+  });
+
   it('fills the star of a commit the user starred', () => {
     render(<CommitItem commit={{ ...commit, starred: true }} />, root);
 

@@ -9,8 +9,18 @@ const HIGHLIGHT_CLASS =/^hl-[a-z]+(-[a-z]+)*$/;
  * A commit body as dev-null.sh draws it (CommitBody): prose with its line breaks, links and mentions, `> ` quotes,
  * inline code, and highlighted code blocks.
  */
-export function CommitBody({ segments, mentions }: { segments: BodySegment[]; mentions: BodyMention[] }) {
+export function CommitBody({
+  segments,
+  mentions,
+  interactive = true,
+}: {
+  segments: BodySegment[];
+  mentions: BodyMention[];
+  /** False inside a link, such as a quoted commit's card: links and mentions are drawn, not clickable. */
+  interactive?: boolean;
+}) {
   const known = new Map(mentions.map((mention) => [mention.handle.toLowerCase(), mention.handle]));
+  const link = interactive ? Link : Static;
 
   return (
     <div data-commit-body class="whitespace-pre-wrap break-words text-sm leading-relaxed text-fg">
@@ -23,22 +33,36 @@ export function CommitBody({ segments, mentions }: { segments: BodySegment[]; me
           );
         }
         if (segment.type === 'block') return <CodeBlock key={index} segment={segment} />;
-        return <Prose key={index} text={segment.text} known={known} />;
+        return <Prose key={index} text={segment.text} known={known} link={link} />;
       })}
     </div>
   );
 }
 
-function Prose({ text, known }: { text: string; known: Map<string, string> }) {
+type LinkComponent = (props: { href: string; class: string; children: ComponentChild }) => ComponentChild;
+
+function Link({ href, class: className, children }: { href: string; class: string; children: ComponentChild }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer nofollow ugc" class={className}>
+      {children}
+    </a>
+  );
+}
+
+function Static({ class: className, children }: { href: string; class: string; children: ComponentChild }) {
+  return <span class={className}>{children}</span>;
+}
+
+function Prose({ text, known, link }: { text: string; known: Map<string, string>; link: LinkComponent }) {
   return (
     <>
       {quotes(text).map((chunk, index) =>
         chunk.quote ? (
           <blockquote key={index} class="my-1 border-l-2 border-lane-5 pl-3">
-            {linkify(chunk.text, known)}
+            {linkify(chunk.text, known, link)}
           </blockquote>
         ) : (
-          linkify(chunk.text, known)
+          linkify(chunk.text, known, link)
         ),
       )}
     </>
@@ -59,7 +83,7 @@ function quotes(text: string): Array<{ quote: boolean; text: string }> {
   return chunks.map(({ quote, lines }) => ({ quote, text: lines.join('\n') }));
 }
 
-function linkify(text: string, known: Map<string, string>): ComponentChild[] {
+function linkify(text: string, known: Map<string, string>, Anchor: LinkComponent): ComponentChild[] {
   const parts: ComponentChild[] = [];
   let last = 0;
 
@@ -71,13 +95,13 @@ function linkify(text: string, known: Map<string, string>): ComponentChild[] {
     parts.push(...wordmarks(text.slice(last, match.index)));
     parts.push(
       url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer nofollow ugc" class="text-fg-accent [overflow-wrap:anywhere] hover:underline">
+        <Anchor href={url} class="text-fg-accent [overflow-wrap:anywhere] hover:underline">
           {url.replace(/^https?:\/\/(www\.)?/, '')}
-        </a>
+        </Anchor>
       ) : (
-        <a href={`https://dev-null.sh/@${mentioned}`} target="_blank" rel="noopener" class="font-medium text-fg-accent hover:underline">
+        <Anchor href={`https://dev-null.sh/@${mentioned}`} class="font-medium text-fg-accent hover:underline">
           {token}
-        </a>
+        </Anchor>
       ),
     );
     last = match.index + token.length;

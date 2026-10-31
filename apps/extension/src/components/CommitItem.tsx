@@ -4,6 +4,7 @@ import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
 import { Octicon } from './Octicon.tsx';
+import { QuotedCommit } from './QuotedCommit.tsx';
 
 const LANES = ['bg-lane-0', 'bg-lane-1', 'bg-lane-2', 'bg-lane-3', 'bg-lane-4', 'bg-lane-5'];
 
@@ -65,6 +66,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
           excerpt={commit.preview_segments ?? null}
           mentions={commit.mentions ?? []}
         />
+        {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         <div class="mt-2 flex gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && (
             <span class="inline-flex items-center gap-1" aria-label={plural(commit.stars_count, 'star', 'stars')}>
