@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
 import { BackgroundError, ask } from '../lib/messages.ts';
 import { CommitItem } from './CommitItem.tsx';
-import { Composer } from './Composer.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
+import { InlineComposer } from './InlineComposer.tsx';
 import { Glyph } from './Glyph.tsx';
 
 type State =
@@ -47,6 +47,11 @@ export function OrganizationPanel({ organization }: { organization: string }) {
     return () => observer.disconnect();
   }, []);
 
+  function committed(commit: Commit) {
+    if (commit.status === 'pending') return;
+    setState((current) => (current.step === 'loaded' ? { ...current, commits: [commit, ...current.commits] } : current));
+  }
+
   function commit() {
     if (composerMode({ log: true, topInView }) === 'modal') return setWriting(true);
 
@@ -74,8 +79,8 @@ export function OrganizationPanel({ organization }: { organization: string }) {
         </div>
       </header>
 
-      <div ref={inline} class="mb-4 overflow-hidden rounded-md border border-border bg-canvas">
-        <Composer target={{ page: null, organization }} autoFocus={false} />
+      <div ref={inline} class="mb-4">
+        <InlineComposer organization={organization} onCommitted={committed} />
       </div>
 
       {writing && <ComposerDialog target={{ page: null, organization }} onClose={() => setWriting(false)} />}
