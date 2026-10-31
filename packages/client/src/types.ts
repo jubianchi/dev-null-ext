@@ -8,6 +8,10 @@ export interface User {
   bio: string | null;
   github_url: string;
   html_url: string;
+  /** When the API sends them. */
+  commits_count?: number;
+  following_count?: number;
+  followers_count?: number;
 }
 
 export interface CurrentUser extends User {
