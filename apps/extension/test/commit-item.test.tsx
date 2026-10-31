@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import type { Commit } from '@devnull-github/client';
 import { render } from 'preact';
+import { act } from 'preact/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CommitItem } from '../src/components/CommitItem.tsx';
 
@@ -42,6 +43,55 @@ describe('CommitItem', () => {
     expect(stars?.getAttribute('aria-label')).toBe('3 stars');
     expect(stars?.querySelector('svg.octicon-star')).not.toBeNull();
     expect(stars?.textContent).toBe('3');
+  });
+
+  it('renders the body as /dev/null segmented it, code fences included', () => {
+    render(
+      <CommitItem
+        commit={{
+          ...commit,
+          body: 'Posted via\n```php title="src/Ollama.php"\necho 1;\n```',
+          body_segments: [
+            { type: 'text', text: 'Posted via' },
+            { type: 'block', language: 'php', filename: 'src/Ollama.php', html: '<span class="hl-keyword">echo</span> 1;' },
+          ],
+          preview_segments: null,
+          mentions: [],
+        }}
+      />,
+      root,
+    );
+
+    expect(root.querySelector('figcaption')?.textContent).toBe('src/Ollama.php');
+    expect(root.querySelector('pre .hl-keyword')?.textContent).toBe('echo');
+    expect(root.textContent).not.toContain('```');
+  });
+
+  it('folds a long body to its excerpt, with Show more to unfold it in place', () => {
+    render(
+      <CommitItem
+        commit={{
+          ...commit,
+          body_segments: [{ type: 'text', text: 'A long story, all of it' }],
+          preview_segments: [{ type: 'text', text: 'A long story…' }],
+          mentions: [],
+        }}
+      />,
+      root,
+    );
+
+    const more = [...root.querySelectorAll('button')].find((button) => button.textContent === 'Show more');
+    expect(root.textContent).toContain('A long story…');
+
+    act(() => more?.click());
+    expect(root.textContent).toContain('A long story, all of it');
+    expect([...root.querySelectorAll('button')].some((button) => button.textContent === 'Show more')).toBe(false);
+  });
+
+  it('falls back to the raw body when it is not segmented (signed out)', () => {
+    render(<CommitItem commit={{ ...commit, body: 'see https://example.com' }} />, root);
+
+    expect(root.querySelector('a[href="https://example.com"]')).not.toBeNull();
   });
 
   it('fills the star of a commit the user starred', () => {

@@ -1,5 +1,7 @@
-import type { Commit } from '@devnull-github/client';
+import type { BodyMention, BodySegment, Commit } from '@devnull-github/client';
+import { useState } from 'preact/hooks';
 import { relativeTime } from '../lib/time.ts';
+import { CommitBody } from './CommitBody.tsx';
 import { Octicon } from './Octicon.tsx';
 
 const LANES = ['bg-lane-0', 'bg-lane-1', 'bg-lane-2', 'bg-lane-3', 'bg-lane-4', 'bg-lane-5'];
@@ -14,7 +16,27 @@ function lane(commit: Commit): { class: string; style?: string } {
 
 const URL_PATTERN = /(https?:\/\/[^\s<>]+)/g;
 
-/** Plain text with its links clickable. Never HTML from the API. */
+/**
+ * The body as dev-null.sh shows it in a list (FoldedCommitBody): its excerpt when it has one, and Show more to unfold
+ * it in place, for good.
+ */
+function FoldedBody({ segments, excerpt, mentions }: { segments: BodySegment[]; excerpt: BodySegment[] | null; mentions: BodyMention[] }) {
+  const [unfolded, setUnfolded] = useState(false);
+  const folded = excerpt !== null && !unfolded;
+
+  return (
+    <>
+      <CommitBody segments={folded ? excerpt : segments} mentions={mentions} />
+      {folded && (
+        <button type="button" onClick={() => setUnfolded(true)} class="mt-0.5 text-sm font-medium text-fg-accent hover:underline">
+          Show more
+        </button>
+      )}
+    </>
+  );
+}
+
+/** Plain text with its links clickable, for a body /dev/null did not segment (a guest's request). */
 function Body({ text }: { text: string }) {
   return (
     <p class="m-0 whitespace-pre-wrap break-words text-sm leading-normal text-fg">
@@ -48,6 +70,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
             {commit.author.name ?? commit.author.handle}
           </a>
           <span class="text-fg-muted">@{commit.author.handle}</span>
+          <span class="text-fg-muted">•</span>
           <a href={commit.html_url} class="text-fg-muted hover:text-fg-accent hover:underline" target="_blank" rel="noopener">
             <time dateTime={commit.created_at} title={new Date(commit.created_at).toLocaleString()}>
               {relativeTime(commit.created_at)}
@@ -55,7 +78,11 @@ export function CommitItem({ commit }: { commit: Commit }) {
           </a>
           <code class="ml-auto font-mono text-xs text-fg-muted">{commit.short_hash}</code>
         </div>
-        <Body text={commit.body} />
+        {commit.body_segments ? (
+          <FoldedBody segments={commit.body_segments} excerpt={commit.preview_segments ?? null} mentions={commit.mentions ?? []} />
+        ) : (
+          <Body text={commit.body} />
+        )}
         <div class="mt-2 flex gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && (
             <span class="inline-flex items-center gap-1" aria-label={plural(commit.stars_count, 'star', 'stars')}>
