@@ -41,17 +41,31 @@ afterEach(() => {
 const counter = (label: RegExp) => [...root.querySelectorAll('[aria-label]')].find((element) => label.test(element.getAttribute('aria-label') ?? ''));
 
 describe('CommitItem', () => {
-  it('shows replies and stars as GitHub does: an octicon and the count', () => {
+  it("lays its actions out as dev-null.sh does: Star, Quote and Reply, with dev-null.sh's icons", () => {
     render(<CommitItem commit={commit} />, root);
 
-    const replies = counter(/repl/);
-    const stars = counter(/star/);
-    expect(replies?.getAttribute('aria-label')).toBe('1 reply');
-    expect(replies?.querySelector('svg.octicon-comment')).not.toBeNull();
-    expect(replies?.textContent).toBe('1');
-    expect(stars?.getAttribute('aria-label')).toBe('3 stars');
-    expect(stars?.querySelector('svg.octicon-star')).not.toBeNull();
-    expect(stars?.textContent).toBe('3');
+    const actions = [...root.querySelectorAll('[data-actions] > *')];
+    expect(actions.map((action) => action.getAttribute('title'))).toEqual(['Star', 'Quote on /dev/null', 'Reply on /dev/null']);
+    expect(actions.map((action) => action.querySelector('svg')?.getAttribute('class'))).toEqual([
+      expect.stringContaining('lucide-star'),
+      expect.stringContaining('lucide-quote'),
+      expect.stringContaining('lucide-message-square-reply'),
+    ]);
+    expect(actions.map((action) => action.textContent)).toEqual(['3', 'Quote', 'Reply']);
+  });
+
+  it('counts stars only when there are some, as dev-null.sh does', () => {
+    render(<CommitItem commit={{ ...commit, stars_count: 0 }} />, root);
+
+    const star = counter(/star/);
+    expect(star?.getAttribute('aria-label')).toBe('0 stars');
+    expect(star?.textContent).toBe('');
+  });
+
+  it("doesn't count replies among the actions: the thread shows under the commit", () => {
+    render(<CommitItem commit={commit} />, root);
+
+    expect(root.querySelector('[data-actions] [aria-label$="reply"], [data-actions] [aria-label$="replies"]')).toBeNull();
   });
 
   it('renders the body as /dev/null segmented it, code fences included', () => {
@@ -154,7 +168,7 @@ describe('CommitItem', () => {
     expect(ask).toHaveBeenLastCalledWith({ type: 'star', commitId: 'c1', starred: true });
     expect(star.getAttribute('aria-pressed')).toBe('true');
     expect(star.getAttribute('aria-label')).toBe('4 stars');
-    expect(star.querySelector('svg.octicon-star-fill')).not.toBeNull();
+    expect(star.querySelector('svg.lucide-star')?.getAttribute('fill')).toBe('currentColor');
 
     await act(async () => star.click());
     expect(ask).toHaveBeenLastCalledWith({ type: 'star', commitId: 'c1', starred: false });
@@ -173,14 +187,13 @@ describe('CommitItem', () => {
     expect(star.getAttribute('aria-label')).toBe('3 stars');
   });
 
-  it('replies and quotes on /dev/null, from links to the commit', () => {
+  it('replies and quotes on /dev/null, from links to the commit, when the user is signed out', () => {
     render(<CommitItem commit={commit} />, root);
 
-    const reply = root.querySelector('a[aria-label="1 reply"]');
+    const reply = [...root.querySelectorAll('a')].find((link) => link.textContent === 'Reply');
     const quote = [...root.querySelectorAll('a')].find((link) => link.textContent === 'Quote');
     expect(reply?.getAttribute('href')).toBe(commit.html_url);
     expect(quote?.getAttribute('href')).toBe(commit.html_url);
-    expect(quote?.querySelector('svg.octicon-quote')).not.toBeNull();
   });
 
   it('says which commit a reply replies to, linking to it', () => {
@@ -212,6 +225,6 @@ describe('CommitItem', () => {
   it('fills the star of a commit the user starred', () => {
     render(<CommitItem commit={{ ...commit, starred: true }} />, root);
 
-    expect(counter(/star/)?.querySelector('svg.octicon-star-fill')).not.toBeNull();
+    expect(counter(/star/)?.querySelector('svg.lucide-star')?.getAttribute('fill')).toBe('currentColor');
   });
 });

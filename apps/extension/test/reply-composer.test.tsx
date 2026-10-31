@@ -88,12 +88,11 @@ async function send() {
 }
 
 describe('Replying from a log', () => {
-  it('offers a Reply button among the actions, as dev-null.sh does, apart from the replies count', async () => {
+  it('offers a Reply button among the actions, as dev-null.sh does', async () => {
     await show();
 
     expect(replyButton()?.textContent).toBe('Reply');
-    expect(replyButton()?.querySelector('svg.octicon-reply')).not.toBeNull();
-    expect(root.querySelector('a[aria-label="0 replies"]')?.getAttribute('href')).toBe(commit.html_url);
+    expect(replyButton()?.querySelector('svg.lucide-message-square-reply')).not.toBeNull();
   });
 
   it('opens a reply composer under the commit from its Reply button, and closes it the same way', async () => {
@@ -117,7 +116,7 @@ describe('Replying from a log', () => {
     expect(textarea()?.value).toBe('');
   });
 
-  it('sends the reply with its parent, then shows it under the commit and counts it', async () => {
+  it('sends the reply with its parent, then shows it under the commit, counted among its replies', async () => {
     await show();
     await openComposer();
     await write('Congrats!');
@@ -126,7 +125,7 @@ describe('Replying from a log', () => {
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Congrats!', parentId: 'c1' });
     expect(textarea()).toBeNull();
     expect(root.querySelector('[data-reply]')?.textContent).toContain('Congrats!');
-    expect(root.querySelector('a[aria-label="1 reply"]')?.textContent).toBe('1');
+    expect([...root.querySelectorAll('button')].some((button) => /^Show/.test(button.textContent ?? ''))).toBe(false);
   });
 
   it("says why a reply wasn't sent, and keeps it", async () => {
@@ -164,6 +163,6 @@ describe('Replying from a log', () => {
     await show(false);
 
     expect(replyButton()).toBeNull();
-    expect(root.querySelector('a[aria-label="0 replies"]')?.getAttribute('href')).toBe(commit.html_url);
+    expect([...root.querySelectorAll('a')].find((link) => link.textContent === 'Reply')?.getAttribute('href')).toBe(commit.html_url);
   });
 });

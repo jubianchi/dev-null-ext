@@ -75,12 +75,23 @@ describe('Replies', () => {
     expect(more()?.textContent).toBe('Show 59 more');
   });
 
-  it("shows a reply's own replies, linking to it", async () => {
+  it("shows a reply's own replies, linking to it, as dev-null.sh's › 1 reply toggle", async () => {
     await show({ data: [{ ...reply('r3', 'Newest'), replies_count: 1 }], next_cursor: null }, 1);
 
     const replies = root.querySelector('a[aria-label="1 reply"]');
     expect(replies?.getAttribute('href')).toBe('https://dev-null.sh/@jubianchi/commits/r3');
     expect(replies?.textContent).toBe('1 reply');
+    expect(replies?.querySelector('svg')?.getAttribute('class')).toContain('lucide-chevron-right');
+    expect(replies?.className).toContain('text-fg-accent');
+    expect(replies?.className).not.toContain('text-fg-muted');
+  });
+
+  it("gives a reply dev-null.sh's actions: Star and Reply, but no Quote", async () => {
+    await show({ data: [{ ...reply('r3', 'Newest'), stars_count: 2 }], next_cursor: null }, 1);
+
+    const actions = [...root.querySelectorAll('[data-reply] [data-actions] > *')];
+    expect(actions.map((action) => action.getAttribute('title'))).toEqual(['Star', 'Reply on /dev/null']);
+    expect(actions.map((action) => action.textContent)).toEqual(['2', 'Reply']);
   });
 
   it('says the last reply when only one is left', async () => {

@@ -2,7 +2,7 @@ import type { BodyMention, BodySegment, Commit } from '@dev-null-ext/client';
 import { useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { CommitBody } from './CommitBody.tsx';
-import { Octicon } from './Octicon.tsx';
+import { Lucide } from './Lucide.tsx';
 
 /** The pieces a commit and a reply in the log share. */
 
@@ -43,7 +43,10 @@ export function FoldedBody({ segments, excerpt, mentions }: { segments: BodySegm
   );
 }
 
-/** The star counter, which stars and unstars the commit: at once, and back as it was if /dev/null refuses. */
+/**
+ * The star, which stars and unstars the commit: at once, and back as it was if /dev/null refuses. As on dev-null.sh,
+ * its count only shows once there are stars.
+ */
 export function Star({ commit, count }: { commit: Commit; count: number }) {
   const [state, setState] = useState({ starred: commit.starred ?? false, count });
 
@@ -63,8 +66,8 @@ export function Star({ commit, count }: { commit: Commit; count: number }) {
       title={state.starred ? 'Unstar' : 'Star'}
       class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit]`}
     >
-      <Octicon name={state.starred ? 'star-fill' : 'star'} class={state.starred ? 'text-fg-attention' : ''} />
-      {state.count}
+      <Lucide name="star" filled={state.starred} class={`size-4 ${state.starred ? 'text-fg-attention' : ''}`} />
+      {state.count > 0 && state.count}
     </button>
   );
 }

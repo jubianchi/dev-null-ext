@@ -6,6 +6,7 @@ import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
 import { ACTION, FoldedBody, laneColor, plural, Star } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
+import { Lucide } from './Lucide.tsx';
 
 type Reply = Commit | DeletedCommit;
 
@@ -107,16 +108,23 @@ function ReplyItem({ reply, parentId }: { reply: Reply; parentId: string }) {
         <FoldedBody segments={reply.body_segments ?? segmentBody(reply.body)} excerpt={reply.preview_segments ?? null} mentions={reply.mentions ?? []} />
         <CommitImages images={reply.images ?? []} hash={reply.short_hash} link={reply.html_url} />
         {reply.link_preview && <LinkPreview preview={reply.link_preview} interactive />}
-        <div class="mt-1 flex items-center gap-4 text-xs text-fg-muted">
+        {/* As dev-null.sh's actions on a reply: Star and Reply, no Quote, then the toggle to its own replies. */}
+        <div data-actions class="mt-1 flex items-center gap-4 text-xs text-fg-muted">
           {reply.stars_count !== undefined && <Star commit={reply} count={reply.stars_count} />}
+          <a href={reply.html_url} target="_blank" rel="noopener" title="Reply on /dev/null" class={ACTION}>
+            <Lucide name="message-square-reply" />
+            Reply
+          </a>
           {(reply.replies_count ?? 0) > 0 && (
             <a
               href={reply.html_url}
               target="_blank"
               rel="noopener"
-              class={`${ACTION} text-fg-accent`}
+              title="The thread on /dev/null"
+              class="inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-medium text-fg-accent hover:bg-canvas-muted"
               aria-label={plural(reply.replies_count ?? 0, 'reply', 'replies')}
             >
+              <Lucide name="chevron-right" />
               {plural(reply.replies_count ?? 0, 'reply', 'replies')}
             </a>
           )}

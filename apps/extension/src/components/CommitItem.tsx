@@ -3,9 +3,9 @@ import { useState } from 'preact/hooks';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
-import { ACTION, FoldedBody, laneColor, plural, Star } from './CommitParts.tsx';
+import { ACTION, FoldedBody, laneColor, Star } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
-import { Octicon } from './Octicon.tsx';
+import { Lucide } from './Lucide.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
 import { Replies } from './Replies.tsx';
 import { ReplyComposer } from './ReplyComposer.tsx';
@@ -41,36 +41,32 @@ export function CommitItem({ commit, canReply = false }: { commit: Commit; canRe
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
         <div class="mt-2 flex items-center gap-4 text-xs text-fg-muted">
-          {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
-          {repliesCount !== undefined && (
-            <a
-              href={commit.html_url}
-              target="_blank"
-              rel="noopener"
-              title={canReply ? 'The thread on /dev/null' : 'Reply on /dev/null'}
-              class={ACTION}
-              aria-label={plural(repliesCount, 'reply', 'replies')}
-            >
-              <Octicon name="comment" />
-              {repliesCount}
+          {/* As dev-null.sh's ThreadActions: Star, Quote, Reply; the replies show under the commit, not as a count. */}
+          <div data-actions class="flex items-center gap-4">
+            {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
+            <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
+              <Lucide name="quote" />
+              Quote
             </a>
-          )}
-          <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
-            <Octicon name="quote" />
-            Quote
-          </a>
-          {canReply && (
-            <button
-              type="button"
-              onClick={() => setReplying(!replying)}
-              aria-label={`Reply to @${commit.author.handle}`}
-              aria-expanded={replying}
-              class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit] aria-expanded:text-fg-accent`}
-            >
-              <Octicon name="reply" />
-              Reply
-            </button>
-          )}
+            {canReply ? (
+              <button
+                type="button"
+                onClick={() => setReplying(!replying)}
+                aria-label={`Reply to @${commit.author.handle}`}
+                aria-expanded={replying}
+                title="Reply"
+                class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit] aria-expanded:text-fg-accent`}
+              >
+                <Lucide name="message-square-reply" />
+                Reply
+              </button>
+            ) : (
+              <a href={commit.html_url} target="_blank" rel="noopener" title="Reply on /dev/null" class={ACTION}>
+                <Lucide name="message-square-reply" />
+                Reply
+              </a>
+            )}
+          </div>
           {commit.status === 'pending' && <span class="text-fg-attention">Pending review</span>}
         </div>
         {replying && (
