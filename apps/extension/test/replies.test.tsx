@@ -75,6 +75,19 @@ describe('Replies', () => {
     expect(more()?.textContent).toBe('Show the last reply');
   });
 
+  it('shows a live reply as such, though signed requests send it with deleted_at: null', async () => {
+    await show({ data: [{ ...reply('r3', 'Still here'), deleted_at: null }], next_cursor: null }, 1);
+
+    expect(root.textContent).toContain('Still here');
+    expect(root.textContent).not.toContain('This commit was deleted.');
+  });
+
+  it('marks the quotes among the replies, as dev-null.sh does', async () => {
+    await show({ data: [{ ...reply('r3', 'Quoting it'), parent_id: null, quoted_commit_id: 'c1' }], next_cursor: null }, 1);
+
+    expect(root.textContent).toContain('quoted');
+  });
+
   it('shows a deleted reply as such', async () => {
     await show({ data: [{ id: 'r9', parent_id: 'c1', deleted_at: '2026-10-30T10:00:00Z' }], next_cursor: null }, 1);
 

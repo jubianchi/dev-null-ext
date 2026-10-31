@@ -1,4 +1,4 @@
-import type { Commit, DeletedCommit } from '@devnull-github/client';
+import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/client';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
@@ -10,7 +10,7 @@ import { LinkPreview } from './LinkPreview.tsx';
  * and its body static and capped, fading out. Or why it can't be shown.
  */
 export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null }) {
-  if (quoted === null || 'deleted_at' in quoted) {
+  if (quoted === null || isDeleted(quoted)) {
     const [tag, message] = quoted === null ? ['unavailable', "This commit isn't available."] : ['deleted', 'This commit was deleted.'];
 
     return (

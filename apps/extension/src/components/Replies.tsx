@@ -1,4 +1,4 @@
-import type { Commit, DeletedCommit } from '@devnull-github/client';
+import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/client';
 import { useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
@@ -36,7 +36,7 @@ export function Replies({ parent, preview }: { parent: Commit; preview: { data: 
   return (
     <div class="mt-2">
       {replies.map((reply) => (
-        <ReplyItem key={reply.id} reply={reply} />
+        <ReplyItem key={reply.id} reply={reply} parentId={parent.id} />
       ))}
       {cursor && left > 0 && (
         <button
@@ -52,14 +52,17 @@ export function Replies({ parent, preview }: { parent: Commit; preview: { data: 
   );
 }
 
-function ReplyItem({ reply }: { reply: Reply }) {
-  if ('deleted_at' in reply) {
+/** A reply, or a quote of the parent: dev-null.sh lists both under a commit, and marks the quotes. */
+function ReplyItem({ reply, parentId }: { reply: Reply; parentId: string }) {
+  if (isDeleted(reply)) {
     return (
       <div data-reply class="ml-1 border-l-2 border-dashed border-border py-2 pl-3 text-sm text-fg-muted">
         <span class="font-mono text-xs">[deleted]</span> This commit was deleted.
       </div>
     );
   }
+
+  const quotes = reply.quoted_commit_id === parentId;
 
   return (
     <div data-reply class="ml-1 flex gap-2 border-l-2 border-dashed py-2 pl-3" style={{ borderColor: lane(reply) }}>
@@ -74,6 +77,7 @@ function ReplyItem({ reply }: { reply: Reply }) {
             {reply.author.name ?? reply.author.handle}
           </a>
           <span class="text-fg-muted">@{reply.author.handle}</span>
+          {quotes && <span class="text-xs text-fg-accent">quoted</span>}
           <span class="text-fg-muted">•</span>
           <a href={reply.html_url} target="_blank" rel="noopener" class="text-fg-muted hover:text-fg-accent hover:underline">
             <time dateTime={reply.created_at} title={new Date(reply.created_at).toLocaleString()}>

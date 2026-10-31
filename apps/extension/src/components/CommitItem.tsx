@@ -1,4 +1,4 @@
-import type { Commit, DeletedCommit } from '@devnull-github/client';
+import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/client';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
@@ -65,7 +65,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
 
 /** The commit a reply replies to, as one line under its header, as dev-null.sh does rather than the parent's card. */
 function ReplyingTo({ parent }: { parent: Commit | DeletedCommit | null }) {
-  if (parent === null || 'deleted_at' in parent) {
+  if (parent === null || isDeleted(parent)) {
     return (
       <p class="m-0 mb-1 text-xs text-fg-muted">
         ↳ replying to <span class="font-mono">[{parent === null ? 'unavailable' : 'deleted'}]</span>

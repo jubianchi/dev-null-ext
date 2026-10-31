@@ -37,6 +37,8 @@ export interface Commit {
   author: User;
   /** Only on signed requests. */
   status?: CommitStatus;
+  /** Only on signed requests, always null: a deleted commit comes as a DeletedCommit. */
+  deleted_at?: null;
   starred?: boolean;
   /** Only on signed requests: the body as /dev/null renders it, whole and folded (null when it fits). */
   body_segments?: BodySegment[];
@@ -58,6 +60,11 @@ export interface DeletedCommit {
   id: string;
   parent_id: string | null;
   deleted_at: string;
+}
+
+/** Signed requests send `deleted_at: null` on every live commit: a commit is deleted when the date is set, not when the key is there. */
+export function isDeleted(commit: Commit | DeletedCommit): commit is DeletedCommit {
+  return typeof commit.deleted_at === 'string';
 }
 
 export interface CommitImage {

@@ -189,6 +189,15 @@ describe('CommitItem', () => {
     expect(link?.getAttribute('href')).toBe(parent.html_url);
   });
 
+  it('takes deleted_at: null, which signed requests send on every commit, as a live commit', () => {
+    const live = { ...commit, id: 'p1', deleted_at: null, author: { ...commit.author, handle: 'njames' } };
+    render(<CommitItem commit={{ ...commit, parent_id: 'p1', parent: live, quoted_commit_id: 'p1', quoted_commit: live }} />, root);
+
+    expect(root.textContent).toContain('↳ replying to @njames');
+    expect(root.textContent).toContain('Quoting');
+    expect(root.textContent).not.toContain('[deleted]');
+  });
+
   it('says when the parent of a reply was deleted or is not visible', () => {
     render(<CommitItem commit={{ ...commit, parent_id: 'p1', parent: { id: 'p1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />, root);
     expect(root.textContent).toContain('↳ replying to [deleted]');
