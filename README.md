@@ -13,6 +13,8 @@ Next to Repositories and People, the **/dev/null** tab shows the organization's 
 as on dev-null.sh, with its images, quotes, link previews, replies and stars. Write a commit right above the log, with
 *Write* and *Preview* tabs, as you would comment on an issue.
 
+![The /dev/null tab of an organization: a composer above the commits mentioning it](docs/screenshots/organization-log.jpg)
+
 ### A Commit button wherever there's something to share
 
 On a **repository**, an **issue**, a **pull request**, a **discussion** or a **release**, a **Commit** button opens
@@ -23,10 +25,14 @@ On a **repository**, an **issue**, a **pull request**, a **discussion** or a **r
 - attach up to 3 images, each with a description for people who can't see it;
 - preview the commit exactly as /dev/null will publish it.
 
+![The Commit button next to Watch, Fork and Star, and the composer it opens](docs/screenshots/share-composer.jpg)
+
 ### /dev/null next to discussions
 
 An organization's discussions show the latest commits mentioning it, in an **On /dev/null** section next to GitHub's
 own.
+
+![The On /dev/null section in an organization's discussions](docs/screenshots/discussions-sidebar.jpg)
 
 ### Your profile and settings in the toolbar
 
