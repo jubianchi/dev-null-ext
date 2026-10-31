@@ -9,7 +9,7 @@ export function organizationTabLink({ href, className }: { href: string; classNa
   const link = document.createElement('a');
   link.href = href;
   link.className = className;
-  link.dataset['devnullTab'] = '';
+  link.dataset.devnullTab = '';
 
   render(
     <>

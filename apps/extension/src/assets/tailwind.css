@@ -81,7 +81,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   * {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over every utility class. */
     transition: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over every utility class. */
     animation: none !important;
   }
 }

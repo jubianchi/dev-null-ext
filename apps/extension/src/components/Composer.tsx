@@ -23,6 +23,7 @@ export function Composer({ target }: { target: Target }) {
   }, [state.step, previewing]);
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Cmd+Enter commits from any field of the composer, as on GitHub.
     <div
       class="p-4"
       onKeyDown={(event) => {

@@ -17,6 +17,7 @@ export function ComposerDialog({ target, onClose }: { target: Target; onClose: (
   }, []);
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: a click on the backdrop closes the dialog; the keyboard has Escape and the Close button.
     <dialog
       ref={dialog}
       aria-label="Write a commit"

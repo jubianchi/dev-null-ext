@@ -102,7 +102,7 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
       if (!placement?.item) return anchor.prepend(element);
 
       const item = document.createElement('li');
-      item.dataset['devnullShare'] = '';
+      item.dataset.devnullShare = '';
       item.append(element);
       anchor.prepend(item);
     },

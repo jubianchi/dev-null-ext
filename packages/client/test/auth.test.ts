@@ -110,8 +110,8 @@ describe('loopback fallback', () => {
     expect(result.flow).toBe('loopback');
 
     const redeem = JSON.parse(fetch.requests[1]!.body) as Record<string, string>;
-    expect(redeem['code']).toBe('the-code');
-    expect(await challengeFor(redeem['code_verifier']!)).toBe(params.get('code_challenge'));
+    expect(redeem.code).toBe('the-code');
+    expect(await challengeFor(redeem.code_verifier!)).toBe(params.get('code_challenge'));
   });
 
   it('refuses an answer for another sign-in', async () => {

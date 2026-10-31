@@ -32,7 +32,7 @@ export interface Addition {
 
 export type AdditionSource = (context: ComposerContext) => Addition[];
 
-function escape(text: string): string {
+function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
 }
 
@@ -46,13 +46,13 @@ export const pageLink: AdditionSource = ({ page }) =>
           text: page.url,
           label: shareLabel(page),
           reason: 'Links this page, which /dev/null shows as a card.',
-          pattern: new RegExp(`(?<![^\\s(\\[<])${escape(page.url)}(?=$|[\\s.,;:!?)\\]>])`),
+          pattern: new RegExp(`(?<![^\\s(\\[<])${escapeRegExp(page.url)}(?=$|[\\s.,;:!?)\\]>])`),
         },
       ]
     : [];
 
 function mentionPattern(handle: string): RegExp {
-  return new RegExp(`(?<![\\w@./])@${escape(handle)}(?![\\w/-])`, 'i');
+  return new RegExp(`(?<![\\w@./])@${escapeRegExp(handle)}(?![\\w/-])`, 'i');
 }
 
 /**

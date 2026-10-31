@@ -70,7 +70,9 @@ describe('createCommit with images', () => {
     expect(images.map((image) => (image as File).type)).toEqual(['image/png', 'image/jpeg']);
     expect(new Uint8Array(await (images[0] as File).arrayBuffer())).toEqual(png);
     const fields: string[] = [];
-    request?.form?.forEach((_value, field) => fields.push(field));
+    request?.form?.forEach((_value, field) => {
+      fields.push(field);
+    });
     expect(fields.sort()).toEqual(['images[]', 'images[]', 'payload']);
     expect(request?.headers['Content-Type']).toBeUndefined();
     expect(namespaceOf(request?.headers['X-SSH-Signature'] ?? '')).toBe(IMAGES_NAMESPACE);
@@ -88,12 +90,13 @@ describe('createCommit with images', () => {
 
     // Ed25519 is deterministic: the same message signed with the same key gives the same signature.
     const [request] = fetch.requests;
+    const payload = request?.form?.get('payload') as File;
     const expected = await signatureHeaders(
       signer,
       {
         method: 'POST',
         pathAndQuery: '/api/v1/commits',
-        body: await (request?.form?.get('payload') as File).text(),
+        body: await payload.text(),
         hashes: `${await sha256(png)},${await sha256(jpeg)}`,
       },
       1_761_832_800_000,

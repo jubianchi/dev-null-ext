@@ -153,13 +153,13 @@ describe('Composer', () => {
     const mentions = root.querySelector<HTMLButtonElement>('button[aria-label="Insert a mention"]')!;
     await act(async () => mentions.click());
 
-    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    const escapeKey = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
     await act(async () => {
-      root.querySelector('[role="menu"]')!.dispatchEvent(escape);
+      root.querySelector('[role="menu"]')!.dispatchEvent(escapeKey);
     });
 
     expect(root.querySelector('[role="menu"]')).toBeNull();
-    expect(escape.defaultPrevented).toBe(true);
+    expect(escapeKey.defaultPrevented).toBe(true);
   });
 
   it("doesn't warn about the organization's mention when sharing a page", async () => {

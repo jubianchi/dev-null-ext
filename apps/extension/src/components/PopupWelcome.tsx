@@ -44,7 +44,7 @@ export function PopupWelcome({ developers, onJoin }: { developers: number | null
           {POINTS.map(([color, text]) => (
             <li key={text} class="flex items-baseline gap-2">
               <span class={`font-mono ${color}`} aria-hidden="true">
-                //
+                {/*  */}
               </span>
               {text}
             </li>

@@ -29,7 +29,7 @@ export function segmentBody(body: string): BodySegment[] {
     prose += body.slice(last, match.index);
     last = match.index + match[0].length;
 
-    if (match.groups?.['fence']) {
+    if (match.groups?.fence) {
       flush(true);
       segments.push(block(match[0]));
       afterBlock = true;
@@ -59,10 +59,10 @@ function block(fenced: string): BodySegment {
     type: 'block',
     language: language === '' ? null : language,
     filename: attributes.get('title') ?? attributes.get('filename') ?? null,
-    html: escape(lines.slice(1, -1).join('\n')),
+    html: escapeHtml(lines.slice(1, -1).join('\n')),
   };
 }
 
-function escape(code: string): string {
+function escapeHtml(code: string): string {
   return code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

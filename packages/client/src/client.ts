@@ -43,7 +43,7 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
 function multipartBody(json: string, files: UploadFile[]): FormData {
   const form = new FormData();
   form.append('payload', new File([json], 'payload', { type: 'application/json' }));
-  files.forEach((file, index) => form.append(file.field, new File([buffer(file.bytes)], `${index}`, { type: file.type })));
+  for (const [index, file] of files.entries()) form.append(file.field, new File([buffer(file.bytes)], `${index}`, { type: file.type }));
   return form;
 }
 

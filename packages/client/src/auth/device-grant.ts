@@ -79,7 +79,7 @@ export async function pollDeviceAuthorization(
         case 'authorization_pending':
           continue;
         case 'slow_down':
-          interval = typeof error.data['interval'] === 'number' ? error.data['interval'] : interval + 5;
+          interval = typeof error.data.interval === 'number' ? error.data.interval : interval + 5;
           continue;
         case 'access_denied':
           throw new SignInDenied();
