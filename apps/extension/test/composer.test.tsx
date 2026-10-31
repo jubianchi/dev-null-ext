@@ -124,7 +124,7 @@ describe('Composer', () => {
     expect(toolbar.querySelector('button[aria-label="Insert @taylorotwell"]')).toBeNull();
 
     await act(async () => mentions.click());
-    const items = [...root.querySelectorAll<HTMLButtonElement>('[role="menu"] [role="menuitem"]')];
+    const items = [...root.querySelectorAll<HTMLButtonElement>('[role="menu"] [role="menuitemcheckbox"]')];
     expect(mentions.getAttribute('aria-expanded')).toBe('true');
     expect(items.map((item) => item.querySelector('[data-label]')?.textContent)).toEqual(['@taylorotwell', '@laravel']);
     expect(items[0]?.textContent).toContain('who opened this issue');
@@ -134,14 +134,15 @@ describe('Composer', () => {
     expect(root.querySelector('[role="menu"]')).toBeNull();
 
     await act(async () => mentions.click());
-    expect(root.querySelector('[role="menu"] [role="menuitem"]:last-child')?.getAttribute('aria-checked')).toBe('true');
+    expect(root.querySelector('[role="menu"] [role="menuitemcheckbox"]:first-child')?.getAttribute('aria-checked')).toBe('false');
+    expect(root.querySelector('[role="menu"] [role="menuitemcheckbox"]:last-child')?.getAttribute('aria-checked')).toBe('true');
   });
 
   it('highlights a menu item for the keyboard only, not the one focused on opening it with the pointer', async () => {
     await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: 'laravel' }} />);
     await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Insert a mention"]')!.click());
 
-    for (const item of root.querySelectorAll('[role="menuitem"]')) {
+    for (const item of root.querySelectorAll('[role="menuitemcheckbox"]')) {
       expect(item.className).toContain('focus-visible:bg-button-hover');
       expect(item.className).not.toMatch(/(^|\s)focus:bg-/);
     }

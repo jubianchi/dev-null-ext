@@ -38,7 +38,7 @@ export function PopupSettings({ settings, onChange, onBack }: { settings: Settin
                     <span class="block text-[13px] font-medium">{feature.label}</span>
                     <span class="block text-[11px] text-zinc-600">{feature.hint}</span>
                   </span>
-                  <input type="checkbox" role="switch" checked={on} onChange={() => onChange(feature.id, !on)} class="peer sr-only" />
+                  <input type="checkbox" role="switch" checked={on} aria-checked={on} onChange={() => onChange(feature.id, !on)} class="peer sr-only" />
                   <span
                     aria-hidden="true"
                     class={`relative h-[18px] w-8 shrink-0 rounded-full transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-blue-600 ${on ? 'bg-blue-600' : 'bg-zinc-300'}`}

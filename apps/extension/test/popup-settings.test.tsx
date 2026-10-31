@@ -44,6 +44,11 @@ describe('PopupSettings', () => {
     expect(toggle('Commit button on pull requests').checked).toBe(true);
   });
 
+  it('tells assistive technologies whether each switch is on', () => {
+    expect(toggle('Commit button on issues').getAttribute('aria-checked')).toBe('false');
+    expect(toggle('Commit button on pull requests').getAttribute('aria-checked')).toBe('true');
+  });
+
   it('turns a feature off and on', async () => {
     await act(async () => toggle('Commit button on pull requests').click());
     expect(onChange).toHaveBeenLastCalledWith('pull-button', false);

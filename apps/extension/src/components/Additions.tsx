@@ -89,7 +89,7 @@ function AdditionMenu({ kind, additions, inCommit, onInsert }: ToolProps & { kin
   useEffect(() => {
     if (!open) return;
 
-    menu.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    menu.current?.querySelector<HTMLElement>('[role="menuitemcheckbox"]')?.focus();
     const outside = (event: Event) => {
       if (wrapper.current && !event.composedPath().includes(wrapper.current)) setOpen(false);
     };
@@ -103,7 +103,7 @@ function AdditionMenu({ kind, additions, inCommit, onInsert }: ToolProps & { kin
   }
 
   function onKeyDown(event: KeyboardEvent) {
-    const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+    const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitemcheckbox"]') ?? [])];
     const current = items.indexOf(event.target as HTMLElement);
 
     if (event.key === 'Escape') {
@@ -152,7 +152,7 @@ function AdditionMenu({ kind, additions, inCommit, onInsert }: ToolProps & { kin
               <button
                 key={addition.id}
                 type="button"
-                role="menuitem"
+                role="menuitemcheckbox"
                 aria-checked={present}
                 onClick={() => {
                   close();
