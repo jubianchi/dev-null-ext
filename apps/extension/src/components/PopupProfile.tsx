@@ -1,4 +1,4 @@
-import type { CurrentUser } from '@devnull-github/client';
+import type { CurrentUser } from '@dev-null-ext/client';
 import { laneColor } from './CommitParts.tsx';
 
 /**

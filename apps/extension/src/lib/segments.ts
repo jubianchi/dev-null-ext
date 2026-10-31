@@ -1,4 +1,4 @@
-import type { BodySegment } from '@devnull-github/client';
+import type { BodySegment } from '@dev-null-ext/client';
 
 /** /dev/null's code spans (App\Services\CodeSpans): fenced blocks starting a line, then inline code. */
 const CODE_PATTERN = /(?<![^\n])(?<fence>`{3,})[^`\r\n]*\r?\n(?:[\s\S]*?\r?\n)?\k<fence>`*[ \t]*(?![^\r\n])|`[^`\r\n]+`/g;

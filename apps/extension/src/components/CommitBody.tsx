@@ -1,4 +1,4 @@
-import type { BodyMention, BodySegment } from '@devnull-github/client';
+import type { BodyMention, BodySegment } from '@dev-null-ext/client';
 import type { ComponentChild } from 'preact';
 import { type GitHubLinkTarget, gitHubLinkTo } from '../lib/github/links.ts';
 import { withoutTrailingPunctuation } from '../lib/urls.ts';

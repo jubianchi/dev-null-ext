@@ -1,9 +1,10 @@
-import { generateDeviceKey } from '@devnull-github/client';
+import { generateDeviceKey } from '@dev-null-ext/client';
 
 /**
  * The device key, as a non-extractable CryptoKeyPair in the extension's own IndexedDB. Background only.
  */
 
+// The project's former name, kept: renaming the database would lose the key and sign every install out.
 const DB = 'devnull-github';
 const STORE = 'keys';
 const KEY = 'device';

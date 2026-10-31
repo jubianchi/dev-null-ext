@@ -1,4 +1,4 @@
-import type { BodyMention, BodySegment, Commit } from '@devnull-github/client';
+import type { BodyMention, BodySegment, Commit } from '@dev-null-ext/client';
 import { useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { CommitBody } from './CommitBody.tsx';

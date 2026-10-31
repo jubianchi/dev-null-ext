@@ -1,4 +1,4 @@
-import type { CommitImage } from '@devnull-github/client';
+import type { CommitImage } from '@dev-null-ext/client';
 import type { ComponentChild } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';

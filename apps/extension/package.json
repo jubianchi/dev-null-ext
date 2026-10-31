@@ -1,8 +1,8 @@
 {
-  "name": "@devnull-github/extension",
+  "name": "@dev-null-ext/extension",
   "version": "0.0.0",
   "private": true,
-  "description": "/dev/null inside GitHub.",
+  "description": "/dev/null in the browser.",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -15,7 +15,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@devnull-github/client": "workspace:*",
+    "@dev-null-ext/client": "workspace:*",
     "preact": "^10.27.0"
   },
   "devDependencies": {

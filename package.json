@@ -1,5 +1,5 @@
 {
-  "name": "devnull-github",
+  "name": "dev-null-ext",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -13,9 +13,9 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "dev": "pnpm --filter @devnull-github/extension dev",
-    "dev:firefox": "pnpm --filter @devnull-github/extension dev:firefox",
-    "zip": "pnpm --filter @devnull-github/extension zip && pnpm --filter @devnull-github/extension zip:firefox"
+    "dev": "pnpm --filter @dev-null-ext/extension dev",
+    "dev:firefox": "pnpm --filter @dev-null-ext/extension dev:firefox",
+    "zip": "pnpm --filter @dev-null-ext/extension zip && pnpm --filter @dev-null-ext/extension zip:firefox"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15"

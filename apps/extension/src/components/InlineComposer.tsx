@@ -1,4 +1,4 @@
-import type { Commit } from '@devnull-github/client';
+import type { Commit } from '@dev-null-ext/client';
 import { useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';

@@ -1,4 +1,4 @@
-import type { LinkPreview as Preview } from '@devnull-github/client';
+import type { LinkPreview as Preview } from '@dev-null-ext/client';
 
 /** The image hosts github.com's CSP allows (img-src), which GitHub's own link previews use. */
 const ALLOWED_IMAGE_HOST = /(^|\.)(githubusercontent\.com|githubassets\.com)$/;

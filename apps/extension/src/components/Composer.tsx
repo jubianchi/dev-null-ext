@@ -1,4 +1,4 @@
-import type { CurrentUser } from '@devnull-github/client';
+import type { CurrentUser } from '@dev-null-ext/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';

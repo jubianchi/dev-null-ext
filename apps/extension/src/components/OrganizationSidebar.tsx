@@ -1,4 +1,4 @@
-import type { Commit } from '@devnull-github/client';
+import type { Commit } from '@dev-null-ext/client';
 import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { relativeTime } from '../lib/time.ts';

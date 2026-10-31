@@ -1,4 +1,4 @@
-import type { MentionSuggestions } from '@devnull-github/client';
+import type { MentionSuggestions } from '@dev-null-ext/client';
 import type { Addition } from './additions.ts';
 
 /** Someone the composer can suggest to mention, as dev-null.sh's composer lists them. */

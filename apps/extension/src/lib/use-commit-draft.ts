@@ -1,4 +1,4 @@
-import type { Commit, CurrentUser } from '@devnull-github/client';
+import type { Commit, CurrentUser } from '@dev-null-ext/client';
 import { useEffect, useState } from 'preact/hooks';
 import { type Addition, additionsFor, type ComposerContext, isIn, withAddition } from './additions.ts';
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';

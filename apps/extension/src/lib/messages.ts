@@ -1,4 +1,4 @@
-import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, Page } from '@devnull-github/client';
+import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, Page } from '@dev-null-ext/client';
 import { browser } from 'wxt/browser';
 import type { TransferredImage } from './images.ts';
 

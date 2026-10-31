@@ -1,4 +1,4 @@
-import type { CurrentUser } from '@devnull-github/client';
+import type { CurrentUser } from '@dev-null-ext/client';
 import { useEffect, useState } from 'preact/hooks';
 import { browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';

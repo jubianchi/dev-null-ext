@@ -1,4 +1,4 @@
-import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/client';
+import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client';
 import { useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';

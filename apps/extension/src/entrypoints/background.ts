@@ -13,7 +13,7 @@ import {
   SignInExpired,
   startDeviceAuthorization,
   systemClock,
-} from '@devnull-github/client';
+} from '@dev-null-ext/client';
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { storage } from 'wxt/utils/storage';

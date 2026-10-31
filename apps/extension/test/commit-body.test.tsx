@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { BodyMention, BodySegment } from '@devnull-github/client';
+import type { BodyMention, BodySegment } from '@dev-null-ext/client';
 import { render } from 'preact';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CommitBody } from '../src/components/CommitBody.tsx';

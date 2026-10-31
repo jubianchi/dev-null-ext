@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { LinkPreview as Preview } from '@devnull-github/client';
+import type { LinkPreview as Preview } from '@dev-null-ext/client';
 import { render } from 'preact';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { LinkPreview } from '../src/components/LinkPreview.tsx';

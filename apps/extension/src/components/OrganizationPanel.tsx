@@ -1,4 +1,4 @@
-import type { Commit } from '@devnull-github/client';
+import type { Commit } from '@dev-null-ext/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
 import { ask, BackgroundError } from '../lib/messages.ts';

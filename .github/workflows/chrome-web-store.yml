@@ -44,7 +44,7 @@ jobs:
         run: pnpm test
 
       - name: Build the Chrome archive
-        run: pnpm --filter @devnull-github/extension zip
+        run: pnpm --filter @dev-null-ext/extension zip
 
       - name: Check the manifest
         working-directory: apps/extension/.output/chrome-mv3

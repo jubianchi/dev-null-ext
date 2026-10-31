@@ -14,7 +14,7 @@ importers:
 
   apps/extension:
     dependencies:
-      '@devnull-github/client':
+      '@dev-null-ext/client':
         specifier: workspace:*
         version: link:../../packages/client
       preact:

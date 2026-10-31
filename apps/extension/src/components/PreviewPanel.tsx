@@ -1,4 +1,4 @@
-import type { CommitPreview } from '@devnull-github/client';
+import type { CommitPreview } from '@dev-null-ext/client';
 import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import type { AttachedImage } from '../lib/use-commit-draft.ts';

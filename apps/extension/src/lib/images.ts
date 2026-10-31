@@ -1,4 +1,4 @@
-import type { NewCommitImage } from '@devnull-github/client';
+import type { NewCommitImage } from '@dev-null-ext/client';
 
 /** What /dev/null takes (App\Actions\CreateCommitImages): 3 images, JPEG, PNG or WebP, 10 MB each. */
 export const MAX_IMAGES = 3;

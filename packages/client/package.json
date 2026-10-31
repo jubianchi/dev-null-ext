@@ -1,5 +1,5 @@
 {
-  "name": "@devnull-github/client",
+  "name": "@dev-null-ext/client",
   "version": "0.0.0",
   "private": true,
   "description": "Platform-independent /dev/null API client: SSHSIG signing on WebCrypto, signed requests, device sign-in.",

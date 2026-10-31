@@ -1,4 +1,4 @@
-import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/client';
+import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';

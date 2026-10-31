@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { CommitImage } from '@devnull-github/client';
+import type { CommitImage } from '@dev-null-ext/client';
 import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
