@@ -34,12 +34,7 @@ export function createNonce(): string {
   return toHex(randomBytes(16));
 }
 
-export async function signatureHeaders(
-  signer: Signer,
-  request: SignableRequest,
-  now: number,
-  nonce: string = createNonce(),
-): Promise<Record<string, string>> {
+export async function signatureHeaders(signer: Signer, request: SignableRequest, now: number, nonce: string = createNonce()): Promise<Record<string, string>> {
   const timestamp = String(Math.floor(now / 1000));
   const namespace = request.hashes === undefined ? API_NAMESPACE : IMAGES_NAMESPACE;
   const signature = await signSsh(signer, signedMessage(request, timestamp, nonce), namespace);

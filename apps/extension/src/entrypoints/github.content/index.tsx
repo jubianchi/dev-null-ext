@@ -10,20 +10,20 @@ import { ShareButton } from '../../components/ShareButton.tsx';
 import {
   discussionsSidebar,
   organizationContent,
-  organizationTabs,
   organizationTabStyle,
+  organizationTabs,
   releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
 } from '../../lib/github/anchors.ts';
 import { watchNavigation } from '../../lib/github/navigation.ts';
+import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
-import type { SharedPage } from '../../lib/share.ts';
 import { panelToggle } from '../../lib/panel-toggle.ts';
-import { type Settings, decorationsFor, disabledFeatures } from '../../lib/settings.ts';
+import { decorationsFor, disabledFeatures, type Settings } from '../../lib/settings.ts';
 import { loadSettings, watchSettings } from '../../lib/settings-store.ts';
-import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
+import type { SharedPage } from '../../lib/share.ts';
 import '../../assets/tailwind.css';
 
 const TAB_HASH = '#dev-null';
@@ -87,11 +87,7 @@ async function mount(ctx: ContentScriptContext, page: GitHubPage, settings: Sett
   return mounted;
 }
 
-async function shareButton(
-  ctx: ContentScriptContext,
-  page: Extract<GitHubPage, { url: string }>,
-  disabled: ReadonlySet<string>,
-): Promise<Mounted> {
+async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, { url: string }>, disabled: ReadonlySet<string>): Promise<Mounted> {
   const ui = await createShadowRootUi(ctx, {
     name: 'devnull-share',
     // Keep keystrokes in the composer from reaching GitHub's own shortcuts (c, t, /, …).
@@ -118,7 +114,12 @@ async function shareButton(
     onRemove: (container) => container && render(null, container),
   });
 
-  const kept = keptMounted(ctx, ui, () => ui.shadowHost, () => shareButtonAnchor()?.selector);
+  const kept = keptMounted(
+    ctx,
+    ui,
+    () => ui.shadowHost,
+    () => shareButtonAnchor()?.selector,
+  );
   return {
     remove() {
       kept.remove();
@@ -187,12 +188,7 @@ function removeShareItems() {
 }
 
 /** Mounts a WXT UI and keeps it mounted while its anchor is there, even when GitHub's React replaces the anchor. */
-function keptMounted(
-  ctx: ContentScriptContext,
-  ui: { mount(): void; remove(): void },
-  element: () => Element,
-  selector: () => string | undefined,
-): Mounted {
+function keptMounted(ctx: ContentScriptContext, ui: { mount(): void; remove(): void }, element: () => Element, selector: () => string | undefined): Mounted {
   const controller = new AbortController();
 
   keepMounted({

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
-import { AttachedImages, ImagePicker, filesOf } from './AttachedImages.tsx';
+import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -32,16 +32,12 @@ export function Composer({ target }: { target: Target }) {
       {state.step === 'loading' && <p class="m-0 text-fg-muted">Checking your /dev/null session…</p>}
 
       {state.step === 'signed-out' && (
-        <p class="m-0 text-fg-muted">
-          Connect your /dev/null account from the extension's button in the browser toolbar, then come back here.
-        </p>
+        <p class="m-0 text-fg-muted">Connect your /dev/null account from the extension's button in the browser toolbar, then come back here.</p>
       )}
 
       {state.step === 'sent' && (
         <div class="space-y-2">
-          <p class="m-0">
-            {state.commit.status === 'pending' ? 'Committed. It shows publicly once it passes review.' : 'Committed.'}
-          </p>
+          <p class="m-0">{state.commit.status === 'pending' ? 'Committed. It shows publicly once it passes review.' : 'Committed.'}</p>
           <a href={state.commit.html_url} target="_blank" rel="noopener" class="text-fg-accent hover:underline">
             View on /dev/null
           </a>
@@ -68,32 +64,30 @@ export function Composer({ target }: { target: Target }) {
 
           <div class="min-w-0 flex-1">
             <div>
-            {previewing ? (
-              <div class="max-h-[50vh] min-h-12 overflow-y-auto py-2 text-base">
-                <PreviewPanel body={body} images={draft.images} />
-              </div>
-            ) : (
-              <textarea
-                ref={textarea}
-                value={text}
-                onInput={(event) => setText(event.currentTarget.value)}
-                onPaste={(event) => {
-                  const files = filesOf(event.clipboardData);
-                  if (files.length === 0) return;
-                  event.preventDefault();
-                  draft.attach(files);
-                }}
-                rows={2}
-                placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
-                class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
-                disabled={state.step === 'sending'}
-              />
-            )}
+              {previewing ? (
+                <div class="max-h-[50vh] min-h-12 overflow-y-auto py-2 text-base">
+                  <PreviewPanel body={body} images={draft.images} />
+                </div>
+              ) : (
+                <textarea
+                  ref={textarea}
+                  value={text}
+                  onInput={(event) => setText(event.currentTarget.value)}
+                  onPaste={(event) => {
+                    const files = filesOf(event.clipboardData);
+                    if (files.length === 0) return;
+                    event.preventDefault();
+                    draft.attach(files);
+                  }}
+                  rows={2}
+                  placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
+                  class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
+                  disabled={state.step === 'sending'}
+                />
+              )}
             </div>
 
-            {!previewing && (
-              <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
-            )}
+            {!previewing && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
 
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
 

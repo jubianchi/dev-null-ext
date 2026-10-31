@@ -1,17 +1,14 @@
 import type { Commit } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
-import { BackgroundError, ask } from '../lib/messages.ts';
+import { ask, BackgroundError } from '../lib/messages.ts';
 import { useSession } from '../lib/use-session.ts';
 import { CommitItem } from './CommitItem.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
-import { InlineComposer } from './InlineComposer.tsx';
 import { Glyph } from './Glyph.tsx';
+import { InlineComposer } from './InlineComposer.tsx';
 
-type State =
-  | { step: 'loading' }
-  | { step: 'loaded'; commits: Commit[]; cursor: string | null; more: boolean }
-  | { step: 'failed'; message: string };
+type State = { step: 'loading' } | { step: 'loaded'; commits: Commit[]; cursor: string | null; more: boolean } | { step: 'failed'; message: string };
 
 /**
  * The organization's Mentions on /dev/null, in place of the organization's overview while the tab is open. Only when
@@ -98,54 +95,53 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
           <Glyph class="mx-auto mb-3 size-8" />
           <p class="m-0 mb-1 font-semibold">You're not connected to /dev/null.</p>
           <p class="m-0 text-fg-muted">
-            Connect your /dev/null account from the extension's button in the browser toolbar to read and write the commits
-            mentioning @{organization}.
+            Connect your /dev/null account from the extension's button in the browser toolbar to read and write the commits mentioning @{organization}.
           </p>
         </div>
       )}
 
       {user && (
         <>
-      <div ref={inline} class="mb-4">
-        <InlineComposer organization={organization} onCommitted={committed} disabled={disabled} />
-      </div>
-
-      {writing && <ComposerDialog target={{ page: null, organization, disabled }} onClose={() => setWriting(false)} />}
-
-      <div class="overflow-hidden rounded-md border border-border bg-canvas">
-        {state.step === 'loading' && <p class="m-0 p-4 text-sm text-fg-muted">Reading the log…</p>}
-
-        {state.step === 'failed' && <p class="m-0 p-4 text-sm text-fg-danger">Couldn't read /dev/null: {state.message}</p>}
-
-        {state.step === 'loaded' && state.commits.length === 0 && (
-          <div class="p-8 text-center text-sm">
-            <p class="m-0 mb-1 font-semibold">No commits mention @{organization} yet.</p>
-            <p class="m-0 text-fg-muted">Write the first one: it shows here and on the organization's /dev/null page.</p>
+          <div ref={inline} class="mb-4">
+            <InlineComposer organization={organization} onCommitted={committed} disabled={disabled} />
           </div>
-        )}
 
-        {state.step === 'loaded' && state.commits.length > 0 && (
-          <ul class="m-0 list-none p-0">
-            {state.commits.map((commit) => (
-              <CommitItem key={commit.id} commit={commit} />
-            ))}
-          </ul>
-        )}
-      </div>
+          {writing && <ComposerDialog target={{ page: null, organization, disabled }} onClose={() => setWriting(false)} />}
 
-      {state.step === 'loaded' && state.cursor && (
-        <button
-          type="button"
-          disabled={state.more}
-          onClick={() => {
-            setState({ ...state, more: true });
-            void load(state.cursor, state.commits);
-          }}
-          class="mt-3 w-full rounded-md border border-button-border bg-button py-1.5 text-sm text-fg hover:bg-button-hover disabled:opacity-50"
-        >
-          {state.more ? 'Loading…' : 'Load older commits'}
-        </button>
-      )}
+          <div class="overflow-hidden rounded-md border border-border bg-canvas">
+            {state.step === 'loading' && <p class="m-0 p-4 text-sm text-fg-muted">Reading the log…</p>}
+
+            {state.step === 'failed' && <p class="m-0 p-4 text-sm text-fg-danger">Couldn't read /dev/null: {state.message}</p>}
+
+            {state.step === 'loaded' && state.commits.length === 0 && (
+              <div class="p-8 text-center text-sm">
+                <p class="m-0 mb-1 font-semibold">No commits mention @{organization} yet.</p>
+                <p class="m-0 text-fg-muted">Write the first one: it shows here and on the organization's /dev/null page.</p>
+              </div>
+            )}
+
+            {state.step === 'loaded' && state.commits.length > 0 && (
+              <ul class="m-0 list-none p-0">
+                {state.commits.map((commit) => (
+                  <CommitItem key={commit.id} commit={commit} />
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {state.step === 'loaded' && state.cursor && (
+            <button
+              type="button"
+              disabled={state.more}
+              onClick={() => {
+                setState({ ...state, more: true });
+                void load(state.cursor, state.commits);
+              }}
+              class="mt-3 w-full rounded-md border border-button-border bg-button py-1.5 text-sm text-fg hover:bg-button-hover disabled:opacity-50"
+            >
+              {state.more ? 'Loading…' : 'Load older commits'}
+            </button>
+          )}
         </>
       )}
     </section>

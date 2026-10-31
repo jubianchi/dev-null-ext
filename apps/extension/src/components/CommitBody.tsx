@@ -6,7 +6,7 @@ import { Octicon } from './Octicon.tsx';
 
 const TOKEN_PATTERN = /(https?:\/\/[^\s<>]+)|(?<![\w@])@([A-Za-z0-9][A-Za-z0-9-]*)/g;
 const WORDMARK_PATTERN = /(?<![\p{L}\p{M}\p{N}_./-])(\/dev\/null)(?![\p{L}\p{M}\p{N}_/-])/u;
-const HIGHLIGHT_CLASS =/^hl-[a-z]+(-[a-z]+)*$/;
+const HIGHLIGHT_CLASS = /^hl-[a-z]+(-[a-z]+)*$/;
 
 /**
  * A commit body as dev-null.sh draws it (CommitBody): prose with its line breaks, links and mentions, `> ` quotes,

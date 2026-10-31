@@ -4,7 +4,9 @@
   "private": true,
   "description": "Platform-independent /dev/null API client: SSHSIG signing on WebCrypto, signed requests, device sign-in.",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

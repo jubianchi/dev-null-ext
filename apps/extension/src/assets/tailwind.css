@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /*
  * The extension wears GitHub's clothes: every colour and font comes from GitHub's own Primer variables, which pierce
@@ -9,8 +9,8 @@
  * hashes in mono.
  */
 @theme {
-  --font-sans: var(--fontStack-sansSerif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif);
-  --font-mono: var(--fontStack-monospace, ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace);
+  --font-sans: var(--fontStack-sansSerif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif);
+  --font-mono: var(--fontStack-monospace, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace);
 
   --color-fg: var(--fgColor-default, #1f2328);
   --color-fg-muted: var(--fgColor-muted, #59636e);
@@ -48,18 +48,36 @@
 }
 
 /* /dev/null's highlighter classes (tempest/highlight), in GitHub's own syntax colours. */
-.hl-keyword { color: var(--color-prettylights-syntax-keyword, #cf222e); }
+.hl-keyword {
+  color: var(--color-prettylights-syntax-keyword, #cf222e);
+}
 .hl-type,
-.hl-generic { color: var(--color-prettylights-syntax-entity, #6639ba); }
+.hl-generic {
+  color: var(--color-prettylights-syntax-entity, #6639ba);
+}
 .hl-property,
-.hl-attribute { color: var(--color-prettylights-syntax-constant, #0550ae); }
-.hl-value { color: var(--color-prettylights-syntax-string, #0a3069); }
+.hl-attribute {
+  color: var(--color-prettylights-syntax-constant, #0550ae);
+}
+.hl-value {
+  color: var(--color-prettylights-syntax-string, #0a3069);
+}
 .hl-number,
-.hl-literal { color: var(--color-prettylights-syntax-constant, #0550ae); }
-.hl-variable { color: var(--color-prettylights-syntax-variable, #953800); }
-.hl-comment { color: var(--color-prettylights-syntax-comment, #59636e); }
-.hl-addition { color: var(--color-prettylights-syntax-markup-inserted-text, #116329); }
-.hl-deletion { color: var(--color-prettylights-syntax-markup-deleted-text, #82071e); }
+.hl-literal {
+  color: var(--color-prettylights-syntax-constant, #0550ae);
+}
+.hl-variable {
+  color: var(--color-prettylights-syntax-variable, #953800);
+}
+.hl-comment {
+  color: var(--color-prettylights-syntax-comment, #59636e);
+}
+.hl-addition {
+  color: var(--color-prettylights-syntax-markup-inserted-text, #116329);
+}
+.hl-deletion {
+  color: var(--color-prettylights-syntax-markup-deleted-text, #82071e);
+}
 
 @media (prefers-reduced-motion: reduce) {
   * {

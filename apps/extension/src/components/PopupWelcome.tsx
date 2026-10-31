@@ -35,8 +35,8 @@ export function PopupWelcome({ developers, onJoin }: { developers: number | null
         <div>
           <h1 class="m-0 mb-2 text-2xl font-bold leading-tight tracking-tight">{count ? `Join ${count} developers.` : 'Only developers post here.'}</h1>
           <p class="m-0 text-[13px] leading-relaxed text-zinc-600">
-            {count ? `${count} developers are already here. ` : ''}Sign in with GitHub to follow them, star commits, and join the
-            conversation, right from GitHub's pages.
+            {count ? `${count} developers are already here. ` : ''}Sign in with GitHub to follow them, star commits, and join the conversation, right from
+            GitHub's pages.
           </p>
         </div>
 

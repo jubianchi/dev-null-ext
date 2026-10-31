@@ -1,5 +1,5 @@
-import type { Clock } from '../clock.ts';
 import type { DevNullClient } from '../client.ts';
+import type { Clock } from '../clock.ts';
 import { ApiError } from '../errors.ts';
 import type { CurrentUser } from '../types.ts';
 

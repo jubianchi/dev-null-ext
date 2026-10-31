@@ -223,7 +223,11 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: '', images: [{ data: btoa(String.fromCharCode(1, 2)), type: 'image/png', description: null }] });
+    expect(ask).toHaveBeenLastCalledWith({
+      type: 'commit',
+      body: '',
+      images: [{ data: btoa(String.fromCharCode(1, 2)), type: 'image/png', description: null }],
+    });
   });
 
   it('commits what the user wrote', async () => {

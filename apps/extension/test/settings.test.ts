@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FEATURES, decorationsFor, disabledFeatures, readSettings } from '../src/lib/settings.ts';
+import { decorationsFor, disabledFeatures, FEATURES, readSettings } from '../src/lib/settings.ts';
 
 const all = readSettings(undefined);
 

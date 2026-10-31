@@ -1,7 +1,7 @@
 import type { Clock } from '../src/clock.ts';
-import { ED25519, publicKeyBlob, fingerprint } from '../src/keys.ts';
-import type { Signer } from '../src/signer.ts';
 import { buffer, fromBase64 } from '../src/encoding.ts';
+import { ED25519, fingerprint, publicKeyBlob } from '../src/keys.ts';
+import type { Signer } from '../src/signer.ts';
 import fixture from './fixtures/ssh-keygen-ed25519.json' with { type: 'json' };
 
 export { fixture };

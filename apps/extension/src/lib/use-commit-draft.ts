@@ -1,9 +1,9 @@
 import type { Commit, CurrentUser } from '@devnull-github/client';
 import { useEffect, useState } from 'preact/hooks';
-import { type Addition, type ComposerContext, additionsFor, isIn, withAddition } from './additions.ts';
-import { MAX_IMAGES, imageProblem, toTransfer } from './images.ts';
-import { BackgroundError, ask } from './messages.ts';
-import { MAX_COMMIT_LENGTH, commitLength } from './share.ts';
+import { type Addition, additionsFor, type ComposerContext, isIn, withAddition } from './additions.ts';
+import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
+import { ask, BackgroundError } from './messages.ts';
+import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
 import { replaceText } from './textarea.ts';
 
 export type Target = ComposerContext;

@@ -1,5 +1,5 @@
-import { type Clock, systemClock } from '../clock.ts';
 import type { DevNullClient } from '../client.ts';
+import { type Clock, systemClock } from '../clock.ts';
 import type { CurrentUser } from '../types.ts';
 import { DeviceGrantUnavailable, pollDeviceAuthorization, startDeviceAuthorization } from './device-grant.ts';
 import { prepareLoopbackSignIn, readLoopbackAnswer, redeemLoopbackCode } from './loopback.ts';

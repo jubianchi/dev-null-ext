@@ -104,14 +104,5 @@ function Image({ image, hash, alt, single }: { image: CommitImage; hash: string;
     );
   }
 
-  return (
-    <img
-      src={source}
-      alt={alt}
-      width={image.width}
-      height={image.height}
-      decoding="async"
-      class={imageClass(single)}
-    />
-  );
+  return <img src={source} alt={alt} width={image.width} height={image.height} decoding="async" class={imageClass(single)} />;
 }

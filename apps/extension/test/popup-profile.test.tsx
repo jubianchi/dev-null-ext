@@ -64,7 +64,6 @@ describe('PopupProfile', () => {
     expect(root.querySelector<HTMLElement>('[data-lane-ring]')?.style.borderColor).toBe('#ff00aa');
   });
 
-
   it('disconnects', async () => {
     await show();
     await act(async () => [...root.querySelectorAll('button')].find((button) => button.textContent === 'Disconnect')!.click());

@@ -58,10 +58,7 @@ describe('CommitBody', () => {
   });
 
   it('draws a GitHub link without making it clickable inside a link', () => {
-    render(
-      <CommitBody segments={[{ type: 'text', text: 'https://github.com/laravel/framework' }]} mentions={[]} interactive={false} />,
-      root,
-    );
+    render(<CommitBody segments={[{ type: 'text', text: 'https://github.com/laravel/framework' }]} mentions={[]} interactive={false} />, root);
 
     expect(root.querySelector('a')).toBeNull();
     expect(root.querySelector('[title="https://github.com/laravel/framework"]')?.textContent).toContain('laravel/framework');

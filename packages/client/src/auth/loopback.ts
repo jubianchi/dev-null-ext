@@ -2,8 +2,8 @@ import type { DevNullClient } from '../client.ts';
 import { randomBytes, toBase64Url } from '../encoding.ts';
 import { ApiError } from '../errors.ts';
 import type { CurrentUser } from '../types.ts';
-import { challengeFor, createVerifier } from './pkce.ts';
 import { SignInDenied, SignInExpired } from './device-grant.ts';
+import { challengeFor, createVerifier } from './pkce.ts';
 
 /**
  * Signing in the way the apps do today, before the device grant: /mobile/authorize with PKCE, answered on a loopback

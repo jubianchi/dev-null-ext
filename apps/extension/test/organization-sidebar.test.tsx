@@ -37,9 +37,7 @@ afterEach(() => {
 });
 
 async function show(session: typeof user | null, commits: Commit[]) {
-  ask.mockImplementation(async (request: { type: string }) =>
-    request.type === 'session' ? session : { data: commits, meta: { next_cursor: null } },
-  );
+  ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? session : { data: commits, meta: { next_cursor: null } }));
   await act(async () => {
     render(<OrganizationSidebar organization="NativePHP" />, root);
   });

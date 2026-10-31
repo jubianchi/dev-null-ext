@@ -41,7 +41,10 @@ describe('LinkPreview', () => {
     render(<LinkPreview preview={preview} interactive />, root);
     expect(root.querySelector('img')?.getAttribute('src')).toBe(preview.image_url);
 
-    render(<LinkPreview preview={{ ...preview, image_url: 'https://example.com/og.png', site_name: null, url: 'https://www.example.com/x' }} interactive />, root);
+    render(
+      <LinkPreview preview={{ ...preview, image_url: 'https://example.com/og.png', site_name: null, url: 'https://www.example.com/x' }} interactive />,
+      root,
+    );
     expect(root.querySelector('img')).toBeNull();
     expect(root.textContent).toContain('example.com');
   });

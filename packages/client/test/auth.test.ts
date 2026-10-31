@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { DevNullClient } from '../src/client.ts';
-import { challengeFor } from '../src/auth/pkce.ts';
-import { prepareLoopbackSignIn, readLoopbackAnswer } from '../src/auth/loopback.ts';
 import { SignInDenied, SignInExpired } from '../src/auth/device-grant.ts';
-import { signIn, type SignInHost } from '../src/auth/sign-in.ts';
+import { prepareLoopbackSignIn, readLoopbackAnswer } from '../src/auth/loopback.ts';
+import { challengeFor } from '../src/auth/pkce.ts';
+import { type SignInHost, signIn } from '../src/auth/sign-in.ts';
+import { DevNullClient } from '../src/client.ts';
 import { fakeClock, fakeFetch, fixtureSigner } from './helpers.ts';
 
 const user = { id: 'u1', handle: 'jubianchi', name: 'Julien', avatar_url: null, bio: null, github_url: '', html_url: '', terms_accepted: true };
@@ -58,7 +58,10 @@ describe('device grant', () => {
   });
 
   it('stops when the user denies the sign-in', async () => {
-    const fetch = fakeFetch([[201, authorization], [400, { code: 'access_denied', message: 'denied' }]]);
+    const fetch = fakeFetch([
+      [201, authorization],
+      [400, { code: 'access_denied', message: 'denied' }],
+    ]);
     const clock = fakeClock();
     const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock });
 
@@ -66,7 +69,11 @@ describe('device grant', () => {
   });
 
   it('gives up once the code expired', async () => {
-    const fetch = fakeFetch([[201, { ...authorization, expires_in: 10 }], [400, { code: 'authorization_pending', message: '' }], [400, { code: 'authorization_pending', message: '' }]]);
+    const fetch = fakeFetch([
+      [201, { ...authorization, expires_in: 10 }],
+      [400, { code: 'authorization_pending', message: '' }],
+      [400, { code: 'authorization_pending', message: '' }],
+    ]);
     const clock = fakeClock();
     const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock });
 
@@ -76,7 +83,10 @@ describe('device grant', () => {
 
 describe('loopback fallback', () => {
   it('falls back to /mobile/authorize when the server has no device grant', async () => {
-    const fetch = fakeFetch([[404, { message: 'Not Found' }], [200, { data: user }]]);
+    const fetch = fakeFetch([
+      [404, { message: 'Not Found' }],
+      [200, { data: user }],
+    ]);
     const signer = await fixtureSigner();
     const client = new DevNullClient({ signer, fetch, clock: fakeClock() });
 

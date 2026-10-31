@@ -25,10 +25,39 @@ export type GitHubPage =
 
 /** First path segments that are GitHub's own pages, never an owner. */
 const RESERVED = new Set([
-  'about', 'account', 'apps', 'codespaces', 'collections', 'contact', 'copilot', 'dashboard', 'enterprise', 'events',
-  'explore', 'features', 'issues', 'login', 'logout', 'marketplace', 'new', 'notifications', 'organizations', 'orgs',
-  'pricing', 'pulls', 'search', 'security', 'settings', 'signup', 'site', 'sponsors', 'stars', 'team', 'topics',
-  'trending', 'users',
+  'about',
+  'account',
+  'apps',
+  'codespaces',
+  'collections',
+  'contact',
+  'copilot',
+  'dashboard',
+  'enterprise',
+  'events',
+  'explore',
+  'features',
+  'issues',
+  'login',
+  'logout',
+  'marketplace',
+  'new',
+  'notifications',
+  'organizations',
+  'orgs',
+  'pricing',
+  'pulls',
+  'search',
+  'security',
+  'settings',
+  'signup',
+  'site',
+  'sponsors',
+  'stars',
+  'team',
+  'topics',
+  'trending',
+  'users',
 ]);
 
 export function readPage(location: Location | URL, document: Document): GitHubPage {
@@ -38,7 +67,9 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
   if (owner === 'orgs' && repository) {
     const discussion = section === 'discussions' && number && /^\d+$/.test(number) ? organizationDiscussion(repository, Number(number), document) : null;
     if (discussion) return discussion;
-    return section === 'discussions' ? { kind: 'organization', organization: repository, discussions: true } : { kind: 'organization', organization: repository };
+    return section === 'discussions'
+      ? { kind: 'organization', organization: repository, discussions: true }
+      : { kind: 'organization', organization: repository };
   }
   if (!owner || RESERVED.has(owner.toLowerCase())) return { kind: 'other' };
 

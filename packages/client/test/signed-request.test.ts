@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { DevNullClient } from '../src/client.ts';
-import { createNonce, signedMessage, signatureHeaders } from '../src/signed-request.ts';
+import { createNonce, signatureHeaders, signedMessage } from '../src/signed-request.ts';
 import { fakeClock, fakeFetch, fixture, fixtureSigner } from './helpers.ts';
 
 describe('signed requests', () => {
   it('signs the message the server rebuilds: timestamp, nonce, method, path and query, body', () => {
     expect(
-      signedMessage({ method: 'post', pathAndQuery: '/api/v1/commits', body: '{"body":"hello from the extension @laravel"}' }, '1761832800', '0123456789abcdef0123456789abcdef'),
+      signedMessage(
+        { method: 'post', pathAndQuery: '/api/v1/commits', body: '{"body":"hello from the extension @laravel"}' },
+        '1761832800',
+        '0123456789abcdef0123456789abcdef',
+      ),
     ).toBe(fixture.message);
   });
 

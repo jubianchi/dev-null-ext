@@ -24,11 +24,7 @@ describe('gitHubLinkTo', () => {
     ['https://github.com/laravel/framework/commit/4fa008f', 'laravel/framework@4fa008f', 'laravel/framework commit 4fa008f'],
     [`https://github.com/laravel/framework/commit/${sha}`, 'laravel/framework@4fa008f', 'laravel/framework commit 4fa008f'],
     ['https://github.com/laravel/framework/COMMIT/4fa008f', 'laravel/framework@4fa008f', 'laravel/framework commit 4fa008f'],
-    [
-      'https://github.com/laravel/framework/compare/v12.0.0...v12.1.0',
-      'laravel/framework@v12.0.0...v12.1.0',
-      'laravel/framework comparison v12.0.0...v12.1.0',
-    ],
+    ['https://github.com/laravel/framework/compare/v12.0.0...v12.1.0', 'laravel/framework@v12.0.0...v12.1.0', 'laravel/framework comparison v12.0.0...v12.1.0'],
     [`https://github.com/laravel/framework/compare/12.x..${sha}`, 'laravel/framework@12.x..4fa008f', 'laravel/framework comparison 12.x..4fa008f'],
     ['https://github.com/laravel/framework/releases/tag/v12.1.0', 'laravel/framework@v12.1.0', 'laravel/framework release v12.1.0'],
     [

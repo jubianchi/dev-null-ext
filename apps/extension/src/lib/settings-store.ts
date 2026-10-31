@@ -1,5 +1,5 @@
 import { storage } from 'wxt/utils/storage';
-import { type FeatureId, type Settings, readSettings } from './settings.ts';
+import { type FeatureId, readSettings, type Settings } from './settings.ts';
 
 /** The settings in the browser's synced storage, so they follow the user from one browser to another. */
 const item = storage.defineItem<Record<string, boolean>>('sync:settings', { fallback: {} });

@@ -42,8 +42,9 @@ export function organizationTabStyle(): { item: string; link: string } | null {
 
 /** The tabs GitHub marks as the current one, which the /dev/null tab takes over while it is open. */
 export function selectedOrganizationTabs(): Element[] {
-  return [...document.querySelectorAll(`${ORGANIZATION_NAV} ul > li > a[aria-current="page"], ${ORGANIZATION_NAV} .UnderlineNav-item.selected`)]
-    .filter((tab) => !tab.hasAttribute('data-devnull-tab'));
+  return [...document.querySelectorAll(`${ORGANIZATION_NAV} ul > li > a[aria-current="page"], ${ORGANIZATION_NAV} .UnderlineNav-item.selected`)].filter(
+    (tab) => !tab.hasAttribute('data-devnull-tab'),
+  );
 }
 
 /**

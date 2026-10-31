@@ -41,7 +41,7 @@ afterEach(() => {
 const counter = (label: RegExp) => [...root.querySelectorAll('[aria-label]')].find((element) => label.test(element.getAttribute('aria-label') ?? ''));
 
 describe('CommitItem', () => {
-  it("shows replies and stars as GitHub does: an octicon and the count", () => {
+  it('shows replies and stars as GitHub does: an octicon and the count', () => {
     render(<CommitItem commit={commit} />, root);
 
     const replies = counter(/repl/);
@@ -135,7 +135,10 @@ describe('CommitItem', () => {
   });
 
   it('says when the quoted commit was deleted or is not visible', () => {
-    render(<CommitItem commit={{ ...commit, quoted_commit_id: 'q1', quoted_commit: { id: 'q1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />, root);
+    render(
+      <CommitItem commit={{ ...commit, quoted_commit_id: 'q1', quoted_commit: { id: 'q1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />,
+      root,
+    );
     expect(root.textContent).toContain('This commit was deleted.');
 
     render(<CommitItem commit={{ ...commit, quoted_commit_id: 'q2', quoted_commit: null }} />, root);

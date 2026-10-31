@@ -6,8 +6,8 @@ import { Glyph } from '../../components/Glyph.tsx';
 import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
-import { type SignInState, ask } from '../../lib/messages.ts';
-import { type Settings, readSettings } from '../../lib/settings.ts';
+import { ask, type SignInState } from '../../lib/messages.ts';
+import { readSettings, type Settings } from '../../lib/settings.ts';
 import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
 
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
@@ -98,76 +98,76 @@ export function App() {
       {user === null && signIn.status === 'idle' && <PopupWelcome developers={DEVELOPERS} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
 
       <div class="px-4 pb-4 empty:hidden">
-      {!hostAccess && (
-        <section class="mb-4 space-y-2">
-          <p class="m-0 text-fg-muted">The extension needs access to github.com and dev-null.sh to work.</p>
-          <button type="button" class={primary} onClick={() => run(async () => setHostAccess(await browser.permissions.request({ origins: ORIGINS })))}>
-            Allow access
-          </button>
-        </section>
-      )}
+        {!hostAccess && (
+          <section class="mb-4 space-y-2">
+            <p class="m-0 text-fg-muted">The extension needs access to github.com and dev-null.sh to work.</p>
+            <button type="button" class={primary} onClick={() => run(async () => setHostAccess(await browser.permissions.request({ origins: ORIGINS })))}>
+              Allow access
+            </button>
+          </section>
+        )}
 
-      {user === undefined && <p class="m-0 text-fg-muted">Checking your session…</p>}
+        {user === undefined && <p class="m-0 text-fg-muted">Checking your session…</p>}
 
-      {user === null && signIn.status === 'waiting' && signIn.flow === 'device-grant' && (
-        <section class="space-y-2">
-          <p class="m-0">Approve this code on dev-null.sh, in the tab that just opened:</p>
-          <p class="m-0 rounded-md bg-canvas-muted py-2 text-center font-mono text-xl tracking-widest">{signIn.userCode}</p>
-          <div class="flex gap-2">
-            <a href={signIn.verificationUri} target="_blank" rel="noopener" class={secondary}>
-              Open the page again
-            </a>
+        {user === null && signIn.status === 'waiting' && signIn.flow === 'device-grant' && (
+          <section class="space-y-2">
+            <p class="m-0">Approve this code on dev-null.sh, in the tab that just opened:</p>
+            <p class="m-0 rounded-md bg-canvas-muted py-2 text-center font-mono text-xl tracking-widest">{signIn.userCode}</p>
+            <div class="flex gap-2">
+              <a href={signIn.verificationUri} target="_blank" rel="noopener" class={secondary}>
+                Open the page again
+              </a>
+              <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
+                Cancel
+              </button>
+            </div>
+          </section>
+        )}
+
+        {user === null && signIn.status === 'waiting' && signIn.flow === 'loopback' && (
+          <section class="space-y-2">
+            <p class="m-0">Approve this browser on dev-null.sh, in the tab that just opened.</p>
             <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
               Cancel
             </button>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {user === null && signIn.status === 'waiting' && signIn.flow === 'loopback' && (
-        <section class="space-y-2">
-          <p class="m-0">Approve this browser on dev-null.sh, in the tab that just opened.</p>
-          <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
-            Cancel
-          </button>
-        </section>
-      )}
+        {user === null && signIn.status === 'needs-permission' && (
+          <section class="space-y-2">
+            <p class="m-0 text-fg-muted">
+              This /dev/null server signs browsers in through a redirect. To catch it, the extension needs to see where the sign-in tab goes. It only looks for
+              its own redirect.
+            </p>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class={primary}
+                onClick={() =>
+                  run(async () => {
+                    if (await browser.permissions.request({ permissions: ['webNavigation'] })) await ask({ type: 'sign-in:loopback' });
+                  })
+                }
+              >
+                Allow and continue
+              </button>
+              <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
+                Cancel
+              </button>
+            </div>
+          </section>
+        )}
 
-      {user === null && signIn.status === 'needs-permission' && (
-        <section class="space-y-2">
-          <p class="m-0 text-fg-muted">
-            This /dev/null server signs browsers in through a redirect. To catch it, the extension needs to see where the
-            sign-in tab goes. It only looks for its own redirect.
-          </p>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              class={primary}
-              onClick={() =>
-                run(async () => {
-                  if (await browser.permissions.request({ permissions: ['webNavigation'] })) await ask({ type: 'sign-in:loopback' });
-                })
-              }
-            >
-              Allow and continue
+        {user === null && signIn.status === 'failed' && (
+          <section class="space-y-2">
+            <p class="m-0 text-fg-danger">{signIn.message}</p>
+            <button type="button" class={primary} onClick={() => run(() => ask({ type: 'sign-in' }))}>
+              Try again
             </button>
-            <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
-              Cancel
-            </button>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {user === null && signIn.status === 'failed' && (
-        <section class="space-y-2">
-          <p class="m-0 text-fg-danger">{signIn.message}</p>
-          <button type="button" class={primary} onClick={() => run(() => ask({ type: 'sign-in' }))}>
-            Try again
-          </button>
-        </section>
-      )}
-
-      {error && <p class="m-0 mt-3 text-fg-danger">{error}</p>}
+        {error && <p class="m-0 mt-3 text-fg-danger">{error}</p>}
       </div>
     </main>
   );

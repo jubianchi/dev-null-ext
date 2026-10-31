@@ -109,7 +109,9 @@ describe('InlineComposer, images', () => {
     });
     expect(root.querySelector('[data-image-description]')?.textContent).toContain('13/1000');
 
-    await act(async () => [...root.querySelectorAll<HTMLButtonElement>('[data-image-description] button')].find((button) => button.textContent === 'Done')!.click());
+    await act(async () =>
+      [...root.querySelectorAll<HTMLButtonElement>('[data-image-description] button')].find((button) => button.textContent === 'Done')!.click(),
+    );
     expect(root.querySelector('[data-image-description]')).toBeNull();
     expect(badge.textContent).toBe('ALT');
 

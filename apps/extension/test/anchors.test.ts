@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   discussionsSidebar,
   organizationContent,
-  organizationTabs,
   organizationTabStyle,
+  organizationTabs,
   releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
@@ -105,9 +105,9 @@ describe('release share anchors', () => {
         <div class="d-flex tmp-mb-3" id="compare"><select-panel><button>Compare</button></select-panel></div>
       </div></div></div>`;
 
-    expect(
-      releaseShareAnchors(new URL('https://github.com/laravel/installer/releases/tag/packages%2Fqueue-1.0')).map(({ box, tag }) => [box.id, tag]),
-    ).toEqual([['compare', 'packages/queue-1.0']]);
+    expect(releaseShareAnchors(new URL('https://github.com/laravel/installer/releases/tag/packages%2Fqueue-1.0')).map(({ box, tag }) => [box.id, tag])).toEqual(
+      [['compare', 'packages/queue-1.0']],
+    );
   });
 });
 

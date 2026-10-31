@@ -16,9 +16,7 @@ describe('segmentBody', () => {
   });
 
   it('reads the file name from title first, then filename, the first of each winning', () => {
-    expect(segmentBody('```js filename="a.js" title="b.js" title="c.js"\nx\n```')).toEqual([
-      { type: 'block', language: 'js', filename: 'b.js', html: 'x' },
-    ]);
+    expect(segmentBody('```js filename="a.js" title="b.js" title="c.js"\nx\n```')).toEqual([{ type: 'block', language: 'js', filename: 'b.js', html: 'x' }]);
     expect(segmentBody('```\nx\n```')).toEqual([{ type: 'block', language: null, filename: null, html: 'x' }]);
   });
 

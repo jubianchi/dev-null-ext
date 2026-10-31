@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'preact/hooks';
 import { readAuthor } from '../lib/github/page.ts';
 import { ask } from '../lib/messages.ts';
-import { useSession } from '../lib/use-session.ts';
 import type { SharedPage } from '../lib/share.ts';
+import { useSession } from '../lib/use-session.ts';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
 
@@ -63,12 +63,7 @@ export function ShareButton({
 
   return (
     <span class={`inline-flex font-sans ${spacing === 'end' ? 'mr-2' : spacing === 'start' ? 'ml-2' : ''}`}>
-      <button
-        type="button"
-        onClick={() => setOpened(withAuthor(page))}
-        aria-expanded={opened !== null}
-        class={`${SIZES[size]} ${BUTTON}`}
-      >
+      <button type="button" onClick={() => setOpened(withAuthor(page))} aria-expanded={opened !== null} class={`${SIZES[size]} ${BUTTON}`}>
         <Glyph class="size-4 shrink-0" />
         Commit
       </button>

@@ -13,8 +13,7 @@ const CODE_PATTERN = /```[\s\S]*?```|`[^`\n]*`/g;
  */
 export function commitLength(body: string): number {
   const normalized = body.replace(/\r\n?/g, '\n');
-  const prose = (text: string) =>
-    text.replace(/\n{3,}/g, '\n\n').replace(URL_PATTERN, (url) => 'x'.repeat(Math.min(url.length, LINK_LENGTH)));
+  const prose = (text: string) => text.replace(/\n{3,}/g, '\n\n').replace(URL_PATTERN, (url) => 'x'.repeat(Math.min(url.length, LINK_LENGTH)));
 
   let measured = '';
   let last = 0;

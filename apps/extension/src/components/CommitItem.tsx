@@ -2,7 +2,7 @@ import { type Commit, type DeletedCommit, isDeleted } from '@devnull-github/clie
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
-import { ACTION, FoldedBody, Star, laneColor, plural } from './CommitParts.tsx';
+import { ACTION, FoldedBody, laneColor, plural, Star } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 import { Octicon } from './Octicon.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
@@ -28,11 +28,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
           <code class="ml-auto font-mono text-xs text-fg-muted">{commit.short_hash}</code>
         </div>
         {commit.parent_id && commit.parent !== undefined && <ReplyingTo parent={commit.parent} />}
-        <FoldedBody
-          segments={commit.body_segments ?? segmentBody(commit.body)}
-          excerpt={commit.preview_segments ?? null}
-          mentions={commit.mentions ?? []}
-        />
+        <FoldedBody segments={commit.body_segments ?? segmentBody(commit.body)} excerpt={commit.preview_segments ?? null} mentions={commit.mentions ?? []} />
         <CommitImages images={commit.images ?? []} hash={commit.short_hash} link={commit.html_url} />
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
@@ -79,4 +75,3 @@ function ReplyingTo({ parent }: { parent: Commit | DeletedCommit | null }) {
     </a>
   );
 }
-

@@ -12,7 +12,14 @@ vi.mock('../src/lib/messages.ts', () => ({
 const { ShareButton } = await import('../src/components/ShareButton.tsx');
 
 const user = { id: '1', handle: 'jubianchi', name: null, avatar_url: null, bio: null, github_url: '', html_url: '', terms_accepted: true };
-const page = { kind: 'issue' as const, owner: 'laravel', repository: 'framework', number: 1, title: 'Bug', url: 'https://github.com/laravel/framework/issues/1' };
+const page = {
+  kind: 'issue' as const,
+  owner: 'laravel',
+  repository: 'framework',
+  number: 1,
+  title: 'Bug',
+  url: 'https://github.com/laravel/framework/issues/1',
+};
 
 let root: HTMLElement;
 

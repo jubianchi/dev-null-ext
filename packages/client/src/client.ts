@@ -1,8 +1,8 @@
 import { type Clock, systemClock } from './clock.ts';
+import { buffer, toHex } from './encoding.ts';
 import { ApiError } from './errors.ts';
 import { signatureHeaders } from './signed-request.ts';
 import type { Signer } from './signer.ts';
-import { buffer, toHex } from './encoding.ts';
 import type { Commit, CommitPreview, CurrentUser, Device, NewCommit, NewCommitImage, Organization, Page } from './types.ts';
 
 export const DEFAULT_BASE_URL = 'https://dev-null.sh';

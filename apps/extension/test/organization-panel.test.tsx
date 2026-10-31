@@ -46,9 +46,7 @@ beforeEach(() => {
   observers.length = 0;
   vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
   ask.mockReset();
-  ask.mockImplementation(async (request: { type: string }) =>
-    request.type === 'session' ? user : { data: [], meta: { next_cursor: null } },
-  );
+  ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? user : { data: [], meta: { next_cursor: null } }));
   root = document.createElement('div');
   document.body.append(root);
 });

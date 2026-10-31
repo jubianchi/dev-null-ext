@@ -31,7 +31,11 @@ describe('signed requests with images', () => {
   });
 
   it('signs them under the images namespace', async () => {
-    const headers = await signatureHeaders(await fixtureSigner(), { method: 'POST', pathAndQuery: '/api/v1/commits', body: '{}', hashes: 'aa' }, 1_761_832_800_000);
+    const headers = await signatureHeaders(
+      await fixtureSigner(),
+      { method: 'POST', pathAndQuery: '/api/v1/commits', body: '{}', hashes: 'aa' },
+      1_761_832_800_000,
+    );
 
     expect(namespaceOf(headers['X-SSH-Signature'] ?? '')).toBe(IMAGES_NAMESPACE);
     expect(IMAGES_NAMESPACE).toBe('devnull-api-images');
@@ -49,13 +53,10 @@ describe('createCommit with images', () => {
     const fetch = fakeFetch([[201, { data: { id: 'c1' } }]]);
     const client = new DevNullClient({ signer: await fixtureSigner(), fetch, clock: fakeClock() });
 
-    await client.createCommit(
-      { body: 'Shipped' },
-      [
-        { bytes: png, type: 'image/png', description: 'The new popup' },
-        { bytes: jpeg, type: 'image/jpeg', description: null },
-      ],
-    );
+    await client.createCommit({ body: 'Shipped' }, [
+      { bytes: png, type: 'image/png', description: 'The new popup' },
+      { bytes: jpeg, type: 'image/jpeg', description: null },
+    ]);
 
     const [request] = fetch.requests;
     const payload = request?.form?.get('payload');

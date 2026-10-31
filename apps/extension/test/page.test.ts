@@ -24,8 +24,7 @@ describe('readAuthor', () => {
     const issue = { ...pull, kind: 'issue' as const };
     const document = {
       title: 'Idea · Issue #1335 · dev-null-sh/dev-null.sh · GitHub',
-      querySelector: (selector: string) =>
-        selector === '[data-testid="issue-body-header-author"]' ? { textContent: ' tomasnorre ' } : null,
+      querySelector: (selector: string) => (selector === '[data-testid="issue-body-header-author"]' ? { textContent: ' tomasnorre ' } : null),
     } as unknown as Document;
 
     expect(readAuthor(issue, document)).toBe('tomasnorre');
@@ -126,7 +125,12 @@ describe('readPage', () => {
       url: 'https://github.com/laravel/framework/pull/58112',
     });
 
-    expect(readPage(new URL('https://github.com/dev-null-sh/dev-null.sh/issues/938'), documentWith(null, '[RFC] Orgs · Issue #938 · dev-null-sh/dev-null.sh · GitHub'))).toMatchObject({
+    expect(
+      readPage(
+        new URL('https://github.com/dev-null-sh/dev-null.sh/issues/938'),
+        documentWith(null, '[RFC] Orgs · Issue #938 · dev-null-sh/dev-null.sh · GitHub'),
+      ),
+    ).toMatchObject({
       kind: 'issue',
       number: 938,
       title: '[RFC] Orgs',

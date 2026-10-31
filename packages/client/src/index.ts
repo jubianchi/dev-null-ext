@@ -1,3 +1,7 @@
+export * from './auth/device-grant.ts';
+export * from './auth/loopback.ts';
+export * from './auth/pkce.ts';
+export * from './auth/sign-in.ts';
 export * from './client.ts';
 export * from './clock.ts';
 export * from './encoding.ts';
@@ -7,7 +11,3 @@ export * from './signed-request.ts';
 export * from './signer.ts';
 export * from './sshsig.ts';
 export * from './types.ts';
-export * from './auth/device-grant.ts';
-export * from './auth/loopback.ts';
-export * from './auth/pkce.ts';
-export * from './auth/sign-in.ts';

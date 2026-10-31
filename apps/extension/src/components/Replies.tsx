@@ -4,7 +4,7 @@ import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
-import { ACTION, FoldedBody, Star, laneColor, plural } from './CommitParts.tsx';
+import { ACTION, FoldedBody, laneColor, plural, Star } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 
 type Reply = Commit | DeletedCommit;
@@ -94,11 +94,7 @@ function ReplyItem({ reply, parentId }: { reply: Reply; parentId: string }) {
             </time>
           </a>
         </div>
-        <FoldedBody
-          segments={reply.body_segments ?? segmentBody(reply.body)}
-          excerpt={reply.preview_segments ?? null}
-          mentions={reply.mentions ?? []}
-        />
+        <FoldedBody segments={reply.body_segments ?? segmentBody(reply.body)} excerpt={reply.preview_segments ?? null} mentions={reply.mentions ?? []} />
         <CommitImages images={reply.images ?? []} hash={reply.short_hash} link={reply.html_url} />
         {reply.link_preview && <LinkPreview preview={reply.link_preview} interactive />}
         <div class="mt-1 flex items-center gap-4 text-xs text-fg-muted">

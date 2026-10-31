@@ -29,12 +29,7 @@ export function ComposerDialog({ target, onClose }: { target: Target; onClose: (
       <div class="flex items-center gap-2 px-4 pt-4">
         <Glyph />
         <h2 class="m-0 text-base font-semibold">Write a commit</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          class="ml-auto rounded-md px-1.5 text-fg-muted hover:bg-button-hover hover:text-fg"
-          aria-label="Close"
-        >
+        <button type="button" onClick={onClose} class="ml-auto rounded-md px-1.5 text-fg-muted hover:bg-button-hover hover:text-fg" aria-label="Close">
           ✕
         </button>
       </div>

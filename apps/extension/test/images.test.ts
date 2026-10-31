@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_IMAGES, MAX_IMAGE_BYTES, fromTransfer, imageProblem, toTransfer } from '../src/lib/images.ts';
+import { fromTransfer, imageProblem, MAX_IMAGE_BYTES, MAX_IMAGES, toTransfer } from '../src/lib/images.ts';
 
 const file = (type: string, size = 10, name = 'shot') => new File([new Uint8Array(size)], name, { type });
 

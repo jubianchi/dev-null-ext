@@ -62,9 +62,7 @@ describe('addition sources', () => {
       url: 'https://github.com/laravel/installer/releases/tag/v5.32.0',
     };
 
-    expect(pageLink({ page: release, organization: 'laravel' })[0]).toEqual(
-      expect.objectContaining({ text: release.url, label: 'laravel/installer@v5.32.0' }),
-    );
+    expect(pageLink({ page: release, organization: 'laravel' })[0]).toEqual(expect.objectContaining({ text: release.url, label: 'laravel/installer@v5.32.0' }));
   });
 
   it('links a discussion as owner/repo#number', () => {

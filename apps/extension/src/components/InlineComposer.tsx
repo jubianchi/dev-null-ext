@@ -3,7 +3,7 @@ import { useRef, useState } from 'preact/hooks';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
-import { AttachedImages, ImagePicker, filesOf } from './AttachedImages.tsx';
+import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -112,9 +112,7 @@ export function InlineComposer({
               <PreviewPanel body={body} images={draft.images} />
             </div>
           )}
-          {tab === 'write' && (
-            <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />
-          )}
+          {tab === 'write' && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
         </div>
 
         {warnings.length > 0 && (
