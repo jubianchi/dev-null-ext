@@ -18,6 +18,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 
 - [x] Star and unstar: the client already has `star()` and `unstar()`; add the button on the star counter.
 - [x] Reply and Quote: link to the commit on dev-null.sh first; composing them in the extension comes later.
+- [ ] Reply to a commit from a log, in the extension: a composer for the reply (`parent_id`), the reply added under
+      its commit once sent. Then quote the same way (`quoted_commit_id`).
 
 ## 3. Threads
 
