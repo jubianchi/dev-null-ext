@@ -11,7 +11,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
       like "I love that you can use markdown to quote a block of text" loses its meaning.
 - [x] Images: show a commit's images, with their descriptions as alt text. github.com's CSP only allows its own hosts,
       `data:` and `blob:` as image sources: the background fetches them from dev-null.sh as data URLs.
-- [ ] Link previews: show the card of the first link. Its image comes from any host, so the same CSP applies.
+- [x] Link previews: show the card of the first link. Its image comes from any host, so the same CSP applies: it
+      only shows from GitHub's own hosts (`*.githubusercontent.com`, `*.githubassets.com`).
 
 ## 2. Act on a commit from the log
 

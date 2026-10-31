@@ -4,6 +4,7 @@ import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitBody } from './CommitBody.tsx';
 import { CommitImages } from './CommitImages.tsx';
+import { LinkPreview } from './LinkPreview.tsx';
 import { Octicon } from './Octicon.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
 
@@ -69,6 +70,7 @@ export function CommitItem({ commit }: { commit: Commit }) {
         />
         <CommitImages images={commit.images ?? []} hash={commit.short_hash} link={commit.html_url} />
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
+        {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
         <div class="mt-2 flex gap-4 text-xs text-fg-muted">
           {commit.stars_count !== undefined && (
             <span class="inline-flex items-center gap-1" aria-label={plural(commit.stars_count, 'star', 'stars')}>
