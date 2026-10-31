@@ -5,7 +5,8 @@ A WXT browser extension (Preact, Tailwind CSS v4) that brings dev-null.sh into g
 
 ## Commands
 
-- Run from the repository root: `pnpm test`, `pnpm typecheck`, `pnpm build`; all three MUST pass before a commit.
+- Run from the repository root: `pnpm lint`, `pnpm test`, `pnpm typecheck`, `pnpm build`; all four MUST pass before a
+  commit. `pnpm format` applies Biome's formatting and safe fixes.
 - A single test file: `pnpm vitest run test/<name>.test.tsx` from `apps/extension` (or `packages/client`).
 ## Workflow
 

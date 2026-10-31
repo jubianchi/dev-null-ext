@@ -14,6 +14,8 @@ Thanks for helping! This guide explains how the extension is built and how to ch
 ```sh
 pnpm install
 pnpm test          # client and extension unit tests
+pnpm lint          # Biome: formatting, imports and lint rules
+pnpm format        # apply Biome's fixes
 pnpm typecheck
 pnpm build         # .output/chrome-mv3 and .output/firefox-mv3 in apps/extension
 pnpm dev           # Chrome with hot reload
@@ -37,7 +39,7 @@ it in order, and check the item off in the commit that lands it. To propose some
 - **One topic per pull request**, made of small, atomic commits.
 - **Test first.** Write a failing test, make it pass, then clean up. When a change can't be test-driven (configuration,
   documentation), say so in the pull request.
-- Before pushing, run `pnpm test`, `pnpm typecheck` and `pnpm build`.
+- Before pushing, run `pnpm lint`, `pnpm test`, `pnpm typecheck` and `pnpm build`.
 - Check the change in a real browser, on both GitHub markups (signed in and signed out) and in the light and dark
   themes.
 - Open pull requests as drafts, targeting `main`.
@@ -51,6 +53,8 @@ shouldn't need comments for that.
 ### Code
 
 - TypeScript, strict. Code, identifiers and comments are in English.
+- Formatting and lint rules are [Biome](https://biomejs.dev)'s (`biome.json`). Silence a rule only with a
+  `biome-ignore` comment that says why.
 - Comment only what the code can't say: a constraint from GitHub, WXT or /dev/null, a non-obvious choice.
 - `packages/client` stays free of DOM and extension APIs.
 - Everything that depends on GitHub's markup goes in `apps/extension/src/lib/github/`.
@@ -182,7 +186,8 @@ and more to come. These are **additions** (`apps/extension/src/lib/additions.ts`
 
 ## Continuous integration and releases
 
-- **CI** (`.github/workflows/ci.yml`): every push to `main` and every pull request is typechecked, tested and built.
+- **CI** (`.github/workflows/ci.yml`): every push to `main` and every pull request is linted, typechecked, tested and
+  built.
   The run keeps the Chrome and Firefox archives for 14 days, to try the build.
 - **Release** (`.github/workflows/release.yml`): pushing a `vMAJOR.MINOR.PATCH` tag sets the extension's version from
   the tag, checks and builds it, then publishes a GitHub release with three archives: Chrome, Firefox, and the sources
