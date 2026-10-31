@@ -4,7 +4,8 @@
  */
 
 export type GitHubPage =
-  | { kind: 'organization'; organization: string }
+  /** `discussions` on the organization's discussions list, whose sidebar shows what /dev/null says of the organization. */
+  | { kind: 'organization'; organization: string; discussions?: true }
   | { kind: 'repository'; owner: string; repository: string; url: string }
   | {
       kind: 'pull-request' | 'issue' | 'discussion';
@@ -30,7 +31,8 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
 
   if (owner === 'orgs' && repository) {
     const discussion = section === 'discussions' && number && /^\d+$/.test(number) ? organizationDiscussion(repository, Number(number), document) : null;
-    return discussion ?? { kind: 'organization', organization: repository };
+    if (discussion) return discussion;
+    return section === 'discussions' ? { kind: 'organization', organization: repository, discussions: true } : { kind: 'organization', organization: repository };
   }
   if (!owner || RESERVED.has(owner.toLowerCase())) return { kind: 'other' };
 

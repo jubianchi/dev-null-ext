@@ -4,9 +4,11 @@ import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { OrganizationPanel } from '../../components/OrganizationPanel.tsx';
+import { OrganizationSidebar } from '../../components/OrganizationSidebar.tsx';
 import { organizationTabLink } from '../../components/OrganizationTab.tsx';
 import { ShareButton } from '../../components/ShareButton.tsx';
 import {
+  discussionsSidebar,
   organizationContent,
   organizationTabs,
   organizationTabStyle,
@@ -56,7 +58,10 @@ export default defineContentScript({
 async function mount(ctx: ContentScriptContext, page: GitHubPage): Promise<Mounted[]> {
   switch (page.kind) {
     case 'organization':
-      return [organizationTab(ctx, page.organization)];
+      return [
+        organizationTab(ctx, page.organization),
+        ...(page.discussions ? [await organizationSidebar(ctx, page.organization)] : []),
+      ];
     case 'repository':
     case 'pull-request':
     case 'issue':
@@ -102,6 +107,20 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
       removeShareItems();
     },
   };
+}
+
+/** What /dev/null says of the organization, at the end of its discussions list's sidebar. */
+async function organizationSidebar(ctx: ContentScriptContext, organization: string): Promise<Mounted> {
+  const ui = await createShadowRootUi(ctx, {
+    name: 'devnull-sidebar',
+    position: 'inline',
+    anchor: discussionsSidebar,
+    append: 'last',
+    onMount: (container) => render(<OrganizationSidebar organization={organization} />, container),
+    onRemove: (container) => container && render(null, container),
+  });
+
+  return keptMounted(ctx, ui, () => ui.shadowHost, discussionsSidebar);
 }
 
 /** The list items the share button went in, so none is left empty among GitHub's. */

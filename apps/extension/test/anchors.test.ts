@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  discussionsSidebar,
   organizationContent,
   organizationTabs,
   organizationTabStyle,
@@ -75,6 +76,17 @@ describe('organization anchors, logged in', () => {
 
   it('finds the selected tab', () => {
     expect(selectedOrganizationTabs().map((tab) => tab.textContent)).toEqual(['Overview']);
+  });
+});
+
+describe('discussions sidebar anchor', () => {
+  it("finds the discussions list's right sidebar, not its categories", () => {
+    document.body.innerHTML = `
+      <div class="Layout Layout--sidebarPosition-start"><div class="Layout-sidebar" id="categories"></div><div class="Layout-main">
+        <div class="Layout Layout--flowRow-until-lg Layout--sidebarPosition-end"><div class="Layout-main"></div><div class="Layout-sidebar" id="most-helpful"></div></div>
+      </div></div>`;
+
+    expect(document.querySelector(discussionsSidebar())?.id).toBe('most-helpful');
   });
 });
 

@@ -45,10 +45,16 @@ describe('readPage, discussions', () => {
     });
   });
 
-  it("keeps an organization's discussions list an organization page", () => {
+  it("keeps an organization's discussions list an organization page, saying it is its discussions", () => {
     expect(readPage(new URL('https://github.com/orgs/NativePHP/discussions'), documentWith(null))).toEqual({
       kind: 'organization',
       organization: 'NativePHP',
+      discussions: true,
+    });
+    expect(readPage(new URL('https://github.com/orgs/NativePHP/discussions/categories/ideas'), documentWith(null))).toEqual({
+      kind: 'organization',
+      organization: 'NativePHP',
+      discussions: true,
     });
   });
 });
@@ -92,7 +98,7 @@ describe('readPage', () => {
   });
 
   it("knows an organization's other tabs from their /orgs URL", () => {
-    for (const tab of ['repositories', 'projects', 'packages', 'people', 'sponsoring', 'discussions']) {
+    for (const tab of ['repositories', 'projects', 'packages', 'people', 'sponsoring']) {
       expect(readPage(new URL(`https://github.com/orgs/dev-null-sh/${tab}`), documentWith(null))).toEqual({
         kind: 'organization',
         organization: 'dev-null-sh',
@@ -101,6 +107,7 @@ describe('readPage', () => {
     expect(readPage(new URL('https://github.com/orgs/NativePHP/discussions?discussions_q=is%3Aopen'), documentWith(null))).toEqual({
       kind: 'organization',
       organization: 'NativePHP',
+      discussions: true,
     });
   });
 

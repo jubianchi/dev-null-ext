@@ -46,6 +46,11 @@ export function selectedOrganizationTabs(): Element[] {
     .filter((tab) => !tab.hasAttribute('data-devnull-tab'));
 }
 
+/** The right sidebar of an organization's discussions list ("Most helpful"), not its categories on the left. */
+export function discussionsSidebar(): string {
+  return '.Layout--sidebarPosition-end > .Layout-sidebar';
+}
+
 export interface ShareButtonAnchor {
   /** The container of GitHub's own buttons, which the share button goes first in. */
   selector: string;
