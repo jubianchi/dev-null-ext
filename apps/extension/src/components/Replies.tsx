@@ -4,7 +4,7 @@ import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
 import { CommitImages } from './CommitImages.tsx';
-import { FoldedBody, Star, lane } from './CommitParts.tsx';
+import { ACTION, FoldedBody, Star, lane, plural } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 
 type Reply = Commit | DeletedCommit;
@@ -45,11 +45,20 @@ export function Replies({ parent, preview }: { parent: Commit; preview: { data: 
           disabled={loading}
           class="ml-1 mt-1 border-0 border-l-2 border-dashed border-border bg-transparent py-1 pl-3 text-xs font-medium text-fg-accent hover:underline disabled:opacity-50"
         >
-          {left === 1 ? 'Show the last reply' : `Show ${left} more`}
+          {moreLabel(left)}
         </button>
       )}
     </div>
   );
+}
+
+/** The API pages replies 50 at a time (CommitRepliesQuery::PER_PAGE). */
+const REPLIES_PER_PAGE = 50;
+
+/** As dev-null.sh words it (moreRepliesLabel): the last ones when one page loads them all, how many more otherwise. */
+function moreLabel(left: number): string {
+  if (left === 1) return 'Show the last reply';
+  return left <= REPLIES_PER_PAGE ? `Show the last ${left}` : `Show ${left} more`;
 }
 
 /** A reply, or a quote of the parent: dev-null.sh lists both under a commit, and marks the quotes. */
@@ -92,11 +101,20 @@ function ReplyItem({ reply, parentId }: { reply: Reply; parentId: string }) {
         />
         <CommitImages images={reply.images ?? []} hash={reply.short_hash} link={reply.html_url} />
         {reply.link_preview && <LinkPreview preview={reply.link_preview} interactive />}
-        {reply.stars_count !== undefined && (
-          <div class="mt-1 text-xs text-fg-muted">
-            <Star commit={reply} count={reply.stars_count} />
-          </div>
-        )}
+        <div class="mt-1 flex items-center gap-4 text-xs text-fg-muted">
+          {reply.stars_count !== undefined && <Star commit={reply} count={reply.stars_count} />}
+          {(reply.replies_count ?? 0) > 0 && (
+            <a
+              href={reply.html_url}
+              target="_blank"
+              rel="noopener"
+              class={`${ACTION} text-fg-accent`}
+              aria-label={plural(reply.replies_count ?? 0, 'reply', 'replies')}
+            >
+              {plural(reply.replies_count ?? 0, 'reply', 'replies')}
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

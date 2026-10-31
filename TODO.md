@@ -23,6 +23,8 @@ thread to follow. The UI principles in the [README](README.md#ui-principles) app
 
 - [x] Show the reply preview under each commit, and the older replies on demand, as dev-null.sh does.
 - [x] Say which commit a mention replies to ("↳ replying to @handle").
+- [x] Show a reply's own replies count ("1 reply"), linking to it, as dev-null.sh does.
+- [x] Label the load-more button as dev-null.sh does: "Show the last N" when one page loads them all.
 - [ ] "Show thread": it needs the commit's `continuation_id` (its author's earliest self-reply), which the API does
       not expose. For the same reason, the replies loaded on demand may include that continuation. Ask dev-null.sh to
       expose it.

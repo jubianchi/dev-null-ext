@@ -60,13 +60,27 @@ describe('Replies', () => {
     ask.mockResolvedValueOnce({ data: [reply('r2', 'Older'), reply('r1', 'Oldest')], meta: { next_cursor: null } });
     await show({ data: [reply('r3', 'Newest')], next_cursor: 'cursor-1' });
 
-    expect(more()?.textContent).toBe('Show 2 more');
+    expect(more()?.textContent).toBe('Show the last 2');
     await act(async () => more()!.click());
     await act(async () => {});
 
     expect(ask).toHaveBeenCalledWith({ type: 'replies', commitId: 'c1', cursor: 'cursor-1' });
     expect([...root.querySelectorAll('[data-reply]')].map((element) => element.textContent?.includes('Older'))).toEqual([false, true, false]);
     expect(more()).toBeUndefined();
+  });
+
+  it('counts what is left when more than a page of replies remains', async () => {
+    await show({ data: [reply('r60', 'Newest')], next_cursor: 'cursor-1' }, 60);
+
+    expect(more()?.textContent).toBe('Show 59 more');
+  });
+
+  it("shows a reply's own replies, linking to it", async () => {
+    await show({ data: [{ ...reply('r3', 'Newest'), replies_count: 1 }], next_cursor: null }, 1);
+
+    const replies = root.querySelector('a[aria-label="1 reply"]');
+    expect(replies?.getAttribute('href')).toBe('https://dev-null.sh/@jubianchi/commits/r3');
+    expect(replies?.textContent).toBe('1 reply');
   });
 
   it('says the last reply when only one is left', async () => {
