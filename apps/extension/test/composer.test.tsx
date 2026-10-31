@@ -250,6 +250,31 @@ describe('Composer', () => {
   });
 });
 
+describe('Composer, mention suggestions', () => {
+  it('suggests the organization then the author on @, and completes the one chosen with the keyboard', async () => {
+    await mount(<Composer target={{ page: { ...issue, author: 'taylorotwell' }, organization: 'laravel' }} />);
+    const textarea = root.querySelector('textarea')!;
+    await act(async () => {
+      textarea.value = '@';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    const options = [...root.querySelectorAll<HTMLElement>('[role="option"]')];
+    expect(options.map((option) => option.dataset.handle)).toEqual(['laravel', 'taylorotwell']);
+    expect(options[1]?.textContent).toContain('who opened this issue');
+
+    await act(async () => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    });
+    expect(root.querySelectorAll('[role="option"]')[1]?.getAttribute('aria-selected')).toBe('true');
+
+    await act(async () => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    });
+    expect(textarea.value).toBe('@taylorotwell ');
+  });
+});
+
 describe('ComposerDialog', () => {
   it('opens the composer in a modal dialog', async () => {
     await mount(<ComposerDialog target={{ page, organization: null }} onClose={() => {}} />);

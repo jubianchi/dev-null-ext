@@ -1,10 +1,12 @@
 import type { Commit } from '@devnull-github/client';
 import { useRef, useState } from 'preact/hooks';
+import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
+import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
@@ -30,6 +32,7 @@ export function InlineComposer({
   const [tab, setTab] = useState<Tab>('write');
   const textarea = useRef<HTMLTextAreaElement>(null);
   const picker = useRef<HTMLInputElement>(null);
+  const mentions = useMentionSuggestions(textarea, text, additionCandidates(additions));
 
   if (state.step === 'loading') return null;
 
@@ -94,7 +97,11 @@ export function InlineComposer({
             <textarea
               ref={textarea}
               value={text}
-              onInput={(event) => setText(event.currentTarget.value)}
+              {...mentions.textareaProps}
+              onInput={(event) => {
+                setText(event.currentTarget.value);
+                mentions.track(event.currentTarget);
+              }}
               onPaste={(event) => {
                 const files = filesOf(event.clipboardData);
                 if (files.length === 0) return;
@@ -112,6 +119,7 @@ export function InlineComposer({
               <PreviewPanel body={body} images={draft.images} />
             </div>
           )}
+          {tab === 'write' && mentions.list}
           {tab === 'write' && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
         </div>
 

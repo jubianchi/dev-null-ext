@@ -1,10 +1,12 @@
 import type { CurrentUser } from '@devnull-github/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
+import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
@@ -17,6 +19,7 @@ export function Composer({ target }: { target: Target }) {
   const [previewing, setPreviewing] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const picker = useRef<HTMLInputElement>(null);
+  const mentions = useMentionSuggestions(textarea, text, additionCandidates(additions));
 
   useEffect(() => {
     if (state.step === 'writing' && !previewing) textarea.current?.focus();
@@ -73,7 +76,11 @@ export function Composer({ target }: { target: Target }) {
                 <textarea
                   ref={textarea}
                   value={text}
-                  onInput={(event) => setText(event.currentTarget.value)}
+                  {...mentions.textareaProps}
+                  onInput={(event) => {
+                    setText(event.currentTarget.value);
+                    mentions.track(event.currentTarget);
+                  }}
                   onPaste={(event) => {
                     const files = filesOf(event.clipboardData);
                     if (files.length === 0) return;
@@ -88,6 +95,7 @@ export function Composer({ target }: { target: Target }) {
               )}
             </div>
 
+            {!previewing && mentions.list}
             {!previewing && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
 
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />

@@ -190,6 +190,60 @@ describe('InlineComposer, images', () => {
   });
 });
 
+describe('InlineComposer, mention suggestions', () => {
+  const listbox = () => root.querySelector('[role="listbox"]');
+  const options = () => [...root.querySelectorAll<HTMLElement>('[role="option"]')];
+  const key = async (name: string) => {
+    const event = new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true });
+    await act(async () => {
+      root.querySelector('textarea')!.dispatchEvent(event);
+    });
+    return event;
+  };
+
+  it('suggests the organization while typing a mention, as dev-null.sh does', async () => {
+    await type('Thanks @la');
+
+    expect(listbox()).not.toBeNull();
+    expect(options().map((option) => option.dataset.handle)).toEqual(['laravel']);
+    expect(options()[0]?.getAttribute('aria-selected')).toBe('true');
+    expect(root.querySelector('textarea')?.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('completes the mention on Enter, followed by a space, and closes', async () => {
+    await type('Thanks @la');
+    const enter = await key('Enter');
+
+    expect(enter.defaultPrevented).toBe(true);
+    expect(root.querySelector('textarea')?.value).toBe('Thanks @laravel ');
+    expect(listbox()).toBeNull();
+  });
+
+  it('completes the mention clicked', async () => {
+    await type('@');
+    await act(async () => options()[0]!.click());
+
+    expect(root.querySelector('textarea')?.value).toBe('@laravel ');
+  });
+
+  it('closes on Escape, and only the suggestions', async () => {
+    await type('Thanks @la');
+    const escapeKey = await key('Escape');
+
+    expect(escapeKey.defaultPrevented).toBe(true);
+    expect(listbox()).toBeNull();
+    expect(root.querySelector('textarea')?.value).toBe('Thanks @la');
+  });
+
+  it('shows nothing when no one matches, nor outside a mention', async () => {
+    await type('Thanks @zz');
+    expect(listbox()).toBeNull();
+
+    await type('me@la');
+    expect(listbox()).toBeNull();
+  });
+});
+
 describe('InlineComposer', () => {
   it("has GitHub's Write and Preview tabs, Write first", () => {
     expect([...root.querySelectorAll('[role="tab"]')].map((element) => element.textContent)).toEqual(['Write', 'Preview']);
