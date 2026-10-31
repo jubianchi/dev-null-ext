@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
+import { useSession } from '../lib/use-session.ts';
 import type { SharedPage } from '../lib/share.ts';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
 
-/** A button in GitHub's own style that opens the composer for the repository, pull request or issue on screen. */
+/**
+ * A button in GitHub's own style that opens the composer for the repository, pull request or issue on screen. Only
+ * when connected to /dev/null: there is nothing to do with it otherwise.
+ */
 export function ShareButton({ page }: { page: SharedPage }) {
+  const user = useSession();
   const [open, setOpen] = useState(false);
   const [organization, setOrganization] = useState<string | null>(null);
 
@@ -15,6 +20,8 @@ export function ShareButton({ page }: { page: SharedPage }) {
       () => setOrganization(null),
     );
   }, [page.owner]);
+
+  if (!user) return null;
 
   return (
     <span class="inline-flex font-sans">
