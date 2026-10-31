@@ -81,6 +81,30 @@ DOM, styled with Tailwind mapped onto Primer's CSS variables (`src/assets/tailwi
 high-contrast themes apply with no code. WXT 0.21 moves Tailwind's `@property` rules out of the shadow root, where they
 don't work. The organization tab is the exception: it sits in GitHub's own tab list and copies its neighbours' classes.
 
+## UI principles
+
+The extension looks like GitHub and speaks like /dev/null: Primer's components, layout and colours, with /dev/null's
+features and vocabulary (a *commit*, the *log*, *star*, *reply*, the `//` glyph and lanes).
+
+### Where the composer opens
+
+```mermaid
+flowchart TD
+    A{Does the view show a log?} -- no --> M[Modal composer]
+    A -- yes --> B{Is the top of the log in view?}
+    B -- yes --> I[Inline composer, above the log]
+    B -- no --> M
+```
+
+- **A log at its top**: the composer is inline, above the log, like GitHub's comment box above a timeline.
+- **A log scrolled down**: the log's header stays at the top of the screen, and its *Commit* button opens the composer
+  in a modal, so writing never scrolls the reader away from where they are.
+- **No log** (the share button on a repository, an issue or a pull request): the composer is modal.
+
+The inline composer is GitHub's comment box with /dev/null's essentials: *Write* and *Preview* tabs, the character
+count against /dev/null's limit, and a *Commit* button. The modal composer is dev-null.sh's: the author's avatar beside
+the text, the tools below it.
+
 ## Before publishing anywhere
 
 - Firefox requires `data_collection_permissions` in `browser_specific_settings.gecko` for new add-ons: decide what to
