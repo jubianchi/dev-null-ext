@@ -1,4 +1,4 @@
-import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, Page } from '@dev-null-ext/client';
+import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, NewPoll, Page } from '@dev-null-ext/client';
 import { browser } from 'wxt/browser';
 import type { FollowState } from './follows.ts';
 import type { TransferredImage } from './images.ts';
@@ -10,7 +10,7 @@ import type { TransferredImage } from './images.ts';
 export type Request =
   | { type: 'session' }
   | { type: 'mentions'; organization: string; cursor: string | null }
-  | { type: 'commit'; body: string; images?: TransferredImage[]; parentId?: string }
+  | { type: 'commit'; body: string; images?: TransferredImage[]; parentId?: string; poll?: NewPoll }
   | { type: 'preview'; body: string }
   | { type: 'mention-suggestions'; query: string; reply?: string }
   | { type: 'image'; url: string }

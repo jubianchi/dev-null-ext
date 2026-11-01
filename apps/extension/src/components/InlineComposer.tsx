@@ -2,15 +2,19 @@ import type { Commit } from '@dev-null-ext/client';
 import { useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
-import { useCommitDraft } from '../lib/use-commit-draft.ts';
+import { IMAGES_OR_POLL, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
+import { PollEditor, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
 type Tab = 'write' | 'preview';
+
+const TOOL =
+  'rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted';
 
 /**
  * The composer inline above an organization's log, drawn as GitHub's comment box (Write and Preview tabs, a footer
@@ -83,11 +87,12 @@ export function InlineComposer({
               onClick={() => picker.current?.click()}
               disabled={!draft.canAttach}
               aria-label="Attach images"
-              title="Attach images: up to 3, JPEG, PNG or WebP"
-              class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+              title={draft.poll ? IMAGES_OR_POLL : 'Attach images: up to 3, JPEG, PNG or WebP'}
+              class={TOOL}
             >
               <Octicon name="image" />
             </button>
+            <PollTool draft={draft} class={TOOL} />
             <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
           </div>
         </div>
@@ -110,7 +115,7 @@ export function InlineComposer({
               }}
               rows={4}
               aria-label="Commit message"
-              placeholder="What did you ship?"
+              placeholder={draft.poll ? 'Ask a question' : 'What did you ship?'}
               disabled={state.step === 'sending'}
               class="block min-h-24 w-full resize-y rounded-md border border-border bg-canvas px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:outline-2 focus:outline-fg-accent"
             />
@@ -121,6 +126,9 @@ export function InlineComposer({
           )}
           {tab === 'write' && mentions.list}
           {tab === 'write' && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
+          {tab === 'write' && draft.poll && (
+            <PollEditor poll={draft.poll} onChange={draft.setPoll} onRemove={draft.removePoll} disabled={state.step === 'sending'} />
+          )}
         </div>
 
         {warnings.length > 0 && (

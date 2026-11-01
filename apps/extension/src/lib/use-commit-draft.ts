@@ -3,10 +3,14 @@ import { useEffect, useState } from 'preact/hooks';
 import { type Addition, additionsFor, type ComposerContext, isIn, withAddition } from './additions.ts';
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
 import { ask, BackgroundError } from './messages.ts';
+import { type DraftPoll, newPoll, pollReady } from './polls.ts';
 import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
 import { replaceText } from './textarea.ts';
 
 export type Target = ComposerContext;
+
+/** As dev-null.sh says why its image and poll buttons turn each other off. */
+export const IMAGES_OR_POLL = 'A commit can have images or a poll, not both';
 
 /** A reply to a commit: it shares no page, so it offers no additions, and /dev/null notifies the parent's author. */
 export interface ReplyTarget {
@@ -49,14 +53,23 @@ export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (comm
   const [images, setImages] = useState<AttachedImage[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
 
+  const [poll, setPoll] = useState<DraftPoll | null>(null);
+
   const body = text.trim();
   const length = commitLength(body);
-  // With images, the text may be empty, as /dev/null allows.
+  // With images, the text may be empty, as /dev/null allows; a poll still needs it, its question.
   const canCommit =
-    (body !== '' || images.length > 0) && length <= MAX_COMMIT_LENGTH && (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
+    (body !== '' || (images.length > 0 && !poll)) &&
+    (!poll || pollReady(poll)) &&
+    length <= MAX_COMMIT_LENGTH &&
+    (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
 
   /** Attaches the images /dev/null would take, in order, and says why it leaves out the others. */
   function attach(files: Iterable<File>) {
+    if (poll) {
+      setImageErrors([IMAGES_OR_POLL]);
+      return;
+    }
     const attached = [...images];
     const errors: string[] = [];
     for (const file of files) {
@@ -99,9 +112,11 @@ export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (comm
         body,
         ...(transferred.length > 0 ? { images: transferred } : {}),
         ...(parentId ? { parentId } : {}),
+        ...(poll ? { poll: { ...poll, options: poll.options.map((option) => option.trim()) } } : {}),
       });
       setState({ step: 'sent', user, commit });
       setText('');
+      setPoll(null);
       for (const image of images) URL.revokeObjectURL(image.url);
       setImages([]);
       setImageErrors([]);
@@ -121,7 +136,13 @@ export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (comm
     warnings,
     images,
     imageErrors,
-    canAttach: images.length < MAX_IMAGES,
+    canAttach: images.length < MAX_IMAGES && !poll,
+    poll,
+    /** A poll goes on a commit that is not a reply, without images. */
+    canPoll: !parentId && images.length === 0 && !poll,
+    startPoll: () => setPoll(newPoll()),
+    setPoll,
+    removePoll: () => setPoll(null),
     attach,
     detach,
     describe,

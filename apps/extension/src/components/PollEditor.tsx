@@ -1,6 +1,23 @@
 import { POLL_DURATIONS, type PollDuration } from '@dev-null-ext/client';
 import { type DraftPoll, DURATION_LABELS, MAX_POLL_OPTION_LENGTH, MAX_POLL_OPTIONS, MIN_POLL_OPTIONS } from '../lib/polls.ts';
+import { IMAGES_OR_POLL } from '../lib/use-commit-draft.ts';
 import { Lucide } from './Lucide.tsx';
+
+/** The composer toolbar's button to add a poll, turned off by images, as dev-null.sh's. */
+export function PollTool({ draft, class: className }: { draft: { canPoll: boolean; images: readonly unknown[]; startPoll: () => void }; class: string }) {
+  return (
+    <button
+      type="button"
+      onClick={draft.startPoll}
+      disabled={!draft.canPoll}
+      aria-label="Add poll"
+      title={draft.images.length > 0 ? IMAGES_OR_POLL : 'Add a poll: 2 to 4 options'}
+      class={className}
+    >
+      <Lucide name="chart-bar" />
+    </button>
+  );
+}
 
 const QUIET = 'cursor-pointer rounded-md border-0 bg-transparent text-xs font-medium hover:bg-button-hover disabled:cursor-not-allowed disabled:opacity-50';
 

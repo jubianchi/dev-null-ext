@@ -259,6 +259,33 @@ describe('Composer', () => {
     expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
     expect(root.textContent).toContain('View on /dev/null');
   });
+
+  it('commits a question with a poll, added from its toolbar after the images', async () => {
+    await mount(<Composer target={{ page, organization: 'laravel' }} />);
+    ask.mockResolvedValueOnce(committed);
+    const toolbar = root.querySelector('[role="toolbar"]')!;
+    expect(toolbar.children[1]?.getAttribute('aria-label')).toBe('Add poll');
+
+    await act(async () => toolbar.querySelector<HTMLButtonElement>('[aria-label="Add poll"]')!.click());
+    expect(root.querySelector('textarea')?.placeholder).toBe('Ask a question');
+
+    for (const [field, value] of [
+      [root.querySelector('textarea')!, 'Tabs or spaces?'],
+      [root.querySelector<HTMLTextAreaElement>('textarea[aria-label="Option 1"]')!, 'Tabs'],
+      [root.querySelector<HTMLTextAreaElement>('textarea[aria-label="Option 2"]')!, 'Spaces'],
+    ] as const) {
+      await act(async () => {
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await act(async () => {});
+
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+  });
 });
 
 describe('Composer, once committed', () => {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
-import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
+import { IMAGES_OR_POLL, type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { Avatar } from './Avatar.tsx';
@@ -10,9 +10,13 @@ import { Committed } from './Committed.tsx';
 import { Loader } from './Loader.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
+import { PollEditor, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
 export type { Target } from '../lib/use-commit-draft.ts';
+
+const TOOL =
+  'rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted';
 
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
 export function Composer({ target }: { target: Target }) {
@@ -83,7 +87,7 @@ export function Composer({ target }: { target: Target }) {
                     draft.attach(files);
                   }}
                   rows={2}
-                  placeholder={target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
+                  placeholder={draft.poll ? 'Ask a question' : target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
                   class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
                   disabled={state.step === 'sending'}
                 />
@@ -92,6 +96,9 @@ export function Composer({ target }: { target: Target }) {
 
             {!previewing && mentions.list}
             {!previewing && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
+            {!previewing && draft.poll && (
+              <PollEditor poll={draft.poll} onChange={draft.setPoll} onRemove={draft.removePoll} disabled={state.step === 'sending'} />
+            )}
 
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
 
@@ -104,11 +111,12 @@ export function Composer({ target }: { target: Target }) {
                   onClick={() => picker.current?.click()}
                   disabled={!draft.canAttach}
                   aria-label="Attach images"
-                  title="Attach images: up to 3, JPEG, PNG or WebP"
-                  class="rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+                  title={draft.poll ? IMAGES_OR_POLL : 'Attach images: up to 3, JPEG, PNG or WebP'}
+                  class={TOOL}
                 >
                   <Octicon name="image" />
                 </button>
+                <PollTool draft={draft} class={TOOL} />
                 <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
                 <button
                   type="button"

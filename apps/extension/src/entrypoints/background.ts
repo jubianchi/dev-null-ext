@@ -241,7 +241,11 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return (await readingClient()).organizationMentions(request.organization, request.cursor);
     case 'commit':
       return (await client({ signed: true })).createCommit(
-        request.parentId ? { body: request.body, parent_id: request.parentId } : { body: request.body },
+        {
+          body: request.body,
+          ...(request.parentId ? { parent_id: request.parentId } : {}),
+          ...(request.poll ? { poll: request.poll } : {}),
+        },
         (request.images ?? []).map(fromTransfer),
       );
     case 'preview':

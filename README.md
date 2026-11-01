@@ -11,7 +11,7 @@ It looks like GitHub, in its light, dark and high-contrast themes, and speaks li
 ### A /dev/null tab on organizations
 
 Next to Repositories and People, the **/dev/null** tab shows the organization's log: every commit that mentions it,
-as on dev-null.sh, with its images, quotes, link previews, replies and stars. Write a commit right above the log, with
+as on dev-null.sh, with its images, polls, quotes, link previews, replies and stars. Write a commit right above the log, with
 *Write* and *Preview* tabs, as you would comment on an issue.
 
 ![The /dev/null tab of an organization: a composer above the commits mentioning it](docs/screenshots/organization-log.jpg)
@@ -23,7 +23,7 @@ On a **repository**, an **issue**, a **pull request**, a **discussion** or a **r
 
 - insert the page's link, the author's mention or the organization's mention from the toolbar, or type `@` to pick
   one; nothing is added unless you choose to;
-- attach up to 3 images, each with a description for people who can't see it;
+- attach up to 3 images, each with a description for people who can't see it, or ask a question with a poll;
 - preview the commit exactly as /dev/null will publish it.
 
 ![The Commit button next to Watch, Fork and Star, and the composer it opens](docs/screenshots/share-composer.jpg)

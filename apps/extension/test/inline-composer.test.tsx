@@ -192,6 +192,63 @@ describe('InlineComposer, images', () => {
   });
 });
 
+describe('InlineComposer, polls', () => {
+  const commitButton = () => [...root.querySelectorAll<HTMLButtonElement>('button[type="submit"]')].find((element) => element.textContent === 'Commit')!;
+
+  async function option(index: number, value: string) {
+    const field = root.querySelector<HTMLTextAreaElement>(`textarea[aria-label="Option ${index}"]`)!;
+    await act(async () => {
+      field.value = value;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  it('adds a poll from its toolbar, asking a question instead of what was shipped, without images', async () => {
+    await act(async () => button('Add poll')!.click());
+
+    expect(root.querySelector('fieldset legend')?.textContent).toBe('Poll');
+    expect(root.querySelector('textarea')?.placeholder).toBe('Ask a question');
+    expect(button('Add poll')?.disabled).toBe(true);
+    expect(button('Attach images')?.disabled).toBe(true);
+    expect(button('Attach images')?.title).toBe('A commit can have images or a poll, not both');
+
+    await act(async () => [...root.querySelectorAll<HTMLButtonElement>('button')].find((element) => element.textContent === 'Remove poll')!.click());
+    expect(root.querySelector('fieldset')).toBeNull();
+    expect(button('Attach images')?.disabled).toBe(false);
+  });
+
+  it("can't add a poll to a commit with images", async () => {
+    await attach(png());
+
+    expect(button('Add poll')?.disabled).toBe(true);
+    expect(button('Add poll')?.title).toBe('A commit can have images or a poll, not both');
+  });
+
+  it('commits the question with its poll once every option is filled, then clears the poll', async () => {
+    await act(async () => button('Add poll')!.click());
+    await type('Tabs or spaces?');
+    await option(1, ' Tabs ');
+    expect(commitButton().disabled).toBe(true);
+
+    await option(2, 'Spaces');
+    expect(commitButton().disabled).toBe(false);
+
+    await submit();
+    await act(async () => {});
+
+    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+    expect(root.querySelector('fieldset')).toBeNull();
+  });
+
+  it('needs the question, the body /dev/null requires with a poll', async () => {
+    await act(async () => button('Add poll')!.click());
+    await option(1, 'Tabs');
+    await option(2, 'Spaces');
+
+    expect(commitButton().disabled).toBe(true);
+  });
+});
+
 describe('InlineComposer, mention suggestions', () => {
   const listbox = () => root.querySelector('[role="listbox"]');
   const options = () => [...root.querySelectorAll<HTMLElement>('[role="option"]')];
