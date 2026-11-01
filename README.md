@@ -35,6 +35,11 @@ own.
 
 ![The On /dev/null section in an organization's discussions](docs/screenshots/discussions-sidebar.jpg)
 
+### Follow people on /dev/null
+
+On an organization's **People**, a /dev/null **Follow** button sits next to GitHub's own for each member: Following
+once you follow them, Unfollow on hover. Someone who isn't on /dev/null yet says so once you try.
+
 ### Your profile and settings in the toolbar
 
 The extension's popup shows your /dev/null profile, and lets you turn off anything the extension adds to GitHub.

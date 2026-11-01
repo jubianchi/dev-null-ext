@@ -3,15 +3,18 @@ import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 import { defineContentScript } from 'wxt/utils/define-content-script';
+import { FollowButton } from '../../components/FollowButton.tsx';
 import { OrganizationPanel } from '../../components/OrganizationPanel.tsx';
 import { OrganizationSidebar } from '../../components/OrganizationSidebar.tsx';
 import { organizationTabLink } from '../../components/OrganizationTab.tsx';
 import { ShareButton } from '../../components/ShareButton.tsx';
+import { batched } from '../../lib/batch.ts';
 import {
   discussionsSidebar,
   organizationContent,
   organizationTabStyle,
   organizationTabs,
+  peopleFollowAnchors,
   releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
@@ -20,6 +23,7 @@ import { watchNavigation } from '../../lib/github/navigation.ts';
 import { type GitHubPage, readPage, samePage } from '../../lib/github/page.ts';
 import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
+import { ask } from '../../lib/messages.ts';
 import { panelToggle } from '../../lib/panel-toggle.ts';
 import { decorationsFor, disabledFeatures, type Settings } from '../../lib/settings.ts';
 import { loadSettings, watchSettings } from '../../lib/settings-store.ts';
@@ -80,6 +84,7 @@ async function mount(ctx: ContentScriptContext, page: GitHubPage, settings: Sett
   for (const decoration of decorationsFor(page, settings)) {
     if (decoration === 'organization-tab' && page.kind === 'organization') mounted.push(organizationTab(ctx, page.organization, disabled));
     if (decoration === 'discussions-sidebar' && page.kind === 'organization') mounted.push(await organizationSidebar(ctx, page.organization));
+    if (decoration === 'follow-buttons') mounted.push(followButtons(ctx));
     if (decoration === 'share-button' && 'url' in page && page.kind !== 'release') mounted.push(await shareButton(ctx, page, disabled));
     if (decoration === 'release-buttons' && page.kind === 'releases') mounted.push(releaseButtons(ctx, page, disabled));
   }
@@ -156,6 +161,46 @@ function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { k
         append: 'first',
         // Spaced from Compare as GitHub spaces a release's header buttons (mr-2).
         onMount: (container) => render(<ShareButton page={release} size="small" spacing="end" disabled={disabled} />, container),
+        onRemove: (container) => container && render(null, container),
+      });
+      ui.mount();
+      return { element: ui.shadowHost, remove: () => ui.remove() };
+    },
+    root: document.documentElement,
+    signal: AbortSignal.any([ctx.signal, controller.signal]),
+  });
+
+  return { remove: () => controller.abort() };
+}
+
+/**
+ * A /dev/null Follow button before GitHub's own for each person the page lists, at its size. Their states come from one
+ * question to the background for all of them; nothing shows when the user is signed out of /dev/null.
+ */
+function followButtons(ctx: ContentScriptContext): Mounted {
+  const controller = new AbortController();
+  const state = batched((handles) => ask({ type: 'follows', handles }));
+
+  keepEachMounted({
+    find: () => peopleFollowAnchors().map(({ box }) => box),
+    mount: async (box) => {
+      const login = peopleFollowAnchors().find((anchor) => anchor.box === box)?.login ?? '';
+      const current = await state(login).catch(() => null);
+      const ui = await createShadowRootUi(ctx, {
+        name: 'devnull-follow',
+        position: 'inline',
+        anchor: box,
+        // Beside the box rather than in it, in the member's flex row: GitHub's Follow is in forms, which stack.
+        append: 'before',
+        // Spaced from GitHub's Follow inside the shadow root, as WXT resets the host.
+        onMount: (container) =>
+          current &&
+          render(
+            <span class="flex items-center pr-2">
+              <FollowButton handle={login} state={current} size="small" />
+            </span>,
+            container,
+          ),
         onRemove: (container) => container && render(null, container),
       });
       ui.mount();

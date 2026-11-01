@@ -80,6 +80,14 @@ describe('readPage, discussions', () => {
     });
   });
 
+  it("keeps an organization's people an organization page, saying it lists its people", () => {
+    expect(readPage(new URL('https://github.com/orgs/laravel/people'), documentWith(null))).toEqual({
+      kind: 'organization',
+      organization: 'laravel',
+      people: true,
+    });
+  });
+
   it("keeps an organization's discussions list an organization page, saying it is its discussions", () => {
     expect(readPage(new URL('https://github.com/orgs/NativePHP/discussions'), documentWith(null))).toEqual({
       kind: 'organization',
@@ -147,7 +155,7 @@ describe('readPage', () => {
   });
 
   it("knows an organization's other tabs from their /orgs URL", () => {
-    for (const tab of ['repositories', 'projects', 'packages', 'people', 'sponsoring']) {
+    for (const tab of ['repositories', 'projects', 'packages', 'sponsoring']) {
       expect(readPage(new URL(`https://github.com/orgs/dev-null-sh/${tab}`), documentWith(null))).toEqual({
         kind: 'organization',
         organization: 'dev-null-sh',

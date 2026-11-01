@@ -4,8 +4,11 @@
  */
 
 export type GitHubPage =
-  /** `discussions` on the organization's discussions list, whose sidebar shows what /dev/null says of the organization. */
-  | { kind: 'organization'; organization: string; discussions?: true }
+  /**
+   * `discussions` on the organization's discussions list, whose sidebar shows what /dev/null says of the organization;
+   * `people` on its people, each of whom can be followed on /dev/null.
+   */
+  | { kind: 'organization'; organization: string; discussions?: true; people?: true }
   | { kind: 'repository'; owner: string; repository: string; url: string }
   /** A repository's releases, a list or one: nothing to share as a whole, each release on its own. */
   | { kind: 'releases'; owner: string; repository: string }
@@ -67,6 +70,7 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
   if (owner === 'orgs' && repository) {
     const discussion = section === 'discussions' && number && /^\d+$/.test(number) ? organizationDiscussion(repository, Number(number), document) : null;
     if (discussion) return discussion;
+    if (section === 'people') return { kind: 'organization', organization: repository, people: true };
     return section === 'discussions'
       ? { kind: 'organization', organization: repository, discussions: true }
       : { kind: 'organization', organization: repository };

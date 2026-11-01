@@ -17,6 +17,7 @@ export const FEATURES = [
     label: 'On /dev/null section',
     hint: "The latest commits mentioning the organization, next to its discussions' guidelines",
   },
+  { id: 'follow-buttons', group: 'People', label: 'Follow buttons', hint: "Next to GitHub's own Follow, on an organization's people" },
   { id: 'author-mention', group: 'Composer', label: 'Offer to mention the author', hint: 'Of the issue or pull request you share' },
   { id: 'organization-mention', group: 'Composer', label: 'Offer to mention the organization', hint: 'So the commit shows in its log' },
 ] as const;
@@ -36,7 +37,7 @@ export function disabledFeatures(settings: Settings): ReadonlySet<FeatureId> {
 }
 
 /** What the content script mounts on a page. */
-export type Decoration = 'organization-tab' | 'discussions-sidebar' | 'share-button' | 'release-buttons';
+export type Decoration = 'organization-tab' | 'discussions-sidebar' | 'follow-buttons' | 'share-button' | 'release-buttons';
 
 const SHARE_BUTTONS: Partial<Record<GitHubPage['kind'], FeatureId>> = {
   repository: 'repository-button',
@@ -51,6 +52,7 @@ export function decorationsFor(page: GitHubPage, settings: Settings): Decoration
     return [
       ...(settings['organization-tab'] ? (['organization-tab'] as const) : []),
       ...(page.discussions && settings['discussions-sidebar'] ? (['discussions-sidebar'] as const) : []),
+      ...(page.people && settings['follow-buttons'] ? (['follow-buttons'] as const) : []),
     ];
   }
   if (page.kind === 'releases') return settings['release-buttons'] ? ['release-buttons'] : [];

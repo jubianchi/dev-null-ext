@@ -5,6 +5,7 @@ import {
   organizationContent,
   organizationTabStyle,
   organizationTabs,
+  peopleFollowAnchors,
   releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
@@ -199,5 +200,35 @@ describe('share button anchor', () => {
 
     expect(shareButtonAnchor()).toBeNull();
     expect(organizationTabs()).toBeUndefined();
+  });
+});
+
+describe('peopleFollowAnchors', () => {
+  const member = (login: string, follow = true) => `
+    <li class="d-flex flex-items-center member-list-item js-bulk-actions-item">
+      <div class="tmp-py-3 tmp-pl-3"><a class="d-inline-block" data-hovercard-type="user" href="/${login}"><img class="avatar"></a></div>
+      <div class="flex-auto">
+        <span class="d-flex">
+          <div class="css-truncate flex-auto"><a class="f4 d-block" data-hovercard-type="user" href="/${login}">Someone</a><span>${login}</span></div>
+          <div class="text-center color-fg-muted f5 text-right flex-shrink-0" id="box-${login}">
+            ${follow ? '<span class="user-following-container js-form-toggle-container"><form><input type="submit" value="Follow"></form></span>' : ''}
+          </div>
+        </span>
+      </div>
+    </li>`;
+
+  it("finds, for each member of an organization's people, the box of GitHub's Follow button, and their login", () => {
+    document.body.innerHTML = `<ul>${member('A5hleyRich')}${member('taylorotwell')}</ul>`;
+
+    expect(peopleFollowAnchors().map(({ box, login }) => [box.id, login])).toEqual([
+      ['box-A5hleyRich', 'A5hleyRich'],
+      ['box-taylorotwell', 'taylorotwell'],
+    ]);
+  });
+
+  it('leaves out a member GitHub offers no Follow for, as the signed-in user', () => {
+    document.body.innerHTML = `<ul>${member('jubianchi', false)}${member('taylorotwell')}</ul>`;
+
+    expect(peopleFollowAnchors().map(({ login }) => login)).toEqual(['taylorotwell']);
   });
 });

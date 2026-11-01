@@ -43,6 +43,7 @@ describe('decorationsFor', () => {
   it('mounts on each page what its features allow', () => {
     expect(decorationsFor({ kind: 'organization', organization: 'a' }, all)).toEqual(['organization-tab']);
     expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, all)).toEqual(['organization-tab', 'discussions-sidebar']);
+    expect(decorationsFor({ kind: 'organization', organization: 'a', people: true }, all)).toEqual(['organization-tab', 'follow-buttons']);
     expect(decorationsFor(issue, all)).toEqual(['share-button']);
     expect(decorationsFor({ kind: 'releases', owner: 'a', repository: 'b' }, all)).toEqual(['release-buttons']);
     expect(decorationsFor({ kind: 'other' }, all)).toEqual([]);
@@ -56,9 +57,11 @@ describe('decorationsFor', () => {
       'release-buttons': false,
       'repository-button': false,
       'discussion-button': false,
+      'follow-buttons': false,
     });
 
     expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, settings)).toEqual(['discussions-sidebar']);
+    expect(decorationsFor({ kind: 'organization', organization: 'a', people: true }, settings)).toEqual([]);
     expect(decorationsFor(issue, settings)).toEqual([]);
     expect(decorationsFor({ ...issue, kind: 'pull-request' }, settings)).toEqual(['share-button']);
     expect(decorationsFor({ ...issue, kind: 'discussion' }, settings)).toEqual([]);

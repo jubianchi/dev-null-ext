@@ -65,6 +65,19 @@ export function releaseShareAnchors(location: URL): Array<{ box: Element; tag: s
   });
 }
 
+/**
+ * Where each member of an organization's people gets a /dev/null Follow button: the box of GitHub's own Follow
+ * (`.user-following-container`), with the member's login from their hovercard link. GitHub offers no Follow for the
+ * signed-in user, nor when signed out: those are left out.
+ */
+export function peopleFollowAnchors(): Array<{ box: Element; login: string }> {
+  return [...document.querySelectorAll('li.member-list-item')].flatMap((member) => {
+    const box = member.querySelector('.user-following-container')?.parentElement;
+    const login = member.querySelector('a[data-hovercard-type="user"]')?.getAttribute('href')?.split('/')[1];
+    return box && login ? [{ box, login }] : [];
+  });
+}
+
 /** The right sidebar of an organization's discussions list ("Most helpful"), not its categories on the left. */
 export function discussionsSidebar(): string {
   return '.Layout--sidebarPosition-end > .Layout-sidebar';

@@ -35,6 +35,7 @@ describe('PopupSettings', () => {
       'Repositories',
       'Issues and pull requests',
       'Discussions',
+      'People',
       'Composer',
     ]);
   });
