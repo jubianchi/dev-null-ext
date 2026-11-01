@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
+import { Avatar } from './Avatar.tsx';
 import { CommitImages } from './CommitImages.tsx';
 import { ACTION, FoldedBody, laneColor, plural, Star } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
@@ -103,11 +104,7 @@ function ReplyItem({ reply, parentId }: { reply: Reply; parentId: string }) {
 
   return (
     <div data-reply class="ml-1 flex gap-2 border-l-2 border-dashed py-2 pl-3" style={{ borderColor: laneColor(reply.author) }}>
-      {reply.author.avatar_url ? (
-        <img src={reply.author.avatar_url} alt="" class="size-6 shrink-0 rounded-full" loading="lazy" />
-      ) : (
-        <span class="size-6 shrink-0 rounded-full bg-canvas-muted" aria-hidden="true" />
-      )}
+      <Avatar person={reply.author} size={24} />
       <div class="min-w-0 flex-1">
         <div class="mb-0.5 flex flex-wrap items-baseline gap-x-2 text-sm">
           <a href={reply.author.html_url} target="_blank" rel="noopener" class="font-semibold text-fg hover:text-fg-accent hover:underline">

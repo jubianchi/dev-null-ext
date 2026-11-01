@@ -1,4 +1,5 @@
 import type { CurrentUser } from '@dev-null-ext/client';
+import { Avatar } from './Avatar.tsx';
 import { laneColor } from './CommitParts.tsx';
 
 /**
@@ -16,13 +17,7 @@ export function PopupProfile({ user, onDisconnect }: { user: CurrentUser; onDisc
     <>
       <section class="flex flex-col items-center gap-2.5 px-4 pb-4 pt-1 text-center">
         <div data-lane-ring class="size-[72px] rounded-full border-2 border-dashed p-[3px]" style={{ borderColor: laneColor(user, 'var(--color-lane-3)') }}>
-          {user.avatar_url ? (
-            <img src={user.avatar_url} alt="" class="size-full rounded-full" />
-          ) : (
-            <span class="flex size-full items-center justify-center rounded-full bg-zinc-100 text-xl font-semibold text-zinc-600">
-              {user.handle.slice(0, 1).toUpperCase()}
-            </span>
-          )}
+          <Avatar person={user} size={62} />
         </div>
         <div>
           <p class="m-0 text-[17px] font-bold">{user.name ?? user.handle}</p>

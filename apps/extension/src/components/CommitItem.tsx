@@ -2,6 +2,7 @@ import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client
 import { useState } from 'preact/hooks';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
+import { Avatar } from './Avatar.tsx';
 import { CommitImages } from './CommitImages.tsx';
 import { ACTION, FoldedBody, laneColor, Star } from './CommitParts.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
@@ -20,7 +21,7 @@ export function CommitItem({ commit, canReply = false }: { commit: Commit; canRe
   return (
     <li class="flex gap-3 border-b border-border-muted px-4 py-3 last:border-b-0">
       <span class="w-0.5 shrink-0 self-stretch rounded-full" style={{ background: laneColor(commit.author) }} aria-hidden="true" />
-      <img src={commit.author.avatar_url ?? ''} alt="" class="size-8 shrink-0 rounded-full" loading="lazy" />
+      <Avatar person={commit.author} size={32} />
       <div class="min-w-0 flex-1">
         <div class="mb-1 flex flex-wrap items-baseline gap-x-2 text-sm">
           <a href={commit.author.html_url} class="font-semibold text-fg hover:text-fg-accent hover:underline" target="_blank" rel="noopener">

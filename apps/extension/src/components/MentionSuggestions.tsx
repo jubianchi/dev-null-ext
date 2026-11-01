@@ -4,6 +4,7 @@ import { caretRect } from '../lib/caret.ts';
 import { type MentionCandidate, matching, mentionAt, suggestedCandidates, withMention } from '../lib/mentions.ts';
 import { ask } from '../lib/messages.ts';
 import { replaceText } from '../lib/textarea.ts';
+import { Avatar } from './Avatar.tsx';
 import { laneColor } from './CommitParts.tsx';
 
 /** As many as dev-null.sh's composer shows, and its pause before asking (ms). */
@@ -171,11 +172,7 @@ function MentionList({
           onClick={() => onChoose(candidate)}
           class="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 aria-selected:bg-button-hover"
         >
-          {candidate.avatarUrl ? (
-            <img src={candidate.avatarUrl} alt="" width={32} height={32} class="size-8 shrink-0 rounded-full" />
-          ) : (
-            <span class="size-8 shrink-0 rounded-full bg-canvas-muted" />
-          )}
+          <Avatar person={{ handle: candidate.handle, name: candidate.name, avatar_url: candidate.avatarUrl }} size={32} />
           <span class="min-w-0 flex-1">
             {candidate.name && <span class="block truncate text-sm font-semibold">{candidate.name}</span>}
             <span class={`flex items-center gap-1.5 truncate font-mono ${candidate.name ? 'text-xs text-fg-muted' : 'text-sm font-semibold'}`}>

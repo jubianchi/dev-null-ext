@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { relativeTime } from '../lib/time.ts';
 import { useSession } from '../lib/use-session.ts';
+import { Avatar } from './Avatar.tsx';
 import { Glyph } from './Glyph.tsx';
 
 const LATEST = 3;
@@ -41,11 +42,7 @@ export function OrganizationSidebar({ organization }: { organization: string }) 
             <li key={commit.id}>
               <a href={commit.html_url} target="_blank" rel="noopener" class="block text-fg no-underline hover:text-fg-accent">
                 <span class="mb-0.5 flex items-center gap-1.5 text-xs text-fg-muted">
-                  {commit.author.avatar_url ? (
-                    <img src={commit.author.avatar_url} alt="" class="size-4 rounded-full" loading="lazy" />
-                  ) : (
-                    <span class="size-4 rounded-full bg-canvas-muted" aria-hidden="true" />
-                  )}
+                  <Avatar person={commit.author} size={16} />
                   <span class="font-semibold text-fg">@{commit.author.handle}</span>
                   <time dateTime={commit.created_at}>{relativeTime(commit.created_at)}</time>
                 </span>

@@ -1,10 +1,10 @@
-import type { CurrentUser } from '@dev-null-ext/client';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
 import { type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
+import { Avatar } from './Avatar.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Committed } from './Committed.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
@@ -58,7 +58,7 @@ export function Composer({ target }: { target: Target }) {
           class="flex gap-3"
         >
           <ImagePicker picker={picker} onFiles={draft.attach} />
-          <Avatar user={state.user} />
+          <Avatar person={state.user} size={40} alt={`@${state.user.handle}`} />
 
           <div class="min-w-0 flex-1">
             <div>
@@ -137,16 +137,4 @@ export function Composer({ target }: { target: Target }) {
       )}
     </div>
   );
-}
-
-function Avatar({ user }: { user: CurrentUser }) {
-  if (!user.avatar_url) {
-    return (
-      <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-canvas-muted font-semibold text-fg-muted">
-        {user.handle.slice(0, 1).toUpperCase()}
-      </span>
-    );
-  }
-
-  return <img src={user.avatar_url} alt={`@${user.handle}`} class="size-10 shrink-0 rounded-full" />;
 }

@@ -1,6 +1,7 @@
 import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
+import { Avatar } from './Avatar.tsx';
 import { CommitBody } from './CommitBody.tsx';
 import { CommitImages } from './CommitImages.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
@@ -25,7 +26,7 @@ export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null
     <a href={quoted.html_url} target="_blank" rel="noopener" class="mt-2 block rounded-lg border border-border px-3 py-2 text-fg hover:bg-canvas-muted">
       <div class="mb-1 flex min-w-0 items-baseline gap-1.5 text-sm">
         <span class="sr-only">Quoting</span>
-        {quoted.author.avatar_url && <img src={quoted.author.avatar_url} alt="" class="size-5 shrink-0 self-center rounded-full" />}
+        <Avatar person={quoted.author} size={20} class="self-center" />
         <span class="truncate font-semibold">{quoted.author.name ?? quoted.author.handle}</span>
         <span class="font-mono text-xs text-fg-muted">@{quoted.author.handle}</span>
         <span class="text-fg-muted">·</span>

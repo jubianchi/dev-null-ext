@@ -1,5 +1,6 @@
 import type { Commit } from '@dev-null-ext/client';
 import { segmentBody } from '../lib/segments.ts';
+import { Avatar } from './Avatar.tsx';
 import { CommitImages } from './CommitImages.tsx';
 import { FoldedBody, laneColor } from './CommitParts.tsx';
 import { Octicon } from './Octicon.tsx';
@@ -25,7 +26,7 @@ export function Committed({ commit, onWriteAnother }: { commit: Commit; onWriteA
 
       <article data-committed class="flex gap-3 rounded-lg border border-border bg-canvas-muted p-3">
         <span class="w-0.5 shrink-0 self-stretch rounded-full" style={{ background: laneColor(commit.author) }} aria-hidden="true" />
-        {commit.author.avatar_url && <img src={commit.author.avatar_url} alt="" class="size-8 shrink-0 rounded-full" />}
+        <Avatar person={commit.author} size={32} />
         <div class="min-w-0 flex-1 text-sm">
           <div class="mb-1 flex flex-wrap items-baseline gap-x-2">
             <span class="font-semibold">{commit.author.name ?? commit.author.handle}</span>
