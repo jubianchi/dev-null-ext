@@ -181,6 +181,34 @@ export class DevNullClient {
     await this.request('DELETE', `/api/v1/me/devices/${encodeURIComponent(id)}`, { signed: true });
   }
 
+  /**
+   * Follows a user by their handle, which is their GitHub login (any case). Following twice is harmless; /dev/null
+   * answers 404 for someone who isn't on it, and 403 for oneself or across a block.
+   */
+  async follow(handle: string): Promise<void> {
+    await this.request('POST', `/api/v1/users/${encodeURIComponent(handle)}/follow`, { signed: true });
+  }
+
+  async unfollow(handle: string): Promise<void> {
+    await this.request('DELETE', `/api/v1/users/${encodeURIComponent(handle)}/follow`, { signed: true });
+  }
+
+  /** The handles a user follows, lowercased, walking every page (30 each) of their following list. */
+  async followingHandles(handle: string): Promise<Set<string>> {
+    const handles = new Set<string>();
+    let cursor: string | null = null;
+    do {
+      const page: Page<User> = await this.request('GET', `/api/v1/users/${encodeURIComponent(handle)}/following`, {
+        query: { cursor },
+        signed: true,
+      });
+      for (const followed of page.data) handles.add(followed.handle.toLowerCase());
+      cursor = page.meta.next_cursor;
+    } while (cursor);
+
+    return handles;
+  }
+
   async star(commitId: string): Promise<void> {
     await this.request('POST', `/api/v1/commits/${encodeURIComponent(commitId)}/star`, { signed: true });
   }
