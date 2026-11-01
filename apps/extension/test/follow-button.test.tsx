@@ -42,10 +42,6 @@ async function show(state: FollowState) {
 }
 
 const button = () => root.querySelector('button');
-const hover = (type: 'pointerenter' | 'pointerleave') =>
-  act(async () => {
-    button()!.dispatchEvent(new Event(type));
-  });
 const click = async () => {
   await act(async () => button()!.click());
   await act(async () => {});
@@ -60,30 +56,27 @@ describe('FollowButton', () => {
     expect(button()?.querySelector('svg')).not.toBeNull();
   });
 
-  it('follows, then says Following until the pointer leaves, and Unfollow on hover after, as dev-null.sh does', async () => {
+  it("follows, then offers to unfollow, as GitHub's own button does", async () => {
     ask.mockResolvedValueOnce('following');
     await show('not-following');
-    await hover('pointerenter');
     await click();
 
     expect(ask).toHaveBeenCalledWith({ type: 'follow', handle: 'A5hleyRich', follow: true });
-    expect(button()?.textContent).toBe('Following');
-
-    await hover('pointerleave');
-    await hover('pointerenter');
     expect(button()?.textContent).toBe('Unfollow');
   });
 
-  it('unfollows from Unfollow', async () => {
+  it("offers to unfollow someone followed, as GitHub's danger button, and unfollows", async () => {
     ask.mockResolvedValueOnce('not-following');
     await show('following');
 
-    expect(button()?.textContent).toBe('Following');
+    expect(button()?.textContent).toBe('Unfollow');
     expect(button()?.getAttribute('aria-label')).toBe('Unfollow @A5hleyRich on /dev/null');
+    expect(button()?.className).toContain('button-danger-fgColor-rest');
     await click();
 
     expect(ask).toHaveBeenCalledWith({ type: 'follow', handle: 'A5hleyRich', follow: false });
     expect(button()?.textContent).toBe('Follow');
+    expect(button()?.className).not.toContain('button-danger');
   });
 
   it('is disabled while /dev/null answers, so a double click does not follow then unfollow', async () => {
