@@ -66,15 +66,29 @@ export function releaseShareAnchors(location: URL): Array<{ box: Element; tag: s
 }
 
 /**
- * Where each member of an organization's people gets a /dev/null Follow button: the box of GitHub's own Follow
- * (`.user-following-container`), with the member's login from their hovercard link. GitHub offers no Follow for the
- * signed-in user, nor when signed out: those are left out.
+ * Where a /dev/null Follow goes, from GitHub's own: before its column in an organization's people (its forms would
+ * stack ours under it), beside it in a flex row (a repository's stargazers), under it otherwise (a profile's followers,
+ * whose column is narrow).
  */
-export function peopleFollowAnchors(): Array<{ box: Element; login: string }> {
-  return [...document.querySelectorAll('li.member-list-item')].flatMap((member) => {
-    const box = member.querySelector('.user-following-container')?.parentElement;
-    const login = member.querySelector('a[data-hovercard-type="user"]')?.getAttribute('href')?.split('/')[1];
-    return box && login ? [{ box, login }] : [];
+export type FollowLayout = 'before-column' | 'beside' | 'below';
+
+/**
+ * Every person a page lists with GitHub's own Follow (`.user-following-container`), but the profile's own: that
+ * Follow, their login from the nearest hovercard link, and where the /dev/null Follow goes. GitHub offers no Follow
+ * for the signed-in user, nor when signed out: those are left out.
+ */
+export function listFollowAnchors(): Array<{ box: Element; login: string; layout: FollowLayout }> {
+  return [...document.querySelectorAll('.user-following-container')].flatMap((box) => {
+    if (box.previousElementSibling?.classList.contains('js-user-profile-follow-button')) return [];
+
+    let row: Element | null = box.parentElement;
+    while (row && !row.querySelector('a[data-hovercard-type="user"]')) row = row.parentElement;
+    const href = row?.querySelector('a[data-hovercard-type="user"]')?.getAttribute('href') ?? '';
+    const login = new URL(href, 'https://github.com').pathname.split('/')[1];
+    if (!login) return [];
+
+    const layout: FollowLayout = box.closest('li.member-list-item') ? 'before-column' : box.parentElement?.classList.contains('d-flex') ? 'beside' : 'below';
+    return [{ box, login, layout }];
   });
 }
 

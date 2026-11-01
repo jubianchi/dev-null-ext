@@ -53,8 +53,8 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 
 - [x] Follow an organization's members on /dev/null, from its People page, next to GitHub's own Follow.
 - [x] Follow a user on /dev/null from their GitHub profile, under GitHub's own Follow.
-- [ ] The other pages that list people: a profile's followers and following, a repository's stargazers, watchers and
-      contributors.
+- [x] The other pages that list people with a Follow: a profile's followers and following, a repository's stargazers
+      (GitHub shows them for one's own repositories only) and watchers. A repository's contributors graph has no Follow.
 - [ ] Follow an organization on /dev/null (`POST|DELETE /api/v1/organizations/{handle}/follow`), from its page.
 - [ ] "Follow back" for someone who follows the user: it needs `follows_you`, which only a lookup per person gives
       (`search/profiles`); /dev/null has no lookup for many users at once.

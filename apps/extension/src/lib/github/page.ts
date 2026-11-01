@@ -9,7 +9,8 @@ export type GitHubPage =
    * `people` on its people, each of whom can be followed on /dev/null.
    */
   | { kind: 'organization'; organization: string; discussions?: true; people?: true }
-  | { kind: 'repository'; owner: string; repository: string; url: string }
+  /** `people` on its stargazers and watchers, each of whom can be followed on /dev/null. */
+  | { kind: 'repository'; owner: string; repository: string; url: string; people?: true }
   /** A repository's releases, a list or one: nothing to share as a whole, each release on its own. */
   | { kind: 'releases'; owner: string; repository: string }
   /** One release, shared from its card on a releases page. */
@@ -24,8 +25,8 @@ export type GitHubPage =
       /** Who opened it, read once the page is rendered (readAuthor). */
       author?: string | null;
     }
-  /** A user's profile, with their login as GitHub writes it, whatever the URL's case. */
-  | { kind: 'profile'; login: string }
+  /** A user's profile, with their login as GitHub writes it, whatever the URL's case; `people` on its followers and following. */
+  | { kind: 'profile'; login: string; people?: true }
   | { kind: 'other' };
 
 /** First path segments that are GitHub's own pages, never an owner. */
@@ -84,7 +85,9 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
     if (subject.startsWith('organization:')) return { kind: 'organization', organization: owner };
 
     const login = document.querySelector<HTMLMetaElement>('meta[property="profile:username"]')?.content;
-    return login ? { kind: 'profile', login } : { kind: 'other' };
+    if (!login) return { kind: 'other' };
+    const tab = 'search' in location ? new URLSearchParams(location.search).get('tab') : null;
+    return tab === 'followers' || tab === 'following' ? { kind: 'profile', login, people: true } : { kind: 'profile', login };
   }
 
   if (!repository) return { kind: 'other' };
@@ -98,6 +101,7 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
     return { kind, owner, repository, number: Number(number), title: readTitle(document), url: `${base}/${section}/${number}` };
   }
 
+  if (section === 'stargazers' || section === 'watchers') return { kind: 'repository', owner, repository, url: base, people: true };
   return { kind: 'repository', owner, repository, url: base };
 }
 

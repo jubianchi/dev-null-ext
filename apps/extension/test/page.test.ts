@@ -123,6 +123,28 @@ describe('readPage', () => {
     });
   });
 
+  it("says a profile's followers and following list people", () => {
+    for (const tab of ['followers', 'following']) {
+      expect(readPage(new URL(`https://github.com/A5hleyRich?tab=${tab}`), documentWith(null, '', null, 'A5hleyRich'))).toEqual({
+        kind: 'profile',
+        login: 'A5hleyRich',
+        people: true,
+      });
+    }
+  });
+
+  it("says a repository's stargazers and watchers list people", () => {
+    for (const section of ['stargazers', 'watchers']) {
+      expect(readPage(new URL(`https://github.com/jubianchi/dev-null-ext/${section}`), documentWith(null))).toEqual({
+        kind: 'repository',
+        owner: 'jubianchi',
+        repository: 'dev-null-ext',
+        url: 'https://github.com/jubianchi/dev-null-ext',
+        people: true,
+      });
+    }
+  });
+
   it('reads repositories, pull requests and issues from the URL', () => {
     expect(readPage(new URL('https://github.com/laravel/framework/tree/12.x'), documentWith('repository:1'))).toEqual({
       kind: 'repository',

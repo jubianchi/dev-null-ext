@@ -17,7 +17,7 @@ export const FEATURES = [
     label: 'On /dev/null section',
     hint: "The latest commits mentioning the organization, next to its discussions' guidelines",
   },
-  { id: 'follow-buttons', group: 'People', label: 'Follow buttons', hint: "Next to GitHub's own Follow, on an organization's people" },
+  { id: 'follow-buttons', group: 'People', label: 'Follow buttons', hint: "Next to GitHub's own Follow, wherever it lists people" },
   { id: 'profile-follow', group: 'People', label: 'Follow button on profiles', hint: "Under GitHub's own Follow" },
   { id: 'author-mention', group: 'Composer', label: 'Offer to mention the author', hint: 'Of the issue or pull request you share' },
   { id: 'organization-mention', group: 'Composer', label: 'Offer to mention the organization', hint: 'So the commit shows in its log' },
@@ -57,8 +57,9 @@ export function decorationsFor(page: GitHubPage, settings: Settings): Decoration
     ];
   }
   if (page.kind === 'releases') return settings['release-buttons'] ? ['release-buttons'] : [];
-  if (page.kind === 'profile') return settings['profile-follow'] ? ['profile-follow'] : [];
+  const followButtons = 'people' in page && page.people && settings['follow-buttons'] ? (['follow-buttons'] as const) : [];
+  if (page.kind === 'profile') return [...(settings['profile-follow'] ? (['profile-follow'] as const) : []), ...followButtons];
 
   const feature = SHARE_BUTTONS[page.kind];
-  return feature && settings[feature] ? ['share-button'] : [];
+  return [...(feature && settings[feature] ? (['share-button'] as const) : []), ...followButtons];
 }

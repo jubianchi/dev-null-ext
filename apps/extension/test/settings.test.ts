@@ -45,6 +45,8 @@ describe('decorationsFor', () => {
     expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, all)).toEqual(['organization-tab', 'discussions-sidebar']);
     expect(decorationsFor({ kind: 'organization', organization: 'a', people: true }, all)).toEqual(['organization-tab', 'follow-buttons']);
     expect(decorationsFor({ kind: 'profile', login: 'a' }, all)).toEqual(['profile-follow']);
+    expect(decorationsFor({ kind: 'profile', login: 'a', people: true }, all)).toEqual(['profile-follow', 'follow-buttons']);
+    expect(decorationsFor({ kind: 'repository', owner: 'a', repository: 'b', url: '', people: true }, all)).toEqual(['share-button', 'follow-buttons']);
     expect(decorationsFor(issue, all)).toEqual(['share-button']);
     expect(decorationsFor({ kind: 'releases', owner: 'a', repository: 'b' }, all)).toEqual(['release-buttons']);
     expect(decorationsFor({ kind: 'other' }, all)).toEqual([]);
@@ -65,6 +67,8 @@ describe('decorationsFor', () => {
     expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, settings)).toEqual(['discussions-sidebar']);
     expect(decorationsFor({ kind: 'organization', organization: 'a', people: true }, settings)).toEqual([]);
     expect(decorationsFor({ kind: 'profile', login: 'a' }, settings)).toEqual([]);
+    expect(decorationsFor({ kind: 'profile', login: 'a', people: true }, settings)).toEqual([]);
+    expect(decorationsFor({ kind: 'repository', owner: 'a', repository: 'b', url: '', people: true }, settings)).toEqual([]);
     expect(decorationsFor(issue, settings)).toEqual([]);
     expect(decorationsFor({ ...issue, kind: 'pull-request' }, settings)).toEqual(['share-button']);
     expect(decorationsFor({ ...issue, kind: 'discussion' }, settings)).toEqual([]);

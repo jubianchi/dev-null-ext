@@ -11,10 +11,11 @@ import { ShareButton } from '../../components/ShareButton.tsx';
 import { batched } from '../../lib/batch.ts';
 import {
   discussionsSidebar,
+  type FollowLayout,
+  listFollowAnchors,
   organizationContent,
   organizationTabStyle,
   organizationTabs,
-  peopleFollowAnchors,
   profileFollowAnchor,
   releaseShareAnchors,
   selectedOrganizationTabs,
@@ -175,30 +176,37 @@ function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { k
   return { remove: () => controller.abort() };
 }
 
+/** How the /dev/null Follow is spaced from GitHub's, inside the shadow root since WXT resets the host. */
+const FOLLOW_SPACING: Record<FollowLayout, string> = {
+  'before-column': 'flex items-center pr-2',
+  beside: 'flex items-center pl-2',
+  below: 'flex justify-end pt-1',
+};
+
 /**
- * A /dev/null Follow button before GitHub's own for each person the page lists, at its size. Their states come from one
- * question to the background for all of them; nothing shows when the user is signed out of /dev/null.
+ * A /dev/null Follow beside GitHub's own for each person the page lists, at its size: before its column, beside it or
+ * under it (listFollowAnchors). Their states come from one question to the background for all of them; nothing shows
+ * when the user is signed out of /dev/null.
  */
 function followButtons(ctx: ContentScriptContext): Mounted {
   const controller = new AbortController();
   const state = batched((handles) => ask({ type: 'follows', handles }));
 
   keepEachMounted({
-    find: () => peopleFollowAnchors().map(({ box }) => box),
+    find: () => listFollowAnchors().map(({ box }) => box),
     mount: async (box) => {
-      const login = peopleFollowAnchors().find((anchor) => anchor.box === box)?.login ?? '';
+      const { login, layout } = listFollowAnchors().find((anchor) => anchor.box === box) ?? { login: '', layout: 'below' as const };
       const current = await state(login).catch(() => null);
+      const before = layout === 'before-column' && box.parentElement;
       const ui = await createShadowRootUi(ctx, {
         name: 'devnull-follow',
         position: 'inline',
-        anchor: box,
-        // Beside the box rather than in it, in the member's flex row: GitHub's Follow is in forms, which stack.
-        append: 'before',
-        // Spaced from GitHub's Follow inside the shadow root, as WXT resets the host.
+        anchor: before || box,
+        append: before ? 'before' : 'after',
         onMount: (container) =>
           current &&
           render(
-            <span class="flex items-center pr-2">
+            <span class={FOLLOW_SPACING[layout]}>
               <FollowButton handle={login} state={current} size="small" />
             </span>,
             container,

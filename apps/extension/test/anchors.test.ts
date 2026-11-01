@@ -2,10 +2,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   discussionsSidebar,
+  listFollowAnchors,
   organizationContent,
   organizationTabStyle,
   organizationTabs,
-  peopleFollowAnchors,
   profileFollowAnchor,
   releaseShareAnchors,
   selectedOrganizationTabs,
@@ -204,33 +204,69 @@ describe('share button anchor', () => {
   });
 });
 
-describe('peopleFollowAnchors', () => {
-  const member = (login: string, follow = true) => `
+describe('listFollowAnchors', () => {
+  const follow = (login: string) =>
+    `<span class="user-following-container js-form-toggle-container" id="follow-${login}"><form><input type="submit" value="Follow"></form></span>`;
+
+  const member = (login: string, followable = true) => `
     <li class="d-flex flex-items-center member-list-item js-bulk-actions-item">
       <div class="tmp-py-3 tmp-pl-3"><a class="d-inline-block" data-hovercard-type="user" href="/${login}"><img class="avatar"></a></div>
       <div class="flex-auto">
         <span class="d-flex">
           <div class="css-truncate flex-auto"><a class="f4 d-block" data-hovercard-type="user" href="/${login}">Someone</a><span>${login}</span></div>
-          <div class="text-center color-fg-muted f5 text-right flex-shrink-0" id="box-${login}">
-            ${follow ? '<span class="user-following-container js-form-toggle-container"><form><input type="submit" value="Follow"></form></span>' : ''}
-          </div>
+          <div class="text-center color-fg-muted f5 text-right flex-shrink-0">${followable ? follow(login) : ''}</div>
         </span>
       </div>
     </li>`;
 
-  it("finds, for each member of an organization's people, the box of GitHub's Follow button, and their login", () => {
+  const follower = (login: string) => `
+    <div class="d-table table-fixed col-12 width-full tmp-py-4 border-bottom">
+      <div class="d-table-cell col-2 col-lg-1 v-align-top"><a class="d-inline-block" data-hovercard-type="user" href="/${login}?tab=followers"><img class="avatar"></a></div>
+      <div class="d-table-cell col-3 col-sm-7 v-align-top"><a data-hovercard-type="user" href="/${login}"><span class="f4">Someone</span></a></div>
+      <div class="d-table-cell col-2 v-align-top text-right">${follow(login)}</div>
+    </div>`;
+
+  const stargazer = (login: string) => `
+    <li class="col-md-4 tmp-mb-3"><div class="border-bottom d-flex tmp-pb-3">
+      <div><a class="d-inline-block" data-hovercard-type="user" href="/${login}"><img class="avatar"></a></div>
+      <div class="tmp-ml-3 flex-auto min-width-0">
+        <h2 class="h4 mb-1"><a data-hovercard-type="user" href="/${login}">${login}</a></h2>
+        <div class="d-flex flex-wrap flex-items-center">${follow(login)}</div>
+      </div>
+    </div></li>`;
+
+  const found = () => listFollowAnchors().map(({ box, login, layout }) => [box.id, login, layout]);
+
+  it("finds, for each member of an organization's people, GitHub's Follow, their login, and to go before its column", () => {
     document.body.innerHTML = `<ul>${member('A5hleyRich')}${member('taylorotwell')}</ul>`;
 
-    expect(peopleFollowAnchors().map(({ box, login }) => [box.id, login])).toEqual([
-      ['box-A5hleyRich', 'A5hleyRich'],
-      ['box-taylorotwell', 'taylorotwell'],
+    expect(found()).toEqual([
+      ['follow-A5hleyRich', 'A5hleyRich', 'before-column'],
+      ['follow-taylorotwell', 'taylorotwell', 'before-column'],
     ]);
   });
 
-  it('leaves out a member GitHub offers no Follow for, as the signed-in user', () => {
-    document.body.innerHTML = `<ul>${member('jubianchi', false)}${member('taylorotwell')}</ul>`;
+  it("goes under GitHub's Follow in a profile's followers, whose column is narrow", () => {
+    document.body.innerHTML = `${follower('NunoMaduro')}${follower('taylorotwell')}`;
 
-    expect(peopleFollowAnchors().map(({ login }) => login)).toEqual(['taylorotwell']);
+    expect(found()).toEqual([
+      ['follow-NunoMaduro', 'NunoMaduro', 'below'],
+      ['follow-taylorotwell', 'taylorotwell', 'below'],
+    ]);
+  });
+
+  it("goes beside GitHub's Follow in a repository's stargazers, in its row", () => {
+    document.body.innerHTML = `<ol>${stargazer('greg-fox')}</ol>`;
+
+    expect(found()).toEqual([['follow-greg-fox', 'greg-fox', 'beside']]);
+  });
+
+  it("leaves out a member GitHub offers no Follow for, as the signed-in user, and a profile's own Follow", () => {
+    document.body.innerHTML = `
+      <div class="flex-1"><div class="js-user-profile-follow-button"></div>${follow('A5hleyRich')}</div>
+      <ul>${member('jubianchi', false)}${member('taylorotwell')}</ul>`;
+
+    expect(listFollowAnchors().map(({ login }) => login)).toEqual(['taylorotwell']);
   });
 });
 
