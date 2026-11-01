@@ -2,6 +2,8 @@ import type { Poll } from '@dev-null-ext/client';
 import { useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { isOpen, pollStatus, showsResults, voteCount } from '../lib/polls.ts';
+import { segmentBody } from '../lib/segments.ts';
+import { CommitBody } from './CommitBody.tsx';
 import { Lucide } from './Lucide.tsx';
 
 const OPTION = 'rounded-md border border-solid border-border px-3 py-2 text-sm [overflow-wrap:anywhere]';
@@ -18,11 +20,22 @@ export interface PollVote {
  * per option with its share, the viewer's vote checked, and the votes with the time left. Without `vote` (a quoted
  * commit), the options are only listed.
  */
-export function CommitPoll({ poll: initial, vote, now = new Date() }: { poll: Poll; vote?: PollVote; now?: Date }) {
+export function CommitPoll({
+  poll: initial,
+  vote,
+  now = new Date(),
+  interactive = true,
+}: {
+  poll: Poll;
+  vote?: PollVote;
+  now?: Date;
+  /** False inside a link, such as a quoted commit's card: the options' links are drawn, not clickable. */
+  interactive?: boolean;
+}) {
   const [poll, setPoll] = useState(initial);
   const status = pollStatus(poll, now);
 
-  if (showsResults(poll)) return <Results poll={poll} status={status} />;
+  if (showsResults(poll)) return <Results poll={poll} status={status} interactive={interactive} />;
 
   if (!vote) {
     return (
@@ -30,7 +43,7 @@ export function CommitPoll({ poll: initial, vote, now = new Date() }: { poll: Po
         <ul class="m-0 flex list-none flex-col gap-2 p-0">
           {poll.options.map((option) => (
             <li key={option.id} class={OPTION}>
-              {option.label}
+              <OptionLabel label={option.label} interactive={interactive} />
             </li>
           ))}
         </ul>
@@ -40,6 +53,15 @@ export function CommitPoll({ poll: initial, vote, now = new Date() }: { poll: Po
   }
 
   return <Ballot poll={poll} vote={vote} status={status} canVote={!vote.own && !poll.has_voted && isOpen(poll, now)} onVoted={setPoll} />;
+}
+
+/** An option as dev-null.sh draws it, as a commit's body: its links, GitHub's with their icon, and its inline code. */
+function OptionLabel({ label, interactive = true }: { label: string; interactive?: boolean }) {
+  return (
+    <span class="[&>[data-commit-body]]:inline">
+      <CommitBody segments={segmentBody(label)} mentions={[]} interactive={interactive} />
+    </span>
+  );
 }
 
 function Ballot({ poll, vote, status, canVote, onVoted }: { poll: Poll; vote: PollVote; status: string; canVote: boolean; onVoted: (poll: Poll) => void }) {
@@ -80,7 +102,9 @@ function Ballot({ poll, vote, status, canVote, onVoted }: { poll: Poll; vote: Po
               onChange={() => setChoice(option.id)}
               class="m-0 size-4 accent-fg-accent"
             />
-            <span class="min-w-0">{option.label}</span>
+            <span class="min-w-0">
+              <OptionLabel label={option.label} />
+            </span>
           </label>
         ))}
       </fieldset>
@@ -105,7 +129,7 @@ function Ballot({ poll, vote, status, canVote, onVoted }: { poll: Poll; vote: Po
   );
 }
 
-function Results({ poll, status }: { poll: Poll & { total_votes: number }; status: string }) {
+function Results({ poll, status, interactive }: { poll: Poll & { total_votes: number }; status: string; interactive: boolean }) {
   return (
     <div class="mt-3 flex flex-col gap-2">
       <ul class="m-0 flex list-none flex-col gap-2 p-0">
@@ -121,7 +145,7 @@ function Results({ poll, status }: { poll: Poll & { total_votes: number }; statu
               />
               <span class="relative flex items-center gap-2">
                 <span class={`min-w-0 flex-1 ${option.voted ? 'font-medium' : ''}`}>
-                  {option.label}
+                  <OptionLabel label={option.label} interactive={interactive} />
                   {option.voted && (
                     <>
                       <Lucide name="check" class="ml-1.5 inline size-4 align-[-2px] text-fg-accent" />

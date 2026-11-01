@@ -81,6 +81,27 @@ describe('CommitPoll', () => {
     expect(root.querySelector('[role="status"]')?.textContent).toBe('3 votes · Final results');
   });
 
+  it('draws its options as commit bodies: links, GitHub ones with their icon, and inline code', async () => {
+    const labelled = (label: string): Poll['options'][number] => ({ id: label, label, votes_count: null, voted: false, percentage: null });
+    await show({ ...hidden, options: [labelled('https://github.com/dev-null-sh/dev-null.sh/issues/13'), labelled('Run `npm i`')] });
+
+    const [issue, code] = options();
+    const link = issue?.querySelector('a[href="https://github.com/dev-null-sh/dev-null.sh/issues/13"]');
+    expect(link?.getAttribute('aria-label')).toBe('dev-null-sh/dev-null.sh issue #13 on GitHub');
+    expect(link?.querySelector('svg.octicon-mark-github')).not.toBeNull();
+    expect(code?.querySelector('code')?.textContent).toBe('npm i');
+  });
+
+  it("draws an option's links without making them clickable inside a link, as a quoted commit's card", async () => {
+    const link = { id: 'o1', label: 'https://github.com/dev-null-sh/dev-null.sh/issues/13', votes_count: null, voted: false, percentage: null };
+    await act(async () => {
+      render(<CommitPoll poll={{ ...hidden, options: [link] }} now={now} interactive={false} />, root);
+    });
+
+    expect(root.querySelector('a')).toBeNull();
+    expect(root.textContent).toContain('dev-null-sh/dev-null.sh#13');
+  });
+
   it('waits for the commit to be approved', async () => {
     await show({ ...hidden, closes_at: null });
 

@@ -43,7 +43,7 @@ export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null
         />
       </div>
       <CommitImages images={quoted.images ?? []} hash={quoted.short_hash} link={null} />
-      {quoted.poll && <CommitPoll poll={quoted.poll} />}
+      {quoted.poll && <CommitPoll poll={quoted.poll} interactive={false} />}
       {quoted.link_preview && <LinkPreview preview={quoted.link_preview} interactive={false} />}
     </a>
   );
