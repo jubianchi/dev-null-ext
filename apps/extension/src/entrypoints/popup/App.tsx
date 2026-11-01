@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 import { Glyph } from '../../components/Glyph.tsx';
+import { Loader } from '../../components/Loader.tsx';
 import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
@@ -115,7 +116,7 @@ export function App() {
           </section>
         )}
 
-        {user === undefined && <p class="m-0 text-fg-muted">Checking your session…</p>}
+        {user === undefined && <Loader label="Checking your session…" />}
 
         {user === null && signIn.status === 'waiting' && signIn.flow === 'device-grant' && (
           <section class="space-y-2">

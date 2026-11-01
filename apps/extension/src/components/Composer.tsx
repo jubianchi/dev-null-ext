@@ -7,6 +7,7 @@ import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { Avatar } from './Avatar.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Committed } from './Committed.tsx';
+import { Loader } from './Loader.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
@@ -34,7 +35,7 @@ export function Composer({ target }: { target: Target }) {
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) void submit();
       }}
     >
-      {state.step === 'loading' && <p class="m-0 text-fg-muted">Checking your /dev/null session…</p>}
+      {state.step === 'loading' && <Loader label="Checking your /dev/null session…" />}
 
       {state.step === 'signed-out' && (
         <p class="m-0 text-fg-muted">Connect your /dev/null account from the extension's button in the browser toolbar, then come back here.</p>

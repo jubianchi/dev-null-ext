@@ -8,6 +8,7 @@ import { CommitItem } from './CommitItem.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
 import { InlineComposer } from './InlineComposer.tsx';
+import { Loader } from './Loader.tsx';
 
 type State = { step: 'loading' } | { step: 'loaded'; commits: Commit[]; cursor: string | null; more: boolean } | { step: 'failed'; message: string };
 
@@ -89,7 +90,7 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
         </div>
       </header>
 
-      {user === undefined && <p class="m-0 p-4 text-sm text-fg-muted">Checking your /dev/null session…</p>}
+      {user === undefined && <Loader label="Checking your /dev/null session…" class="p-4" />}
 
       {user === null && (
         <div class="rounded-md border border-border bg-canvas p-8 text-center text-sm">
@@ -110,7 +111,7 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
           {writing && <ComposerDialog target={{ page: null, organization, disabled }} onClose={() => setWriting(false)} />}
 
           <div class="overflow-hidden rounded-md border border-border bg-canvas">
-            {state.step === 'loading' && <p class="m-0 p-4 text-sm text-fg-muted">Reading the log…</p>}
+            {state.step === 'loading' && <Loader label="Reading the log…" class="p-4" />}
 
             {state.step === 'failed' && <p class="m-0 p-4 text-sm text-fg-danger">Couldn't read /dev/null: {state.message}</p>}
 

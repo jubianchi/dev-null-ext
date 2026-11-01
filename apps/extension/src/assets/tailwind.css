@@ -118,6 +118,63 @@
   }
 }
 
+/*
+ * The loader's glyph, as the mobile app's splash (splash.lottie, 1 s): the ink slash scales 0 → 125 % → 100 % in
+ * 417 ms, the outline draws from 233 to 933 ms. The splash plays once; the loader holds the full glyph, fades it out
+ * and starts again, rather than emptying it at once. Out of animation (reduced motion), the glyph is whole.
+ */
+.loader-ink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: loader-ink 1600ms infinite;
+}
+.loader-outline {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  animation: loader-outline 1600ms infinite;
+}
+@keyframes loader-ink {
+  0% {
+    scale: 0;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  11.4% {
+    scale: 1.25;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  26% {
+    scale: 1;
+  }
+  87.5% {
+    scale: 1;
+    opacity: 1;
+  }
+  100% {
+    scale: 1;
+    opacity: 0;
+  }
+}
+@keyframes loader-outline {
+  0%,
+  14.6% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  58.3% {
+    stroke-dashoffset: 0;
+  }
+  87.5% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dialog-pop,
   .dialog-pop::backdrop {

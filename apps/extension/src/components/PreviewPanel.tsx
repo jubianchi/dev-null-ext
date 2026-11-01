@@ -4,6 +4,7 @@ import { ask } from '../lib/messages.ts';
 import type { AttachedImage } from '../lib/use-commit-draft.ts';
 import { CommitBody } from './CommitBody.tsx';
 import { AttachedImagesPreview } from './CommitImages.tsx';
+import { Loader } from './Loader.tsx';
 
 /** The preview /dev/null renders, or the plain text when it can't (offline, signed out, invalid body). */
 type Preview = { status: 'loading' } | { status: 'loaded'; preview: CommitPreview } | { status: 'failed' };
@@ -34,7 +35,7 @@ export function PreviewPanel({ body, images = [] }: { body: string; images?: Att
 
   return (
     <>
-      {!empty && preview.status === 'loading' && <span class="text-fg-muted">Loading preview…</span>}
+      {!empty && preview.status === 'loading' && <Loader label="Loading preview…" />}
       {!empty && preview.status === 'failed' && <div class="whitespace-pre-wrap break-words text-fg">{body}</div>}
       {!empty && preview.status === 'loaded' && <CommitBody segments={preview.preview.body_segments} mentions={preview.preview.mentions} />}
       <AttachedImagesPreview images={images} />
