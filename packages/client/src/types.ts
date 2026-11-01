@@ -67,6 +67,32 @@ export interface Commit {
   reply_preview?: { data: Array<Commit | DeletedCommit>; next_cursor: string | null };
   /** Only on signed lists, for a reply: its parent, or null when the viewer may not see it. */
   parent?: Commit | DeletedCommit | null;
+  /** Only on signed requests that load it: null when the commit has no poll. */
+  poll?: Poll | null;
+}
+
+/**
+ * A commit's poll. Its results (`total_votes`, each option's `votes_count` and `percentage`) are null until the viewer
+ * votes, unless the poll is theirs or closed. Votes are final.
+ */
+export interface Poll {
+  id: string;
+  /** Null until the commit is approved: the poll opens then. */
+  closes_at: string | null;
+  is_closed: boolean;
+  has_voted: boolean;
+  total_votes: number | null;
+  options: PollOption[];
+}
+
+export interface PollOption {
+  id: string;
+  label: string;
+  votes_count: number | null;
+  /** Whether it is the viewer's vote. */
+  voted: boolean;
+  /** Rounded, so the options may not add up to 100. */
+  percentage: number | null;
 }
 
 /** What is left of a deleted commit (CommitResource's tombstone). */

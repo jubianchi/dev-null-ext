@@ -234,4 +234,13 @@ export class DevNullClient {
   async unstar(commitId: string): Promise<void> {
     await this.request('DELETE', `/api/v1/commits/${encodeURIComponent(commitId)}/star`, { signed: true });
   }
+
+  /**
+   * Votes for one of a poll's options, once and for good, and returns the commit with the poll's results. /dev/null
+   * answers 422 with the reason for an author's own poll, a poll closed or not open yet, and a second vote.
+   */
+  async vote(commitId: string, optionId: string): Promise<Commit> {
+    const path = `/api/v1/commits/${encodeURIComponent(commitId)}/poll/votes`;
+    return (await this.request<Wrapped<Commit>>('POST', path, { body: { option: optionId }, signed: true })).data;
+  }
 }
