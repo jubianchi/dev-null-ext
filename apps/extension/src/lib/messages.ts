@@ -1,5 +1,6 @@
 import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, Page } from '@dev-null-ext/client';
 import { browser } from 'wxt/browser';
+import type { FollowState } from './follows.ts';
 import type { TransferredImage } from './images.ts';
 
 /**
@@ -16,6 +17,8 @@ export type Request =
   | { type: 'star'; commitId: string; starred: boolean }
   | { type: 'replies'; commitId: string; cursor: string | null }
   | { type: 'owner-type'; login: string }
+  | { type: 'follows'; handles: string[] }
+  | { type: 'follow'; handle: string; follow: boolean }
   | { type: 'sign-in' }
   | { type: 'sign-in:loopback' }
   | { type: 'sign-in:cancel' }
@@ -35,6 +38,9 @@ export interface Responses {
   /** Newest first, to follow a reply preview. */
   replies: Page<Commit | DeletedCommit>;
   'owner-type': OwnerType;
+  /** Each handle's state, keyed as asked; null when signed out. */
+  follows: Record<string, FollowState> | null;
+  follow: FollowState;
   'sign-in': SignInState;
   'sign-in:loopback': SignInState;
   'sign-in:cancel': SignInState;

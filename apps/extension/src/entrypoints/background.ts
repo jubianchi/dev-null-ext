@@ -17,6 +17,7 @@ import {
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { storage } from 'wxt/utils/storage';
+import { type FollowCache, Follows } from '../lib/follows.ts';
 import { fetchImageAsDataUrl } from '../lib/image-proxy.ts';
 import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
@@ -62,6 +63,14 @@ async function client(options: { signed: boolean }): Promise<DevNullClient> {
 async function readingClient(): Promise<DevNullClient> {
   return client({ signed: (await userItem.getValue()) !== null });
 }
+
+const followCacheItem = storage.defineItem<FollowCache | null>('session:follows', { fallback: null });
+
+const follows = new Follows({
+  client: () => client({ signed: true }),
+  me: () => userItem.getValue(),
+  store: { get: () => followCacheItem.getValue(), set: (cache) => followCacheItem.setValue(cache) },
+});
 
 let signInAbort: AbortController | null = null;
 
@@ -250,6 +259,10 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
     }
     case 'owner-type':
       return ownerType(request.login);
+    case 'follows':
+      return follows.states(request.handles);
+    case 'follow':
+      return follows.set(request.handle, request.follow);
     case 'sign-in':
       return startSignIn();
     case 'sign-in:loopback':
