@@ -1,4 +1,22 @@
-import type { Poll } from '@dev-null-ext/client';
+import type { NewPoll, Poll, PollDuration } from '@dev-null-ext/client';
+
+/** A poll being written: its options as typed. */
+export type DraftPoll = NewPoll;
+
+export const MIN_POLL_OPTIONS = 2;
+export const MAX_POLL_OPTIONS = 4;
+export const MAX_POLL_OPTION_LENGTH = 50;
+
+export const DURATION_LABELS: Record<PollDuration, string> = { 60: '1 hour', 1440: '1 day', 4320: '3 days', 10080: '7 days' };
+
+/** As dev-null.sh's poll editor starts: two empty options, for a day. */
+export function newPoll(): DraftPoll {
+  return { options: ['', ''], duration: 1440 };
+}
+
+export function pollReady(poll: DraftPoll): boolean {
+  return poll.options.every((option) => option.trim() !== '');
+}
 
 /** /dev/null hides a poll's results until the viewer votes, unless the poll is theirs or closed. */
 export function showsResults(poll: Poll): poll is Poll & { total_votes: number } {

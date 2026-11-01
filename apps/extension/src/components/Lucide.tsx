@@ -13,6 +13,9 @@ const PATHS = {
   'message-square-reply': ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z', 'm10 7-3 3 3 3', 'M17 13v-1a2 2 0 0 0-2-2H7'],
   'chevron-right': ['m9 18 6-6-6-6'],
   check: ['M20 6 9 17l-5-5'],
+  'chart-bar': ['M3 3v16a2 2 0 0 0 2 2h16', 'M7 16h8', 'M7 11h12', 'M7 6h3'],
+  'chevron-down': ['m6 9 6 6 6-6'],
+  x: ['M18 6 6 18', 'm6 6 12 12'],
 } as const;
 
 export type LucideName = keyof typeof PATHS;
