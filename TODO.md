@@ -83,7 +83,7 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [ ] Read that count from the API instead of hard-coding it (`DEVELOPERS` in the popup, 12,000 on 2026-10-31): the
       count (`DevelopersCountQuery`) is not in the API; it needs an unsigned endpoint in dev-null.sh, e.g.
       `GET /api/v1/stats` returning `{ developers_count }`.
-- [ ] Restyle the sign-in steps (the code to approve, the permission to grant, a failure) as design B.
+- [x] Restyle the sign-in steps (the code to approve, the permission to grant, a failure) as design B.
 
 ## Not now
 

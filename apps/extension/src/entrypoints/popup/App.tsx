@@ -6,6 +6,7 @@ import { Glyph } from '../../components/Glyph.tsx';
 import { Loader } from '../../components/Loader.tsx';
 import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
+import { PopupSignIn } from '../../components/PopupSignIn.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
 import { ask, type SignInState } from '../../lib/messages.ts';
 import { hostPermission, isDefaultServer, SERVER, serverName } from '../../lib/server.ts';
@@ -25,9 +26,7 @@ const DEVELOPERS = 12_000;
 const ORIGINS = ['https://github.com/*', hostPermission(SERVER), 'https://api.github.com/*'];
 const SERVER_NAME = serverName(SERVER);
 
-const button = 'rounded-md px-3 py-1.5 text-sm font-medium';
-const primary = `${button} bg-primary text-primary-fg hover:bg-primary-hover`;
-const secondary = `${button} border border-button-border bg-button text-fg hover:bg-button-hover`;
+const primary = 'h-9 cursor-pointer rounded-lg border-0 bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700';
 
 export function App() {
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
@@ -106,10 +105,24 @@ export function App() {
 
       {user === null && signIn.status === 'idle' && <PopupWelcome developers={DEVELOPERS} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
 
-      <div class="px-4 pb-4 empty:hidden">
+      {user === null && signIn.status !== 'idle' && (
+        <PopupSignIn
+          state={signIn}
+          server={SERVER_NAME}
+          onCancel={() => void run(() => ask({ type: 'sign-in:cancel' }))}
+          onRetry={() => void run(() => ask({ type: 'sign-in' }))}
+          onAllow={() =>
+            void run(async () => {
+              if (await browser.permissions.request({ permissions: ['webNavigation'] })) await ask({ type: 'sign-in:loopback' });
+            })
+          }
+        />
+      )}
+
+      <div class="flex flex-col gap-3 px-4 pb-4 empty:hidden">
         {!hostAccess && (
-          <section class="mb-4 space-y-2">
-            <p class="m-0 text-fg-muted">The extension needs access to github.com and {SERVER_NAME} to work.</p>
+          <section class="flex flex-col items-start gap-2">
+            <p class="m-0 text-zinc-600">The extension needs access to github.com and {SERVER_NAME} to work.</p>
             <button type="button" class={primary} onClick={() => run(async () => setHostAccess(await browser.permissions.request({ origins: ORIGINS })))}>
               Allow access
             </button>
@@ -118,65 +131,7 @@ export function App() {
 
         {user === undefined && <Loader label="Checking your session…" />}
 
-        {user === null && signIn.status === 'waiting' && signIn.flow === 'device-grant' && (
-          <section class="space-y-2">
-            <p class="m-0">Approve this code on {SERVER_NAME}, in the tab that just opened:</p>
-            <p class="m-0 rounded-md bg-canvas-muted py-2 text-center font-mono text-xl tracking-widest">{signIn.userCode}</p>
-            <div class="flex gap-2">
-              <a href={signIn.verificationUri} target="_blank" rel="noopener" class={secondary}>
-                Open the page again
-              </a>
-              <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
-                Cancel
-              </button>
-            </div>
-          </section>
-        )}
-
-        {user === null && signIn.status === 'waiting' && signIn.flow === 'loopback' && (
-          <section class="space-y-2">
-            <p class="m-0">Approve this browser on {SERVER_NAME}, in the tab that just opened.</p>
-            <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
-              Cancel
-            </button>
-          </section>
-        )}
-
-        {user === null && signIn.status === 'needs-permission' && (
-          <section class="space-y-2">
-            <p class="m-0 text-fg-muted">
-              This /dev/null server signs browsers in through a redirect. To catch it, the extension needs to see where the sign-in tab goes. It only looks for
-              its own redirect.
-            </p>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class={primary}
-                onClick={() =>
-                  run(async () => {
-                    if (await browser.permissions.request({ permissions: ['webNavigation'] })) await ask({ type: 'sign-in:loopback' });
-                  })
-                }
-              >
-                Allow and continue
-              </button>
-              <button type="button" class={secondary} onClick={() => run(() => ask({ type: 'sign-in:cancel' }))}>
-                Cancel
-              </button>
-            </div>
-          </section>
-        )}
-
-        {user === null && signIn.status === 'failed' && (
-          <section class="space-y-2">
-            <p class="m-0 text-fg-danger">{signIn.message}</p>
-            <button type="button" class={primary} onClick={() => run(() => ask({ type: 'sign-in' }))}>
-              Try again
-            </button>
-          </section>
-        )}
-
-        {error && <p class="m-0 mt-3 text-fg-danger">{error}</p>}
+        {error && <p class="m-0 text-red-700">{error}</p>}
       </div>
     </main>
   );
