@@ -28,8 +28,12 @@ const parent = { ...reply('c1', 'Shipped'), parent_id: null, replies_count: 3 };
 
 let root: HTMLElement;
 
+const older = (from: number, count: number) => Array.from({ length: count }, (_, index) => reply(`r${from - index}`, `Reply ${from - index}`));
+const page = (data: Commit[], next: string | null = null) => ({ data, meta: { next_cursor: next } });
+
 beforeEach(() => {
   ask.mockReset();
+  ask.mockResolvedValue(page([]));
   root = document.createElement('div');
   document.body.append(root);
 });
@@ -43,36 +47,78 @@ async function show(preview: { data: Array<Commit | DeletedCommit>; next_cursor:
   await act(async () => {
     render(<Replies parent={{ ...parent, replies_count: replies }} preview={preview} />, root);
   });
+  await act(async () => {});
 }
 
 const more = () => [...root.querySelectorAll('button')].find((button) => /^Show/.test(button.textContent ?? ''));
+const click = async () => {
+  await act(async () => more()!.click());
+  await act(async () => {});
+};
 
 describe('Replies', () => {
   it('shows the newest reply under the commit', async () => {
-    await show({ data: [reply('r3', 'Newest')], next_cursor: 'cursor-1' });
+    await show({ data: [reply('r3', 'Newest')], next_cursor: null }, 1);
 
     expect(root.querySelectorAll('[data-reply]')).toHaveLength(1);
     expect(root.textContent).toContain('Newest');
     expect(root.textContent).toContain('@jubianchi');
   });
 
-  it('loads the older replies, newest first, from the preview cursor', async () => {
-    ask.mockResolvedValueOnce({ data: [reply('r2', 'Older'), reply('r1', 'Oldest')], meta: { next_cursor: null } });
-    await show({ data: [reply('r3', 'Newest')], next_cursor: 'cursor-1' });
+  it("shows the three newest replies, as dev-null.sh does, loading the two the API doesn't preview", async () => {
+    ask.mockResolvedValueOnce(page(older(4, 4)));
+    await show({ data: [reply('r5', 'Newest')], next_cursor: 'cursor-1' }, 5);
 
-    expect(more()?.textContent).toBe('Show the last 2');
-    await act(async () => more()!.click());
-    await act(async () => {});
-
+    expect(ask).toHaveBeenCalledTimes(1);
     expect(ask).toHaveBeenCalledWith({ type: 'replies', commitId: 'c1', cursor: 'cursor-1' });
-    expect([...root.querySelectorAll('[data-reply]')].map((element) => element.textContent?.includes('Older'))).toEqual([false, true, false]);
+    expect(root.querySelectorAll('[data-reply]')).toHaveLength(3);
+    expect(root.textContent).toContain('Newest');
+    expect(root.textContent).toContain('Reply 4');
+    expect(root.textContent).toContain('Reply 3');
+    expect(root.textContent).not.toContain('Reply 2');
+    expect(more()?.textContent).toBe('Show the last 2');
+  });
+
+  it('shows the rest of the loaded replies on demand, newest first, without asking again', async () => {
+    ask.mockResolvedValueOnce(page(older(4, 4)));
+    await show({ data: [reply('r5', 'Newest')], next_cursor: 'cursor-1' }, 5);
+    await click();
+
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(root.querySelectorAll('[data-reply]')).toHaveLength(5);
+    expect(root.querySelectorAll('[data-reply]')[4]?.textContent).toContain('Reply 1');
     expect(more()).toBeUndefined();
   });
 
-  it('counts what is left when more than a page of replies remains', async () => {
+  it('asks for the next page once the loaded replies are all shown, and counts what is left', async () => {
+    ask.mockResolvedValueOnce(page(older(59, 50), 'cursor-2')).mockResolvedValueOnce(page(older(9, 9)));
     await show({ data: [reply('r60', 'Newest')], next_cursor: 'cursor-1' }, 60);
 
-    expect(more()?.textContent).toBe('Show 59 more');
+    expect(more()?.textContent).toBe('Show 57 more');
+    await click();
+    expect(root.querySelectorAll('[data-reply]')).toHaveLength(51);
+    expect(more()?.textContent).toBe('Show the last 9');
+
+    await click();
+    expect(ask).toHaveBeenLastCalledWith({ type: 'replies', commitId: 'c1', cursor: 'cursor-2' });
+    expect(root.querySelectorAll('[data-reply]')).toHaveLength(60);
+    expect(more()).toBeUndefined();
+  });
+
+  it("doesn't ask for replies when the preview holds them all", async () => {
+    await show({ data: [reply('r1', 'Only')], next_cursor: null }, 1);
+
+    expect(ask).not.toHaveBeenCalled();
+  });
+
+  it("keeps the preview, and loads the replies on demand, when the newest ones can't be loaded", async () => {
+    ask.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(page([reply('r1', 'Oldest')]));
+    await show({ data: [reply('r2', 'Newest')], next_cursor: 'cursor-1' }, 2);
+
+    expect(root.querySelectorAll('[data-reply]')).toHaveLength(1);
+    expect(more()?.textContent).toBe('Show the last reply');
+    await click();
+    expect(root.querySelectorAll('[data-reply]')).toHaveLength(2);
   });
 
   it("shows a reply's own replies, linking to it, as dev-null.sh's › 1 reply toggle", async () => {
@@ -95,7 +141,8 @@ describe('Replies', () => {
   });
 
   it('says the last reply when only one is left', async () => {
-    await show({ data: [reply('r2', 'Newest')], next_cursor: 'cursor-1' }, 2);
+    ask.mockResolvedValueOnce(page(older(3, 3)));
+    await show({ data: [reply('r4', 'Newest')], next_cursor: 'cursor-1' }, 4);
 
     expect(more()?.textContent).toBe('Show the last reply');
   });

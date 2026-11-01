@@ -1,5 +1,5 @@
 import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { ask } from '../lib/messages.ts';
 import { segmentBody } from '../lib/segments.ts';
 import { relativeTime } from '../lib/time.ts';
@@ -11,8 +11,8 @@ import { Lucide } from './Lucide.tsx';
 type Reply = Commit | DeletedCommit;
 
 /**
- * A commit's replies under it, as dev-null.sh opens them in a list: the newest one the API previews, and the older
- * ones on demand, newest first, each hanging from a dashed line in its author's lane.
+ * A commit's replies under it, as dev-null.sh opens them in a list: the three newest (the API previews one, the rest is
+ * loaded), and the older ones on demand, newest first, each hanging from a dashed line in its author's lane.
  */
 export function Replies({
   parent,
@@ -24,19 +24,33 @@ export function Replies({
   /** The user's replies sent from the log, newest first: they come before the others, as the newest. */
   sent?: Commit[];
 }) {
-  const [loaded, setReplies] = useState(preview.data);
-  const replies = [...sent, ...loaded.filter((reply) => !sent.some((own) => own.id === reply.id))];
+  const [loaded, setLoaded] = useState(preview.data);
   const [cursor, setCursor] = useState(preview.next_cursor);
+  const [shown, setShown] = useState(SHOWN_FIRST);
   const [loading, setLoading] = useState(false);
 
+  const replies = [...sent, ...loaded.slice(0, shown).filter((reply) => !sent.some((own) => own.id === reply.id))];
   const left = Math.max(0, (parent.replies_count ?? replies.length) - replies.length);
 
+  async function load(from: string | null) {
+    const page = await ask({ type: 'replies', commitId: parent.id, cursor: from });
+    setLoaded((current) => [...current, ...page.data.filter((reply) => !current.some((known) => known.id === reply.id))]);
+    setCursor(page.meta.next_cursor);
+  }
+
+  useEffect(() => {
+    if (preview.next_cursor && preview.data.length < SHOWN_FIRST) void load(preview.next_cursor).catch(() => {});
+  }, []);
+
   async function more() {
+    if (loaded.length > shown) {
+      setShown(loaded.length);
+      return;
+    }
     setLoading(true);
     try {
-      const page = await ask({ type: 'replies', commitId: parent.id, cursor });
-      setReplies((current) => [...current, ...page.data]);
-      setCursor(page.meta.next_cursor);
+      await load(cursor);
+      setShown(Number.POSITIVE_INFINITY);
     } finally {
       setLoading(false);
     }
@@ -49,7 +63,7 @@ export function Replies({
       {replies.map((reply) => (
         <ReplyItem key={reply.id} reply={reply} parentId={parent.id} />
       ))}
-      {cursor && left > 0 && (
+      {(loaded.length > shown || cursor) && left > 0 && (
         <button
           type="button"
           onClick={() => void more()}
@@ -62,6 +76,9 @@ export function Replies({
     </div>
   );
 }
+
+/** How many replies dev-null.sh shows under a commit before its "Show more" button; the API previews only the newest. */
+const SHOWN_FIRST = 3;
 
 /** The API pages replies 50 at a time (CommitRepliesQuery::PER_PAGE). */
 const REPLIES_PER_PAGE = 50;

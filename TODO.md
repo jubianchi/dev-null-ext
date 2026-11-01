@@ -28,6 +28,8 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 ## 3. Threads
 
 - [x] Show the reply preview under each commit, and the older replies on demand, as dev-null.sh does.
+- [x] Show the three newest replies under each commit, as dev-null.sh does: the API previews one, so the extension
+      loads the next ones.
 - [x] Say which commit a mention replies to ("↳ replying to @handle").
 - [x] Show a reply's own replies count ("1 reply"), linking to it, as dev-null.sh does.
 - [x] Label the load-more button as dev-null.sh does: "Show the last N" when one page loads them all.
