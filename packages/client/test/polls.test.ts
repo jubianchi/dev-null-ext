@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DevNullClient } from '../src/client.ts';
 import type { ApiError } from '../src/errors.ts';
-import type { Commit, Poll } from '../src/types.ts';
+import { type Commit, POLL_DURATIONS, type Poll } from '../src/types.ts';
 import { fakeClock, fakeFetch, fixtureSigner } from './helpers.ts';
 
 async function clientWith(responses: Array<[number, unknown]>) {
@@ -43,6 +43,20 @@ describe('polls', () => {
     expect(JSON.parse(fetch.requests[0]?.body ?? '')).toEqual({ option: 'o1' });
     expect(fetch.requests[0]?.headers['X-SSH-Signature']).toBeDefined();
     expect(voted.poll).toEqual(poll);
+  });
+
+  it('commits with a poll: its options and its duration in minutes, in the JSON', async () => {
+    const { fetch, client } = await clientWith([[201, { data: commit }]]);
+
+    const created = await client.createCommit({ body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+
+    expect(fetch.requests[0]?.url.pathname).toBe('/api/v1/commits');
+    expect(JSON.parse(fetch.requests[0]?.body ?? '')).toEqual({ body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+    expect(created.poll).toEqual(poll);
+  });
+
+  it('lasts 1 hour, 1, 3 or 7 days', () => {
+    expect(POLL_DURATIONS).toEqual([60, 1440, 4320, 10080]);
   });
 
   it('says why a vote is refused', async () => {

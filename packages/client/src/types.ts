@@ -143,6 +143,18 @@ export interface NewCommit {
   body: string;
   parent_id?: string;
   quoted_commit_id?: string;
+  /** Only on a commit that is neither a reply nor a quote, without images; its body is still required. */
+  poll?: NewPoll;
+}
+
+/** How long a poll stays open once its commit is approved, in minutes: 1 hour, 1, 3 or 7 days. */
+export const POLL_DURATIONS = [60, 1440, 4320, 10080] as const;
+export type PollDuration = (typeof POLL_DURATIONS)[number];
+
+export interface NewPoll {
+  /** 2 to 4 options, 50 characters each at most, distinct ignoring case. */
+  options: string[];
+  duration: PollDuration;
 }
 
 /**
