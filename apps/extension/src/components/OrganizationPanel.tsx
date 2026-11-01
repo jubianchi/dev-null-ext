@@ -1,8 +1,10 @@
 import type { Commit } from '@dev-null-ext/client';
+import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
 import { ask, BackgroundError } from '../lib/messages.ts';
 import { SERVER } from '../lib/server.ts';
+import { dayKey, dayLabel } from '../lib/time.ts';
 import { useSession } from '../lib/use-session.ts';
 import { CommitItem } from './CommitItem.tsx';
 import { ComposerDialog } from './ComposerDialog.tsx';
@@ -124,9 +126,21 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
 
             {state.step === 'loaded' && state.commits.length > 0 && (
               <ul class="m-0 list-none p-0">
-                {state.commits.map((commit) => (
-                  <CommitItem key={commit.id} commit={commit} canReply={Boolean(user)} />
-                ))}
+                {state.commits.map((commit, index) => {
+                  const previous = state.commits[index - 1];
+                  const startsDay = !previous || dayKey(previous.created_at) !== dayKey(commit.created_at);
+                  return (
+                    <Fragment key={commit.id}>
+                      {startsDay && (
+                        // Aligned with the commits' text: their padding, avatar and gap.
+                        <li class="border-b border-border-muted py-2 pr-4 pl-15">
+                          <h3 class="m-0 font-mono text-xs font-normal text-fg-muted">{dayLabel(commit.created_at)}</h3>
+                        </li>
+                      )}
+                      <CommitItem commit={commit} canReply={Boolean(user)} />
+                    </Fragment>
+                  );
+                })}
               </ul>
             )}
           </div>

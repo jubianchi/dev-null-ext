@@ -131,3 +131,35 @@ describe('OrganizationPanel', () => {
     expect(link?.parentElement?.lastElementChild).toBe(link);
   });
 });
+
+describe('OrganizationPanel, its log', () => {
+  const author = { id: '1', handle: 'jubianchi', name: null, avatar_url: null, bio: null, github_url: '', html_url: '' };
+  const commit = (id: string, created_at: string) => ({
+    id,
+    short_hash: id,
+    body: id,
+    parent_id: null,
+    html_url: `https://dev-null.sh/@jubianchi/commits/${id}`,
+    created_at,
+    replies_count: 0,
+    stars_count: 0,
+    author,
+  });
+
+  beforeEach(async () => {
+    const commits = [commit('c1', '2025-12-29T13:00:00Z'), commit('c2', '2025-12-29T11:00:00Z'), commit('c3', '2025-12-28T12:00:00Z')];
+    ask.mockImplementation(async (request: { type: string }) => (request.type === 'session' ? user : { data: commits, meta: { next_cursor: null } }));
+    await act(async () => {
+      render(<OrganizationPanel organization="laravel" />, root);
+    });
+    await act(async () => {});
+  });
+
+  it('opens each day with its date, as dev-null.sh does, starting with the first commit', () => {
+    const items = [...root.querySelector('ul')!.children];
+    const days = items.map((item) => item.querySelector(':scope > h3')?.textContent ?? null);
+
+    expect(days).toEqual(['Mon, Dec 29, 2025', null, null, 'Sun, Dec 28, 2025', null]);
+    expect(items[0]?.querySelector('h3')?.className).toContain('font-mono');
+  });
+});
