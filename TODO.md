@@ -22,7 +22,6 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       its commit once sent.
 - [ ] In a reply, "Replying to @a, @b": choose which of the parent's other mentioned people get it too
       (`reply_recipients`, user ids), as dev-null.sh's reply-recipient-picker does.
-- [ ] The `r` shortcut to reply to a commit, as on dev-null.sh.
 - [ ] Quote a commit from a log the same way (`quoted_commit_id`; no `parent_id`, no poll).
 
 ## 3. Threads
@@ -35,7 +34,6 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [x] Label the load-more button as dev-null.sh does: "Show the last N" when one page loads them all.
 - [ ] Draw the thread as dev-null.sh does: a dot on the commit's rail, and a dashed elbow from it to each reply.
 - [ ] Share a commit from its actions, as dev-null.sh does.
-- [ ] Report a commit from its actions, as dev-null.sh does.
 - [ ] "Show thread": it needs the commit's `continuation_id` (its author's earliest self-reply), which the API does
       not expose. For the same reason, the replies loaded on demand may include that continuation. Ask dev-null.sh to
       expose it.
@@ -56,8 +54,6 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [x] The other pages that list people with a Follow: a profile's followers and following, a repository's stargazers
       (GitHub shows them for one's own repositories only) and watchers. A repository's contributors graph has no Follow.
 - [x] Follow an organization on /dev/null (`POST|DELETE /api/v1/organizations/{handle}/follow`), from its page.
-- [ ] "Follow back" for someone who follows the user: it needs `follows_you`, which only a lookup per person gives
-      (`search/profiles`); /dev/null has no lookup for many users at once.
 
 ## 4. Composer
 
@@ -70,8 +66,6 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [ ] In the preview, show where the first link's card will go, as dev-null.sh does ("Unfurls into a link card
       after you commit.").
 - [ ] Format GitLab and Codeberg links as dev-null.sh does, as GitHub's are.
-- [ ] Keyboard shortcuts to insert the additions (the page's link, the organization's mention), shown in their
-      tooltips.
 
 ## 5. Polish
 
@@ -95,3 +89,7 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 
 - The organization's profile (bio, followers, admins, Follow): GitHub's page already shows the organization.
 - Translate, and the pastéis reactions.
+- "Follow back" for someone who follows the user: hardly useful on GitHub, and it needs `follows_you`, which only a
+  lookup per person gives (`search/profiles`).
+- Report a commit: it stays on dev-null.sh.
+- Keyboard shortcuts (`r` to reply, inserting the additions): they would interfere with GitHub's own.
