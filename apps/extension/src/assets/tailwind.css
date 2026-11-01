@@ -79,7 +79,51 @@
   color: var(--color-prettylights-syntax-markup-deleted-text, #82071e);
 }
 
+/*
+ * A modal dialog that pops: it grows and fades in from a little smaller, its backdrop darkening, and does the reverse
+ * when it closes. `display` and `overlay` transition discretely so it stays shown, on top, until the end.
+ */
+.dialog-pop {
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 150ms ease-in,
+    transform 150ms ease-in,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+.dialog-pop[open] {
+  opacity: 1;
+  transform: scale(1);
+  transition-timing-function: ease-out, cubic-bezier(0.34, 1.4, 0.64, 1);
+  transition-duration: 200ms;
+}
+.dialog-pop::backdrop {
+  background-color: rgb(0 0 0 / 0);
+  transition:
+    background-color 150ms ease-in,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+.dialog-pop[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.5);
+}
+@starting-style {
+  .dialog-pop[open] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  .dialog-pop[open]::backdrop {
+    background-color: rgb(0 0 0 / 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .dialog-pop,
+  .dialog-pop::backdrop {
+    transition: none;
+  }
+
   * {
     /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over every utility class. */
     transition: none !important;

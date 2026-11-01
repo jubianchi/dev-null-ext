@@ -362,4 +362,32 @@ describe('ComposerDialog', () => {
 
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it('pops out before telling it closed, so it is not removed mid-animation', async () => {
+    const onClose = vi.fn();
+    await mount(<ComposerDialog target={{ page, organization: null }} onClose={onClose} />);
+    const dialog = root.querySelector('dialog')!;
+    let finish!: () => void;
+    const finished = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    dialog.getAnimations = () => [{ finished } as unknown as Animation];
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Close"]')!.click());
+    expect(dialog.open).toBe(false);
+    expect(onClose).not.toHaveBeenCalled();
+
+    await act(async () => finish());
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes from a click on its backdrop', async () => {
+    const onClose = vi.fn();
+    await mount(<ComposerDialog target={{ page, organization: null }} onClose={onClose} />);
+
+    await act(async () => root.querySelector('dialog')!.click());
+
+    expect(root.querySelector('dialog')?.open).toBe(false);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
