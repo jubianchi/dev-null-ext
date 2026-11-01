@@ -28,6 +28,7 @@ import { keepEachMounted } from '../../lib/keep-each-mounted.ts';
 import { keepMounted } from '../../lib/keep-mounted.ts';
 import { ask } from '../../lib/messages.ts';
 import { panelToggle } from '../../lib/panel-toggle.ts';
+import { watchSession } from '../../lib/session-store.ts';
 import { decorationsFor, disabledFeatures, type Settings } from '../../lib/settings.ts';
 import { loadSettings, watchSettings } from '../../lib/settings-store.ts';
 import type { SharedPage } from '../../lib/share.ts';
@@ -67,6 +68,9 @@ export default defineContentScript({
       void remount();
     });
     ctx.onInvalidated(stop);
+
+    // Signing in or out from the popup shows the log and the buttons, or takes them away, without reloading the page.
+    ctx.onInvalidated(watchSession(() => void remount()));
 
     void update();
     watchNavigation({
