@@ -122,6 +122,15 @@ describe('FollowButton', () => {
     expect(button()?.title).toBe('Too many requests.');
   });
 
+  it("fills its container when asked, as GitHub's Follow on a profile", async () => {
+    await act(async () => {
+      render(<FollowButton handle="A5hleyRich" state="not-following" size="medium" block />, root);
+    });
+
+    expect(button()?.className).toContain('w-full');
+    expect(button()?.className).toContain('justify-center');
+  });
+
   it('shows nothing on oneself', async () => {
     await show('self');
 

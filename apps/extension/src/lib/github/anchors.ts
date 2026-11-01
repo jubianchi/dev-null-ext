@@ -78,6 +78,14 @@ export function peopleFollowAnchors(): Array<{ box: Element; login: string }> {
   });
 }
 
+/**
+ * GitHub's Follow on a user's profile, under their name, which the /dev/null Follow goes under. There is none on the
+ * user's own profile (Edit profile instead), nor when signed out of GitHub.
+ */
+export function profileFollowAnchor(): string | undefined {
+  return first(['.js-user-profile-follow-button ~ .user-following-container']);
+}
+
 /** The right sidebar of an organization's discussions list ("Most helpful"), not its categories on the left. */
 export function discussionsSidebar(): string {
   return '.Layout--sidebarPosition-end > .Layout-sidebar';

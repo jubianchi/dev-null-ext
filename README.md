@@ -37,8 +37,8 @@ own.
 
 ### Follow people on /dev/null
 
-On an organization's **People**, a /dev/null **Follow** button sits next to GitHub's own for each member, or
-Unfollow once you follow them. Someone who isn't on /dev/null yet says so once you try.
+On an organization's **People**, a /dev/null **Follow** button sits next to GitHub's own for each member, and under
+it on a user's **profile**; it says Unfollow once you follow them. Someone who isn't on /dev/null yet says so once you try.
 
 ### Your profile and settings in the toolbar
 

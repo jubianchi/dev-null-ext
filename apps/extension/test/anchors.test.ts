@@ -6,6 +6,7 @@ import {
   organizationTabStyle,
   organizationTabs,
   peopleFollowAnchors,
+  profileFollowAnchor,
   releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
@@ -230,5 +231,23 @@ describe('peopleFollowAnchors', () => {
     document.body.innerHTML = `<ul>${member('jubianchi', false)}${member('taylorotwell')}</ul>`;
 
     expect(peopleFollowAnchors().map(({ login }) => login)).toEqual(['taylorotwell']);
+  });
+});
+
+describe('profileFollowAnchor', () => {
+  it("finds GitHub's Follow on a profile, to go under it", () => {
+    document.body.innerHTML = `
+      <div class="flex-1 mb-0">
+        <div class="js-toggle-stuck js-user-profile-follow-button"></div>
+        <span class="user-following-container js-form-toggle-container" id="follow"><form><input class="btn btn-block" type="submit" value="Follow"></form></span>
+      </div>`;
+
+    expect(document.querySelector(profileFollowAnchor() ?? '')?.id).toBe('follow');
+  });
+
+  it("has none on the user's own profile, where GitHub offers Edit profile instead", () => {
+    document.body.innerHTML = '<button class="btn btn-block js-profile-editable-edit-button">Edit profile</button>';
+
+    expect(profileFollowAnchor()).toBeUndefined();
   });
 });

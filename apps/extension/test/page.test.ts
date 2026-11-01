@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { readAuthor, readPage } from '../src/lib/github/page.ts';
 
-function documentWith(subject: string | null, title = '', repository: string | null = null): Document {
+function documentWith(subject: string | null, title = '', repository: string | null = null, username: string | null = null): Document {
   return {
     title,
     querySelector: (selector: string) => {
       if (selector === 'meta[name="hovercard-subject-tag"]' && subject) return { content: subject };
+      if (selector === 'meta[property="profile:username"]' && username) return { content: username };
       if (selector === 'meta[name="octolytics-dimension-repository_nwo"]' && repository) return { content: repository };
       return null;
     },
@@ -109,6 +110,17 @@ describe('readPage', () => {
       organization: 'laravel',
     });
     expect(readPage(new URL('https://github.com/jubianchi'), documentWith('user:327237'))).toEqual({ kind: 'other' });
+  });
+
+  it("knows a user's profile from its profile:username, with their login as GitHub writes it", () => {
+    expect(readPage(new URL('https://github.com/a5hleyrich'), documentWith(null, '', null, 'A5hleyRich'))).toEqual({
+      kind: 'profile',
+      login: 'A5hleyRich',
+    });
+    expect(readPage(new URL('https://github.com/A5hleyRich?tab=repositories'), documentWith(null, '', null, 'A5hleyRich'))).toEqual({
+      kind: 'profile',
+      login: 'A5hleyRich',
+    });
   });
 
   it('reads repositories, pull requests and issues from the URL', () => {

@@ -11,7 +11,18 @@ type Shown = FollowState | 'blocked';
  * followed, drawn as Primer's danger button. /dev/null's glyph tells the two apart, all in the text colour on Unfollow
  * so it turns white with it. Nothing on oneself.
  */
-export function FollowButton({ handle, state, size }: { handle: string; state: FollowState; size: keyof typeof BUTTON_SIZES }) {
+export function FollowButton({
+  handle,
+  state,
+  size,
+  block = false,
+}: {
+  handle: string;
+  state: FollowState;
+  size: keyof typeof BUTTON_SIZES;
+  /** Fills its container, as GitHub's Follow on a profile. */
+  block?: boolean;
+}) {
   const [shown, setShown] = useState<Shown>(state);
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -46,7 +57,7 @@ export function FollowButton({ handle, state, size }: { handle: string; state: F
       disabled={pending || unavailable}
       aria-label={unavailable ? undefined : `${label} @${handle} on /dev/null`}
       title={title}
-      class={`${BUTTON_SIZES[size]} ${following ? DANGER_BUTTON : BUTTON} font-sans disabled:cursor-default disabled:opacity-60`}
+      class={`${BUTTON_SIZES[size]} ${following ? DANGER_BUTTON : BUTTON} font-sans disabled:cursor-default disabled:opacity-60 ${block ? 'w-full justify-center' : ''}`}
     >
       <Glyph class="size-4 shrink-0" muted={unavailable || following} />
       {label}

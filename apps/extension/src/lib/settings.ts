@@ -18,6 +18,7 @@ export const FEATURES = [
     hint: "The latest commits mentioning the organization, next to its discussions' guidelines",
   },
   { id: 'follow-buttons', group: 'People', label: 'Follow buttons', hint: "Next to GitHub's own Follow, on an organization's people" },
+  { id: 'profile-follow', group: 'People', label: 'Follow button on profiles', hint: "Under GitHub's own Follow" },
   { id: 'author-mention', group: 'Composer', label: 'Offer to mention the author', hint: 'Of the issue or pull request you share' },
   { id: 'organization-mention', group: 'Composer', label: 'Offer to mention the organization', hint: 'So the commit shows in its log' },
 ] as const;
@@ -37,7 +38,7 @@ export function disabledFeatures(settings: Settings): ReadonlySet<FeatureId> {
 }
 
 /** What the content script mounts on a page. */
-export type Decoration = 'organization-tab' | 'discussions-sidebar' | 'follow-buttons' | 'share-button' | 'release-buttons';
+export type Decoration = 'organization-tab' | 'discussions-sidebar' | 'follow-buttons' | 'profile-follow' | 'share-button' | 'release-buttons';
 
 const SHARE_BUTTONS: Partial<Record<GitHubPage['kind'], FeatureId>> = {
   repository: 'repository-button',
@@ -56,6 +57,7 @@ export function decorationsFor(page: GitHubPage, settings: Settings): Decoration
     ];
   }
   if (page.kind === 'releases') return settings['release-buttons'] ? ['release-buttons'] : [];
+  if (page.kind === 'profile') return settings['profile-follow'] ? ['profile-follow'] : [];
 
   const feature = SHARE_BUTTONS[page.kind];
   return feature && settings[feature] ? ['share-button'] : [];

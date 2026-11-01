@@ -15,6 +15,7 @@ import {
   organizationTabStyle,
   organizationTabs,
   peopleFollowAnchors,
+  profileFollowAnchor,
   releaseShareAnchors,
   selectedOrganizationTabs,
   shareButtonAnchor,
@@ -85,6 +86,7 @@ async function mount(ctx: ContentScriptContext, page: GitHubPage, settings: Sett
     if (decoration === 'organization-tab' && page.kind === 'organization') mounted.push(organizationTab(ctx, page.organization, disabled));
     if (decoration === 'discussions-sidebar' && page.kind === 'organization') mounted.push(await organizationSidebar(ctx, page.organization));
     if (decoration === 'follow-buttons') mounted.push(followButtons(ctx));
+    if (decoration === 'profile-follow' && page.kind === 'profile') mounted.push(await profileFollow(ctx, page.login));
     if (decoration === 'share-button' && 'url' in page && page.kind !== 'release') mounted.push(await shareButton(ctx, page, disabled));
     if (decoration === 'release-buttons' && page.kind === 'releases') mounted.push(releaseButtons(ctx, page, disabled));
   }
@@ -211,6 +213,29 @@ function followButtons(ctx: ContentScriptContext): Mounted {
   });
 
   return { remove: () => controller.abort() };
+}
+
+/** A /dev/null Follow under GitHub's own on a user's profile, as wide and as tall; nothing when signed out of /dev/null. */
+async function profileFollow(ctx: ContentScriptContext, login: string): Promise<Mounted> {
+  const states = await ask({ type: 'follows', handles: [login] }).catch(() => null);
+  const state = states?.[login];
+  const ui = await createShadowRootUi(ctx, {
+    name: 'devnull-follow',
+    position: 'inline',
+    anchor: profileFollowAnchor,
+    append: 'after',
+    onMount: (container) =>
+      state &&
+      render(
+        <div class="pt-2">
+          <FollowButton handle={login} state={state} size="medium" block />
+        </div>,
+        container,
+      ),
+    onRemove: (container) => container && render(null, container),
+  });
+
+  return keptMounted(ctx, ui, () => ui.shadowHost, profileFollowAnchor);
 }
 
 /** What /dev/null says of the organization, at the end of its discussions list's sidebar. */

@@ -24,6 +24,8 @@ export type GitHubPage =
       /** Who opened it, read once the page is rendered (readAuthor). */
       author?: string | null;
     }
+  /** A user's profile, with their login as GitHub writes it, whatever the URL's case. */
+  | { kind: 'profile'; login: string }
   | { kind: 'other' };
 
 /** First path segments that are GitHub's own pages, never an owner. */
@@ -79,7 +81,10 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
 
   if (segments.length === 1) {
     const subject = document.querySelector<HTMLMetaElement>('meta[name="hovercard-subject-tag"]')?.content ?? '';
-    return subject.startsWith('organization:') ? { kind: 'organization', organization: owner } : { kind: 'other' };
+    if (subject.startsWith('organization:')) return { kind: 'organization', organization: owner };
+
+    const login = document.querySelector<HTMLMetaElement>('meta[property="profile:username"]')?.content;
+    return login ? { kind: 'profile', login } : { kind: 'other' };
   }
 
   if (!repository) return { kind: 'other' };
