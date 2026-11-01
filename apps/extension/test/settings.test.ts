@@ -41,9 +41,17 @@ describe('decorationsFor', () => {
   const issue = { kind: 'issue' as const, owner: 'a', repository: 'b', number: 1, title: null, url: '' };
 
   it('mounts on each page what its features allow', () => {
-    expect(decorationsFor({ kind: 'organization', organization: 'a' }, all)).toEqual(['organization-tab']);
-    expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, all)).toEqual(['organization-tab', 'discussions-sidebar']);
-    expect(decorationsFor({ kind: 'organization', organization: 'a', people: true }, all)).toEqual(['organization-tab', 'follow-buttons']);
+    expect(decorationsFor({ kind: 'organization', organization: 'a' }, all)).toEqual(['organization-tab', 'organization-follow']);
+    expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, all)).toEqual([
+      'organization-tab',
+      'organization-follow',
+      'discussions-sidebar',
+    ]);
+    expect(decorationsFor({ kind: 'organization', organization: 'a', people: true }, all)).toEqual([
+      'organization-tab',
+      'organization-follow',
+      'follow-buttons',
+    ]);
     expect(decorationsFor({ kind: 'profile', login: 'a' }, all)).toEqual(['profile-follow']);
     expect(decorationsFor({ kind: 'profile', login: 'a', people: true }, all)).toEqual(['profile-follow', 'follow-buttons']);
     expect(decorationsFor({ kind: 'repository', owner: 'a', repository: 'b', url: '', people: true }, all)).toEqual(['share-button', 'follow-buttons']);
@@ -62,6 +70,7 @@ describe('decorationsFor', () => {
       'discussion-button': false,
       'follow-buttons': false,
       'profile-follow': false,
+      'organization-follow': false,
     });
 
     expect(decorationsFor({ kind: 'organization', organization: 'a', discussions: true }, settings)).toEqual(['discussions-sidebar']);

@@ -92,6 +92,11 @@ export function listFollowAnchors(): Array<{ box: Element; login: string; layout
   });
 }
 
+/** GitHub's Follow in an organization's header, beside which the /dev/null Follow goes; none when signed out of GitHub. */
+export function organizationFollowAnchor(): string | undefined {
+  return first(['div.flex-self-start > .user-following-container']);
+}
+
 /**
  * GitHub's Follow on a user's profile, under their name, which the /dev/null Follow goes under. There is none on the
  * user's own profile (Edit profile instead), nor when signed out of GitHub.

@@ -39,7 +39,8 @@ own.
 
 Wherever GitHub lists people with a Follow button (an organization's **People**, a profile's **followers** and
 **following**, a repository's **stargazers** and **watchers**), a /dev/null **Follow** button sits next to it, and
-under it on a user's **profile**; it says Unfollow once you follow them. Someone who isn't on /dev/null yet says so once you try.
+under it on a user's **profile**; it says Unfollow once you follow them. An **organization** can be followed the same
+way, from its page, when it is on /dev/null. Someone who isn't on /dev/null yet says so once you try.
 
 ### Your profile and settings in the toolbar
 

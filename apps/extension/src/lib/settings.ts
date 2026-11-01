@@ -6,6 +6,7 @@ import type { GitHubPage } from './github/page.ts';
  */
 export const FEATURES = [
   { id: 'organization-tab', group: 'Organizations', label: 'The /dev/null tab', hint: 'Commits mentioning the organization, next to its other tabs' },
+  { id: 'organization-follow', group: 'Organizations', label: 'Follow button', hint: "Next to GitHub's own Follow" },
   { id: 'repository-button', group: 'Repositories', label: 'Commit button', hint: 'Next to Watch, Fork and Star' },
   { id: 'release-buttons', group: 'Repositories', label: 'Commit button on releases', hint: "Next to each release's Compare button" },
   { id: 'issue-button', group: 'Issues and pull requests', label: 'Commit button on issues', hint: 'Next to New issue' },
@@ -38,7 +39,14 @@ export function disabledFeatures(settings: Settings): ReadonlySet<FeatureId> {
 }
 
 /** What the content script mounts on a page. */
-export type Decoration = 'organization-tab' | 'discussions-sidebar' | 'follow-buttons' | 'profile-follow' | 'share-button' | 'release-buttons';
+export type Decoration =
+  | 'organization-tab'
+  | 'organization-follow'
+  | 'discussions-sidebar'
+  | 'follow-buttons'
+  | 'profile-follow'
+  | 'share-button'
+  | 'release-buttons';
 
 const SHARE_BUTTONS: Partial<Record<GitHubPage['kind'], FeatureId>> = {
   repository: 'repository-button',
@@ -52,6 +60,7 @@ export function decorationsFor(page: GitHubPage, settings: Settings): Decoration
   if (page.kind === 'organization') {
     return [
       ...(settings['organization-tab'] ? (['organization-tab'] as const) : []),
+      ...(settings['organization-follow'] ? (['organization-follow'] as const) : []),
       ...(page.discussions && settings['discussions-sidebar'] ? (['discussions-sidebar'] as const) : []),
       ...(page.people && settings['follow-buttons'] ? (['follow-buttons'] as const) : []),
     ];

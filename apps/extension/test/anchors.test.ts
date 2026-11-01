@@ -4,6 +4,7 @@ import {
   discussionsSidebar,
   listFollowAnchors,
   organizationContent,
+  organizationFollowAnchor,
   organizationTabStyle,
   organizationTabs,
   profileFollowAnchor,
@@ -267,6 +268,27 @@ describe('listFollowAnchors', () => {
       <ul>${member('jubianchi', false)}${member('taylorotwell')}</ul>`;
 
     expect(listFollowAnchors().map(({ login }) => login)).toEqual(['taylorotwell']);
+  });
+});
+
+describe('organizationFollowAnchor', () => {
+  it("finds GitHub's Follow in an organization's header, not its members'", () => {
+    document.body.innerHTML = `
+      <div class="d-flex flex-wrap flex-items-start flex-self-start">
+        <div class="flex-1 d-flex flex-column gap-2"><h1>Laravel</h1></div>
+        <div class="d-flex flex-items-center flex-self-start tmp-mt-3">
+          <span class="user-following-container js-form-toggle-container" id="organization"><form><input type="submit" value="Follow"></form></span>
+        </div>
+      </div>
+      <ul><li class="member-list-item"><div class="text-right"><span class="user-following-container"></span></div></li></ul>`;
+
+    expect(document.querySelector(organizationFollowAnchor() ?? '')?.id).toBe('organization');
+  });
+
+  it('has none where GitHub offers no Follow, as signed out', () => {
+    document.body.innerHTML = '<h1>Laravel</h1>';
+
+    expect(organizationFollowAnchor()).toBeUndefined();
   });
 });
 

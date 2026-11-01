@@ -10,6 +10,9 @@ let api: {
   followingHandles: Mock<FollowClient['followingHandles']>;
   follow: Mock<FollowClient['follow']>;
   unfollow: Mock<FollowClient['unfollow']>;
+  followsOrganization: Mock<FollowClient['followsOrganization']>;
+  followOrganization: Mock<FollowClient['followOrganization']>;
+  unfollowOrganization: Mock<FollowClient['unfollowOrganization']>;
 };
 let user: typeof me | null;
 
@@ -35,6 +38,9 @@ beforeEach(() => {
     followingHandles: vi.fn<FollowClient['followingHandles']>(async () => new Set(['taylorotwell'])),
     follow: vi.fn<FollowClient['follow']>(async () => undefined),
     unfollow: vi.fn<FollowClient['unfollow']>(async () => undefined),
+    followsOrganization: vi.fn<FollowClient['followsOrganization']>(async () => false),
+    followOrganization: vi.fn<FollowClient['followOrganization']>(async () => undefined),
+    unfollowOrganization: vi.fn<FollowClient['unfollowOrganization']>(async () => undefined),
   };
 });
 
@@ -104,5 +110,38 @@ describe('Follows', () => {
 
     await expect(follows().set('blocked', true)).rejects.toMatchObject({ status: 403 });
     expect(await follows().states(['blocked'])).toEqual({ blocked: 'not-following' });
+  });
+});
+
+describe('Follows, organizations', () => {
+  it('tells whether the user follows an organization, from its page on /dev/null', async () => {
+    api.followsOrganization.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+
+    expect(await follows().organizationState('laravel')).toBe('following');
+    expect(await follows().organizationState('NativePHP')).toBe('not-following');
+    expect(api.followsOrganization).toHaveBeenCalledWith('laravel');
+  });
+
+  it("says an organization /dev/null has no page for isn't on it", async () => {
+    api.followsOrganization.mockRejectedValueOnce(new ApiError(404, null, 'Not Found'));
+
+    expect(await follows().organizationState('nobody')).toBe('absent');
+  });
+
+  it('tells nothing when the user is signed out', async () => {
+    user = null;
+
+    expect(await follows().organizationState('laravel')).toBeNull();
+    expect(api.followsOrganization).not.toHaveBeenCalled();
+  });
+
+  it('follows and unfollows an organization, and says when it is not on /dev/null', async () => {
+    expect(await follows().setOrganization('laravel', true)).toBe('following');
+    expect(api.followOrganization).toHaveBeenCalledWith('laravel');
+    expect(await follows().setOrganization('laravel', false)).toBe('not-following');
+    expect(api.unfollowOrganization).toHaveBeenCalledWith('laravel');
+
+    api.followOrganization.mockRejectedValueOnce(new ApiError(404, null, 'Not Found'));
+    expect(await follows().setOrganization('nobody', true)).toBe('absent');
   });
 });

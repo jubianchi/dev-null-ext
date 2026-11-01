@@ -122,6 +122,17 @@ describe('FollowButton', () => {
     expect(button()?.title).toBe('Too many requests.');
   });
 
+  it('follows an organization as an organization', async () => {
+    ask.mockResolvedValueOnce('following');
+    await act(async () => {
+      render(<FollowButton handle="laravel" state="not-following" size="small" organization />, root);
+    });
+    await click();
+
+    expect(ask).toHaveBeenCalledWith({ type: 'follow', handle: 'laravel', follow: true, organization: true });
+    expect(button()?.textContent).toBe('Unfollow');
+  });
+
   it("fills its container when asked, as GitHub's Follow on a profile", async () => {
     await act(async () => {
       render(<FollowButton handle="A5hleyRich" state="not-following" size="medium" block />, root);

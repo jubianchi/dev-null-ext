@@ -11,7 +11,12 @@ export interface FollowCache {
   absent: string[];
 }
 
-export type FollowClient = Pick<DevNullClient, 'followingHandles' | 'follow' | 'unfollow'>;
+export type FollowClient = Pick<
+  DevNullClient,
+  'followingHandles' | 'follow' | 'unfollow' | 'followsOrganization' | 'followOrganization' | 'unfollowOrganization'
+>;
+
+const notFound = (error: unknown) => error instanceof ApiError && error.status === 404;
 
 /** How long the following list is trusted: it changes from dev-null.sh too, and loading it costs a request per 30 people. */
 const TTL = 10 * 60_000;
@@ -71,6 +76,33 @@ export class Follows {
       ...cache,
       following: follow ? [...new Set([...cache.following, key])] : cache.following.filter((known) => known !== key),
     }));
+    return follow ? 'following' : 'not-following';
+  }
+
+  /**
+   * Whether the user follows an organization, from its page on /dev/null: one request, as a page shows one
+   * organization; `absent` when /dev/null has no page for it; null when signed out.
+   */
+  async organizationState(handle: string): Promise<FollowState | null> {
+    if (!(await this.deps.me())) return null;
+
+    try {
+      return (await (await this.deps.client()).followsOrganization(handle)) ? 'following' : 'not-following';
+    } catch (error) {
+      if (notFound(error)) return 'absent';
+      throw error;
+    }
+  }
+
+  /** Follows or unfollows an organization, and answers its new state: `absent` when /dev/null has no page for it. */
+  async setOrganization(handle: string, follow: boolean): Promise<FollowState> {
+    const client = await this.deps.client();
+    try {
+      await (follow ? client.followOrganization(handle) : client.unfollowOrganization(handle));
+    } catch (error) {
+      if (notFound(error)) return 'absent';
+      throw error;
+    }
     return follow ? 'following' : 'not-following';
   }
 

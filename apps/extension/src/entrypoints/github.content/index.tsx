@@ -14,6 +14,7 @@ import {
   type FollowLayout,
   listFollowAnchors,
   organizationContent,
+  organizationFollowAnchor,
   organizationTabStyle,
   organizationTabs,
   profileFollowAnchor,
@@ -86,6 +87,7 @@ async function mount(ctx: ContentScriptContext, page: GitHubPage, settings: Sett
   for (const decoration of decorationsFor(page, settings)) {
     if (decoration === 'organization-tab' && page.kind === 'organization') mounted.push(organizationTab(ctx, page.organization, disabled));
     if (decoration === 'discussions-sidebar' && page.kind === 'organization') mounted.push(await organizationSidebar(ctx, page.organization));
+    if (decoration === 'organization-follow' && page.kind === 'organization') mounted.push(await organizationFollow(ctx, page.organization));
     if (decoration === 'follow-buttons') mounted.push(followButtons(ctx));
     if (decoration === 'profile-follow' && page.kind === 'profile') mounted.push(await profileFollow(ctx, page.login));
     if (decoration === 'share-button' && 'url' in page && page.kind !== 'release') mounted.push(await shareButton(ctx, page, disabled));
@@ -221,6 +223,32 @@ function followButtons(ctx: ContentScriptContext): Mounted {
   });
 
   return { remove: () => controller.abort() };
+}
+
+/**
+ * A /dev/null Follow beside GitHub's own in an organization's header; nothing when signed out of /dev/null, nor for
+ * an organization /dev/null has no page for.
+ */
+async function organizationFollow(ctx: ContentScriptContext, organization: string): Promise<Mounted> {
+  const state = await ask({ type: 'organization-follows', handle: organization }).catch(() => null);
+  const ui = await createShadowRootUi(ctx, {
+    name: 'devnull-follow',
+    position: 'inline',
+    anchor: organizationFollowAnchor,
+    append: 'after',
+    onMount: (container) =>
+      state &&
+      state !== 'absent' &&
+      render(
+        <span class="flex items-center pl-2">
+          <FollowButton handle={organization} state={state} size="medium" organization />
+        </span>,
+        container,
+      ),
+    onRemove: (container) => container && render(null, container),
+  });
+
+  return keptMounted(ctx, ui, () => ui.shadowHost, organizationFollowAnchor);
 }
 
 /** A /dev/null Follow under GitHub's own on a user's profile, as wide and as tall; nothing when signed out of /dev/null. */

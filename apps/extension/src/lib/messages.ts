@@ -18,7 +18,8 @@ export type Request =
   | { type: 'replies'; commitId: string; cursor: string | null }
   | { type: 'owner-type'; login: string }
   | { type: 'follows'; handles: string[] }
-  | { type: 'follow'; handle: string; follow: boolean }
+  | { type: 'organization-follows'; handle: string }
+  | { type: 'follow'; handle: string; follow: boolean; organization?: boolean }
   | { type: 'sign-in' }
   | { type: 'sign-in:loopback' }
   | { type: 'sign-in:cancel' }
@@ -40,6 +41,8 @@ export interface Responses {
   'owner-type': OwnerType;
   /** Each handle's state, keyed as asked; null when signed out. */
   follows: Record<string, FollowState> | null;
+  /** Whether the user follows the organization; null when signed out. */
+  'organization-follows': FollowState | null;
   follow: FollowState;
   'sign-in': SignInState;
   'sign-in:loopback': SignInState;

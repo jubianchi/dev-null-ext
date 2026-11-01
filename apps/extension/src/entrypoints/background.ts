@@ -261,8 +261,10 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return ownerType(request.login);
     case 'follows':
       return follows.states(request.handles);
+    case 'organization-follows':
+      return follows.organizationState(request.handle);
     case 'follow':
-      return follows.set(request.handle, request.follow);
+      return request.organization ? follows.setOrganization(request.handle, request.follow) : follows.set(request.handle, request.follow);
     case 'sign-in':
       return startSignIn();
     case 'sign-in:loopback':

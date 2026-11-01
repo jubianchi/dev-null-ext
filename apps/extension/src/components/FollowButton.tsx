@@ -16,12 +16,15 @@ export function FollowButton({
   state,
   size,
   block = false,
+  organization = false,
 }: {
   handle: string;
   state: FollowState;
   size: keyof typeof BUTTON_SIZES;
   /** Fills its container, as GitHub's Follow on a profile. */
   block?: boolean;
+  /** An organization rather than a person: /dev/null follows them on their own route. */
+  organization?: boolean;
 }) {
   const [shown, setShown] = useState<Shown>(state);
   const [pending, setPending] = useState(false);
@@ -35,7 +38,7 @@ export function FollowButton({
     setPending(true);
     setProblem(null);
     try {
-      setShown(await ask({ type: 'follow', handle, follow: shown !== 'following' }));
+      setShown(await ask({ type: 'follow', handle, follow: shown !== 'following', ...(organization ? { organization } : {}) }));
     } catch (error) {
       if (error instanceof BackgroundError && error.status === 403) setShown('blocked');
       else setProblem(error instanceof Error ? error.message : String(error));
