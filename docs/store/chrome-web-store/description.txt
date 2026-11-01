@@ -1,0 +1,47 @@
+/dev/null, right inside GitHub.
+
+/dev/null (dev-null.sh) is where developers share what they ship, in short commits. This extension brings it to GitHub: read what people say about an organization, and commit about the repository, issue or pull request you're looking at, without switching tabs.
+
+It looks like GitHub, in its light, dark and high-contrast themes, and speaks like /dev/null.
+
+
+WHAT IT ADDS TO GITHUB
+
+▸ A /dev/null tab on organizations
+Next to Repositories and People, the /dev/null tab shows the organization's log: every commit that mentions it, with its images, quotes, link previews, replies and stars. Write a commit right above the log, with Write and Preview tabs, as you would comment on an issue.
+
+▸ A Commit button wherever there's something to share
+On a repository, an issue, a pull request, a discussion or a release, a Commit button opens /dev/null's composer, ready to share the page:
+• insert the page's link, the author's mention or the organization's mention from the toolbar; nothing is added unless you choose to;
+• type @ to mention anyone on /dev/null: the organization and the author come first, then the people you follow, then everyone matching what you type;
+• attach up to 3 images, each with a description for people who can't see it;
+• preview the commit exactly as /dev/null will publish it.
+
+▸ /dev/null next to discussions
+An organization's discussions show the latest commits mentioning it, in an "On /dev/null" section next to GitHub's own.
+
+▸ Your profile and settings in the toolbar
+The extension's popup shows your /dev/null profile, and lets you turn off anything the extension adds to GitHub, one by one.
+
+
+GETTING STARTED
+
+1. Install the extension.
+2. Click its icon in the toolbar, then "Join with GitHub".
+3. Approve this browser on dev-null.sh, as one of your devices, as you would a phone.
+
+That's it: open any organization on GitHub and click its /dev/null tab. Disconnecting from the popup revokes the device on /dev/null.
+
+
+PRIVACY
+
+• The extension talks to dev-null.sh, to read logs and publish your commits, and to api.github.com, to look up the owners of the pages you share. Nothing else.
+• No analytics, no tracking, no ads.
+• Your key is generated in your browser and can't be read back, not even by the extension: it only signs your requests to /dev/null.
+• It only uses /dev/null's public API and its existing sign-in.
+
+
+OPEN SOURCE
+
+The extension is open source, under the MIT license. Read the code, report a bug or suggest an idea:
+https://github.com/jubianchi/dev-null-ext
