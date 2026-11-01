@@ -1,6 +1,6 @@
 import type { Poll } from '@dev-null-ext/client';
 import { describe, expect, it } from 'vitest';
-import { pollStatus, voteCount } from '../src/lib/polls.ts';
+import { pollStatus, previewPoll, voteCount } from '../src/lib/polls.ts';
 
 const now = new Date('2026-11-01T10:00:00Z');
 
@@ -30,6 +30,16 @@ describe('pollStatus', () => {
     expect(pollStatus(poll('2026-11-01T09:00:00Z'), now)).toBe('Final results');
     expect(pollStatus(poll('2026-11-01T09:00:00Z', false), now)).toBe('Poll closed');
     expect(pollStatus(poll('2026-11-05T09:00:00Z', true, true), now)).toBe('Final results');
+  });
+});
+
+describe('previewPoll', () => {
+  it('shows the options as typed, trimmed, without the empty ones, waiting for the approval', () => {
+    const preview = previewPoll({ options: [' Tabs ', '', 'Spaces', '  '], duration: 1440 });
+
+    expect(preview.options.map((option) => option.label)).toEqual(['Tabs', 'Spaces']);
+    expect(preview.total_votes).toBeNull();
+    expect(pollStatus(preview, now)).toBe('Voting opens once approved');
   });
 });
 

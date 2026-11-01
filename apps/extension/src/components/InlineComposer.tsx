@@ -8,7 +8,7 @@ import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
-import { PollEditor, PollTool } from './PollEditor.tsx';
+import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
 type Tab = 'write' | 'preview';
@@ -126,8 +126,14 @@ export function InlineComposer({
           )}
           {tab === 'write' && mentions.list}
           {tab === 'write' && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
-          {tab === 'write' && draft.poll && (
-            <PollEditor poll={draft.poll} onChange={draft.setPoll} onRemove={draft.removePoll} disabled={state.step === 'sending'} />
+          {draft.poll && (
+            <ComposerPoll
+              poll={draft.poll}
+              previewing={tab === 'preview'}
+              onChange={draft.setPoll}
+              onRemove={draft.removePoll}
+              disabled={state.step === 'sending'}
+            />
           )}
         </div>
 

@@ -14,6 +14,22 @@ export function newPoll(): DraftPoll {
   return { options: ['', ''], duration: 1440 };
 }
 
+/**
+ * A poll being written as the composer previews it, as dev-null.sh does: its filled options, trimmed, and not open yet,
+ * since a commit opens its poll once approved.
+ */
+export function previewPoll(poll: DraftPoll): Poll {
+  const labels = poll.options.map((option) => option.trim()).filter((option) => option !== '');
+  return {
+    id: '',
+    closes_at: null,
+    is_closed: false,
+    has_voted: false,
+    total_votes: null,
+    options: labels.map((label, index) => ({ id: String(index), label, votes_count: null, voted: false, percentage: null })),
+  };
+}
+
 export function pollReady(poll: DraftPoll): boolean {
   return poll.options.every((option) => option.trim() !== '');
 }

@@ -1,7 +1,37 @@
 import { POLL_DURATIONS, type PollDuration } from '@dev-null-ext/client';
-import { type DraftPoll, DURATION_LABELS, MAX_POLL_OPTION_LENGTH, MAX_POLL_OPTIONS, MIN_POLL_OPTIONS } from '../lib/polls.ts';
+import { type DraftPoll, DURATION_LABELS, MAX_POLL_OPTION_LENGTH, MAX_POLL_OPTIONS, MIN_POLL_OPTIONS, previewPoll } from '../lib/polls.ts';
 import { IMAGES_OR_POLL } from '../lib/use-commit-draft.ts';
+import { CommitPoll } from './CommitPoll.tsx';
 import { Lucide } from './Lucide.tsx';
+
+/**
+ * A composer's poll: its editor, and while previewing, the poll as the log will show it, over the editor kept hidden in
+ * place so nothing moves, as dev-null.sh does.
+ */
+export function ComposerPoll({
+  poll,
+  previewing,
+  onChange,
+  onRemove,
+  disabled,
+}: {
+  poll: DraftPoll;
+  previewing: boolean;
+  onChange: (poll: DraftPoll) => void;
+  onRemove: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div class="mt-2 grid">
+      <PollEditor poll={poll} onChange={onChange} onRemove={onRemove} disabled={disabled} class={`col-start-1 row-start-1 ${previewing ? 'invisible' : ''}`} />
+      {previewing && (
+        <div data-poll-preview class="col-start-1 row-start-1 [&>div]:mt-0">
+          <CommitPoll poll={previewPoll(poll)} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** The composer toolbar's button to add a poll, turned off by images, as dev-null.sh's. */
 export function PollTool({ draft, class: className }: { draft: { canPoll: boolean; images: readonly unknown[]; startPoll: () => void }; class: string }) {
@@ -30,16 +60,18 @@ export function PollEditor({
   onChange,
   onRemove,
   disabled = false,
+  class: className = '',
 }: {
   poll: DraftPoll;
   onChange: (poll: DraftPoll) => void;
   onRemove: () => void;
   disabled?: boolean;
+  class?: string;
 }) {
   const setOption = (index: number, value: string) => onChange({ ...poll, options: poll.options.map((option, at) => (at === index ? value : option)) });
 
   return (
-    <fieldset disabled={disabled} class="m-0 mt-2 flex min-w-0 flex-col gap-2 rounded-lg border border-solid border-border p-3">
+    <fieldset disabled={disabled} class={`m-0 flex min-w-0 flex-col gap-2 rounded-lg border border-solid border-border p-3 ${className}`}>
       <legend class="sr-only">Poll</legend>
       {poll.options.map((option, index) => (
         <div key={index} class="flex items-center gap-2">

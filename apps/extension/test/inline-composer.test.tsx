@@ -240,6 +240,23 @@ describe('InlineComposer, polls', () => {
     expect(root.querySelector('fieldset')).toBeNull();
   });
 
+  it('previews the poll over its hidden editor, so nothing moves, as dev-null.sh does', async () => {
+    await act(async () => button('Add poll')!.click());
+    await type('Tabs or spaces?');
+    await option(1, ' Tabs ');
+    await openPreview();
+
+    const preview = root.querySelector('[data-poll-preview]');
+    expect([...(preview?.querySelectorAll('li') ?? [])].map((item) => item.textContent)).toEqual(['Tabs']);
+    expect(preview?.textContent).toContain('Voting opens once approved');
+    expect(preview?.querySelector('input')).toBeNull();
+    expect(root.querySelector('fieldset')?.className).toContain('invisible');
+
+    await act(async () => tab('Write').click());
+    expect(root.querySelector('[data-poll-preview]')).toBeNull();
+    expect(root.querySelector('fieldset')?.className).not.toContain('invisible');
+  });
+
   it('needs the question, the body /dev/null requires with a poll', async () => {
     await act(async () => button('Add poll')!.click());
     await option(1, 'Tabs');

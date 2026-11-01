@@ -262,7 +262,6 @@ describe('Composer', () => {
 
   it('commits a question with a poll, added from its toolbar after the images', async () => {
     await mount(<Composer target={{ page, organization: 'laravel' }} />);
-    ask.mockResolvedValueOnce(committed);
     const toolbar = root.querySelector('[role="toolbar"]')!;
     expect(toolbar.children[1]?.getAttribute('aria-label')).toBe('Add poll');
 
@@ -279,6 +278,12 @@ describe('Composer', () => {
         field.dispatchEvent(new Event('input', { bubbles: true }));
       });
     }
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Preview"]')!.click());
+    expect([...root.querySelectorAll('[data-poll-preview] li')].map((item) => item.textContent)).toEqual(['Tabs', 'Spaces']);
+    expect(root.querySelector('fieldset')?.className).toContain('invisible');
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Preview"]')!.click());
+
+    ask.mockResolvedValueOnce(committed);
     await act(async () => {
       root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });

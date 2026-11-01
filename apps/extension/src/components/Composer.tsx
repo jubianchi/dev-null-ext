@@ -10,7 +10,7 @@ import { Committed } from './Committed.tsx';
 import { Loader } from './Loader.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
-import { PollEditor, PollTool } from './PollEditor.tsx';
+import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
 
 export type { Target } from '../lib/use-commit-draft.ts';
@@ -96,8 +96,14 @@ export function Composer({ target }: { target: Target }) {
 
             {!previewing && mentions.list}
             {!previewing && <AttachedImages images={draft.images} errors={draft.imageErrors} onDescribe={draft.describe} onRemove={draft.detach} />}
-            {!previewing && draft.poll && (
-              <PollEditor poll={draft.poll} onChange={draft.setPoll} onRemove={draft.removePoll} disabled={state.step === 'sending'} />
+            {draft.poll && (
+              <ComposerPoll
+                poll={draft.poll}
+                previewing={previewing}
+                onChange={draft.setPoll}
+                onRemove={draft.removePoll}
+                disabled={state.step === 'sending'}
+              />
             )}
 
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
