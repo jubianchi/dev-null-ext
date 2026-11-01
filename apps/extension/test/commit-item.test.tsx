@@ -148,6 +148,27 @@ describe('CommitItem', () => {
     expect(card?.querySelector('a')).toBeNull();
   });
 
+  it("shows the commit's poll, and the quoted commit's, as dev-null.sh does", () => {
+    const poll = (label: string) => ({
+      id: `p-${label}`,
+      closes_at: null,
+      is_closed: false,
+      has_voted: false,
+      total_votes: null,
+      options: [
+        { id: `${label}-1`, label: `${label} 1`, votes_count: null, voted: false, percentage: null },
+        { id: `${label}-2`, label: `${label} 2`, votes_count: null, voted: false, percentage: null },
+      ],
+    });
+    render(
+      <CommitItem commit={{ ...commit, poll: poll('Mine'), quoted_commit_id: 'q1', quoted_commit: { ...commit, id: 'q1', poll: poll('Quoted') } }} />,
+      root,
+    );
+
+    const labels = [...root.querySelectorAll('li li')].map((option) => option.textContent);
+    expect(labels).toEqual(['Mine 1', 'Mine 2', 'Quoted 1', 'Quoted 2']);
+  });
+
   it('says when the quoted commit was deleted or is not visible', () => {
     render(
       <CommitItem commit={{ ...commit, quoted_commit_id: 'q1', quoted_commit: { id: 'q1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />,

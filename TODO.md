@@ -13,10 +13,12 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       `data:` and `blob:` as image sources: the background fetches them from dev-null.sh as data URLs.
 - [x] Link previews: show the card of the first link. Its image comes from any host, so the same CSP applies: it
       only shows from GitHub's own hosts (`*.githubusercontent.com`, `*.githubassets.com`).
+- [x] Polls: show a commit's poll, and its results once /dev/null shows them (to voters, to its author, once closed).
 
 ## 2. Act on a commit from the log
 
 - [x] Star and unstar: the client already has `star()` and `unstar()`; add the button on the star counter.
+- [ ] Vote on a poll from the log, as dev-null.sh does: once and for good, never on one's own or a closed poll.
 - [x] Reply and Quote: link to the commit on dev-null.sh first; composing them in the extension comes later.
 - [x] Reply to a commit from a log, in the extension: a composer for the reply (`parent_id`), the reply added under
       its commit once sent.

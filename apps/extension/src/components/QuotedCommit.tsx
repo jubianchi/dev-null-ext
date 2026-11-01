@@ -4,6 +4,7 @@ import { relativeTime } from '../lib/time.ts';
 import { Avatar } from './Avatar.tsx';
 import { CommitBody } from './CommitBody.tsx';
 import { CommitImages } from './CommitImages.tsx';
+import { CommitPoll } from './CommitPoll.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 
 /**
@@ -42,6 +43,7 @@ export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null
         />
       </div>
       <CommitImages images={quoted.images ?? []} hash={quoted.short_hash} link={null} />
+      {quoted.poll && <CommitPoll poll={quoted.poll} />}
       {quoted.link_preview && <LinkPreview preview={quoted.link_preview} interactive={false} />}
     </a>
   );
