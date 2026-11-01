@@ -5,22 +5,7 @@ import type { SharedPage } from '../lib/share.ts';
 import { useSession } from '../lib/use-session.ts';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
-
-/**
- * GitHub's default button, measured on its pages (Primer's Button): medium in an issue's or a pull request's header,
- * small in a repository's. The colours are Primer's own variables, which reach into the shadow root.
- */
-const SIZES = {
-  medium: 'h-8 px-3 text-sm leading-[21px] gap-2',
-  small: 'h-7 px-2 text-xs leading-[18px] gap-1',
-} as const;
-
-const BUTTON =
-  'inline-flex items-center rounded-md border border-solid font-medium whitespace-nowrap cursor-pointer ' +
-  'border-[var(--button-default-borderColor-rest,var(--color-button-border))] bg-[var(--button-default-bgColor-rest,var(--color-button))] ' +
-  'text-[var(--button-default-fgColor-rest,var(--color-fg))] shadow-[var(--button-default-shadow-resting,none)] ' +
-  'hover:border-[var(--button-default-borderColor-hover,var(--color-button-border))] hover:bg-[var(--button-default-bgColor-hover,var(--color-button-hover))] ' +
-  'active:bg-[var(--button-default-bgColor-active,var(--color-button-hover))]';
+import { BUTTON, BUTTON_SIZES } from './github-button.ts';
 
 /** The page with who opened it, read when the composer opens: by then GitHub has rendered it. */
 function withAuthor(page: SharedPage): SharedPage {
@@ -63,7 +48,7 @@ export function ShareButton({
 
   return (
     <span class={`inline-flex font-sans ${spacing === 'end' ? 'mr-2' : spacing === 'start' ? 'ml-2' : ''}`}>
-      <button type="button" onClick={() => setOpened(withAuthor(page))} aria-expanded={opened !== null} class={`${SIZES[size]} ${BUTTON}`}>
+      <button type="button" onClick={() => setOpened(withAuthor(page))} aria-expanded={opened !== null} class={`${BUTTON_SIZES[size]} ${BUTTON}`}>
         <Glyph class="size-4 shrink-0" />
         Commit
       </button>
