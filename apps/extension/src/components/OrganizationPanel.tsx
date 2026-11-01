@@ -137,7 +137,7 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
                           <h3 class="m-0 font-mono text-xs font-normal text-fg-muted">{dayLabel(commit.created_at)}</h3>
                         </li>
                       )}
-                      <CommitItem commit={commit} canReply={Boolean(user)} />
+                      <CommitItem commit={commit} canReply={Boolean(user)} viewer={user.handle} />
                     </Fragment>
                   );
                 })}

@@ -169,6 +169,28 @@ describe('CommitItem', () => {
     expect(labels).toEqual(['Mine 1', 'Mine 2', 'Quoted 1', 'Quoted 2']);
   });
 
+  it("votes on the commit's poll when signed in, never on one's own", () => {
+    const poll = {
+      id: 'p1',
+      closes_at: '2099-01-01T00:00:00Z',
+      is_closed: false,
+      has_voted: false,
+      total_votes: null,
+      options: [
+        { id: 'o1', label: 'Tabs', votes_count: null, voted: false, percentage: null },
+        { id: 'o2', label: 'Spaces', votes_count: null, voted: false, percentage: null },
+      ],
+    };
+    const radios = () => [...root.querySelectorAll<HTMLInputElement>('input[type="radio"]')].map((radio) => radio.disabled);
+
+    render(<CommitItem commit={{ ...commit, poll }} viewer="someone-else" />, root);
+    expect(radios()).toEqual([false, false]);
+
+    render(null, root);
+    render(<CommitItem commit={{ ...commit, poll }} viewer="JUBIANCHI" />, root);
+    expect(radios()).toEqual([true, true]);
+  });
+
   it('says when the quoted commit was deleted or is not visible', () => {
     render(
       <CommitItem commit={{ ...commit, quoted_commit_id: 'q1', quoted_commit: { id: 'q1', parent_id: null, deleted_at: '2026-10-30T10:00:00Z' } }} />,

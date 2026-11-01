@@ -15,6 +15,7 @@ export type Request =
   | { type: 'mention-suggestions'; query: string; reply?: string }
   | { type: 'image'; url: string }
   | { type: 'star'; commitId: string; starred: boolean }
+  | { type: 'vote'; commitId: string; optionId: string }
   | { type: 'replies'; commitId: string; cursor: string | null }
   | { type: 'owner-type'; login: string }
   | { type: 'follows'; handles: string[] }
@@ -36,6 +37,8 @@ export interface Responses {
   /** A data URL: github.com's CSP blocks images from dev-null.sh. */
   image: string;
   star: null;
+  /** The commit, with its poll's results. */
+  vote: Commit;
   /** Newest first, to follow a reply preview. */
   replies: Page<Commit | DeletedCommit>;
   'owner-type': OwnerType;

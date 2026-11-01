@@ -257,6 +257,8 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       await (request.starred ? signed.star(request.commitId) : signed.unstar(request.commitId));
       return null;
     }
+    case 'vote':
+      return (await client({ signed: true })).vote(request.commitId, request.optionId);
     case 'owner-type':
       return ownerType(request.login);
     case 'follows':

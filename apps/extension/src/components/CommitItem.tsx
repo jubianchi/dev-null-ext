@@ -12,8 +12,11 @@ import { QuotedCommit } from './QuotedCommit.tsx';
 import { Replies } from './Replies.tsx';
 import { ReplyComposer } from './ReplyComposer.tsx';
 
-/** A commit of a log. Signed in, its Reply button opens a reply composer under it, and what is sent joins its replies. */
-export function CommitItem({ commit, canReply = false }: { commit: Commit; canReply?: boolean }) {
+/**
+ * A commit of a log. Signed in, its Reply button opens a reply composer under it, and what is sent joins its replies;
+ * with the `viewer`'s handle, its poll takes their vote unless it is theirs.
+ */
+export function CommitItem({ commit, canReply = false, viewer }: { commit: Commit; canReply?: boolean; viewer?: string }) {
   const [replying, setReplying] = useState(false);
   const [sent, setSent] = useState<Commit[]>([]);
   const repliesCount = commit.replies_count === undefined ? undefined : commit.replies_count + sent.length;
@@ -40,7 +43,12 @@ export function CommitItem({ commit, canReply = false }: { commit: Commit; canRe
         {commit.parent_id && commit.parent !== undefined && <ReplyingTo parent={commit.parent} />}
         <FoldedBody segments={commit.body_segments ?? segmentBody(commit.body)} excerpt={commit.preview_segments ?? null} mentions={commit.mentions ?? []} />
         <CommitImages images={commit.images ?? []} hash={commit.short_hash} link={commit.html_url} />
-        {commit.poll && <CommitPoll poll={commit.poll} />}
+        {commit.poll && (
+          <CommitPoll
+            poll={commit.poll}
+            vote={viewer === undefined ? undefined : { commitId: commit.id, own: commit.author.handle.toLowerCase() === viewer.toLowerCase() }}
+          />
+        )}
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
         <div class="mt-2 flex items-center gap-4 text-xs text-fg-muted">

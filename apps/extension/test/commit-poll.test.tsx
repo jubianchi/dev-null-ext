@@ -2,8 +2,12 @@
 import type { Poll } from '@dev-null-ext/client';
 import { render } from 'preact';
 import { act } from 'preact/test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CommitPoll } from '../src/components/CommitPoll.tsx';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const ask = vi.hoisted(() => vi.fn());
+vi.mock('../src/lib/messages.ts', () => ({ ask }));
+
+const { CommitPoll } = await import('../src/components/CommitPoll.tsx');
 
 const now = new Date('2026-11-01T10:00:00Z');
 
@@ -32,6 +36,7 @@ const voted: Poll = {
 let root: HTMLElement;
 
 beforeEach(() => {
+  ask.mockReset();
   root = document.createElement('div');
   document.body.append(root);
 });
@@ -80,5 +85,60 @@ describe('CommitPoll', () => {
     await show({ ...hidden, closes_at: null });
 
     expect(root.textContent).toContain('Voting opens once approved');
+  });
+});
+
+describe('CommitPoll, to vote', () => {
+  async function showVoting(poll: Poll, own = false) {
+    await act(async () => {
+      render(<CommitPoll poll={poll} now={now} vote={{ commitId: 'c1', own }} />, root);
+    });
+  }
+
+  const radios = () => [...root.querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+  const voteButton = () => [...root.querySelectorAll('button')].find((button) => button.textContent === 'Vote');
+
+  it('picks an option, then votes for it once, and shows the results /dev/null sends back', async () => {
+    ask.mockResolvedValue({ id: 'c1', poll: voted });
+    await showVoting(hidden);
+
+    expect(radios()).toHaveLength(2);
+    expect(voteButton()?.disabled).toBe(true);
+
+    await act(async () => radios()[0]?.click());
+    expect(voteButton()?.disabled).toBe(false);
+
+    await act(async () => voteButton()?.click());
+    await act(async () => {});
+
+    expect(ask).toHaveBeenCalledWith({ type: 'vote', commitId: 'c1', optionId: 'o1' });
+    expect(radios()).toHaveLength(0);
+    expect(root.querySelector('[role="status"]')?.textContent).toBe('3 votes · 2d left');
+  });
+
+  it('says why /dev/null refused the vote, and lets the user pick again', async () => {
+    ask.mockRejectedValue(new Error('This poll has closed.'));
+    await showVoting(hidden);
+
+    await act(async () => radios()[1]?.click());
+    await act(async () => voteButton()?.click());
+    await act(async () => {});
+
+    expect(root.querySelector('[role="alert"]')?.textContent).toBe('This poll has closed.');
+    expect(voteButton()?.disabled).toBe(false);
+  });
+
+  it("can't vote on one's own poll, nor on a poll not open yet, nor on a closed one", async () => {
+    for (const [poll, own] of [
+      [hidden, true],
+      [{ ...hidden, closes_at: null }, false],
+      [{ ...hidden, closes_at: '2026-11-01T09:00:00Z', is_closed: true }, false],
+    ] as const) {
+      render(null, root);
+      await showVoting(poll, own);
+
+      expect(radios().map((radio) => radio.disabled)).toEqual([true, true]);
+      expect(voteButton()).toBeUndefined();
+    }
   });
 });
