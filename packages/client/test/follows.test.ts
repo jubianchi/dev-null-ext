@@ -36,6 +36,30 @@ describe('follows', () => {
     await expect(client.follow('nobody')).rejects.toMatchObject({ status: 404 } satisfies Partial<ApiError>);
   });
 
+  it('follows and unfollows an organization by its handle, signed', async () => {
+    const { fetch, client } = await clientWith([
+      [204, null],
+      [204, null],
+    ]);
+
+    await client.followOrganization('laravel');
+    await client.unfollowOrganization('laravel');
+
+    expect(fetch.requests.map((request) => `${request.method} ${request.url.pathname}`)).toEqual([
+      'POST /api/v1/organizations/laravel/follow',
+      'DELETE /api/v1/organizations/laravel/follow',
+    ]);
+    expect(fetch.requests[0]?.headers['X-SSH-Signature']).toBeDefined();
+  });
+
+  it('tells whether the user follows an organization, signed', async () => {
+    const { fetch, client } = await clientWith([[200, { data: { handle: 'laravel' }, is_following: true }]]);
+
+    expect(await client.followsOrganization('laravel')).toBe(true);
+    expect(fetch.requests[0]?.url.pathname).toBe('/api/v1/organizations/laravel');
+    expect(fetch.requests[0]?.headers['X-SSH-Signature']).toBeDefined();
+  });
+
   it('lists the handles a user follows, lowercased, across every page', async () => {
     const { fetch, client } = await clientWith([
       [200, { data: [user('NunoMaduro'), user('taylorotwell')], meta: { next_cursor: 'c2' } }],

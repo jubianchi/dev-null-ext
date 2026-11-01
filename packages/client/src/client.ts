@@ -193,6 +193,24 @@ export class DevNullClient {
     await this.request('DELETE', `/api/v1/users/${encodeURIComponent(handle)}/follow`, { signed: true });
   }
 
+  /**
+   * Follows an organization by its handle, its GitHub login (any case). Following twice is harmless; /dev/null answers
+   * 404 for an organization it has no page for.
+   */
+  async followOrganization(handle: string): Promise<void> {
+    await this.request('POST', `/api/v1/organizations/${encodeURIComponent(handle)}/follow`, { signed: true });
+  }
+
+  async unfollowOrganization(handle: string): Promise<void> {
+    await this.request('DELETE', `/api/v1/organizations/${encodeURIComponent(handle)}/follow`, { signed: true });
+  }
+
+  /** Whether the user follows an organization: its page, signed, says so (`is_following`); 404 when it has none. */
+  async followsOrganization(handle: string): Promise<boolean> {
+    const answer = await this.request<{ is_following?: boolean }>('GET', `/api/v1/organizations/${encodeURIComponent(handle)}`, { signed: true });
+    return answer.is_following === true;
+  }
+
   /** The handles a user follows, lowercased, walking every page (30 each) of their following list. */
   async followingHandles(handle: string): Promise<Set<string>> {
     const handles = new Set<string>();
