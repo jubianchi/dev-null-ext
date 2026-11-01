@@ -63,7 +63,6 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [x] Images: up to 3 JPEG, PNG or WebP, 10 MB each, with descriptions. The request becomes multipart and is signed
       with the `devnull-api-images` namespace and the images' SHA-256.
 - [x] Poll: 2 to 4 options of 50 characters at most, for 1 hour, 1, 3 or 7 days; not with images, a reply or a quote.
-- [ ] Schedule: `/api/v1/scheduled-commits`, up to 30 days ahead, 10 pending at most.
 
 - [ ] In the preview, show where the first link's card will go, as dev-null.sh does ("Unfurls into a link card
       after you commit.").
@@ -94,4 +93,6 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - "Follow back" for someone who follows the user: hardly useful on GitHub, and it needs `follows_you`, which only a
   lookup per person gives (`search/profiles`).
 - Report a commit: it stays on dev-null.sh.
+- Scheduled commits (`/api/v1/scheduled-commits`): they stay on dev-null.sh, which lists, edits and cancels them. One
+  scheduled from GitHub would be out of sight, against a limit of 10 pending the user couldn't see.
 - Keyboard shortcuts (`r` to reply, inserting the additions): they would interfere with GitHub's own.
