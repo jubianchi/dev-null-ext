@@ -17,6 +17,11 @@ export interface ReplyTarget {
   parentId: string;
 }
 
+/** A quote of a commit: like a reply, it shares no page; /dev/null takes no poll on it. */
+export interface QuoteTarget {
+  quotedCommitId: string;
+}
+
 /** An image attached to the draft: the file, a URL to show it, and its description (alt text). */
 export interface AttachedImage {
   id: string;
@@ -37,10 +42,11 @@ export type DraftState =
  * A commit being written, whichever composer shows it: the session, the text (the only truth about what is sent), the
  * additions the user can insert, and what leaving one out would mean.
  */
-export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (commit: Commit) => void) {
+export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCommitted?: (commit: Commit) => void) {
   const [state, setState] = useState<DraftState>({ step: 'loading' });
   const parentId = 'parentId' in target ? target.parentId : null;
-  const additions = 'parentId' in target ? [] : additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
+  const quotedCommitId = 'quotedCommitId' in target ? target.quotedCommitId : null;
+  const additions = 'parentId' in target || 'quotedCommitId' in target ? [] : additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
   const [text, setText] = useState('');
 
   useEffect(() => {
@@ -112,6 +118,7 @@ export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (comm
         body,
         ...(transferred.length > 0 ? { images: transferred } : {}),
         ...(parentId ? { parentId } : {}),
+        ...(quotedCommitId ? { quotedCommitId } : {}),
         ...(poll ? { poll: { ...poll, options: poll.options.map((option) => option.trim()) } } : {}),
       });
       setState({ step: 'sent', user, commit });
@@ -138,8 +145,8 @@ export function useCommitDraft(target: Target | ReplyTarget, onCommitted?: (comm
     imageErrors,
     canAttach: images.length < MAX_IMAGES && !poll,
     poll,
-    /** A poll goes on a commit that is not a reply, without images. */
-    canPoll: !parentId && images.length === 0 && !poll,
+    /** A poll goes on a commit that is neither a reply nor a quote, without images. */
+    canPoll: !parentId && !quotedCommitId && images.length === 0 && !poll,
     startPoll: () => setPoll(newPoll()),
     setPoll,
     removePoll: () => setPoll(null),

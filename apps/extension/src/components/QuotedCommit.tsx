@@ -11,7 +11,14 @@ import { LinkPreview } from './LinkPreview.tsx';
  * The commit a commit quotes, as dev-null.sh draws it (QuotedCommit): one card linking to it, its author and time,
  * and its body static and capped, fading out. Or why it can't be shown.
  */
-export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null }) {
+export function QuotedCommit({
+  quoted,
+  link = true,
+}: {
+  quoted: Commit | DeletedCommit | null;
+  /** False in the quote composer: the card is shown, not followed, as dev-null.sh does. */
+  link?: boolean;
+}) {
   if (quoted === null || isDeleted(quoted)) {
     const [tag, message] = quoted === null ? ['unavailable', "This commit isn't available."] : ['deleted', 'This commit was deleted.'];
 
@@ -23,8 +30,9 @@ export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null
     );
   }
 
-  return (
-    <a href={quoted.html_url} target="_blank" rel="noopener" class="mt-2 block rounded-lg border border-border px-3 py-2 text-fg hover:bg-canvas-muted">
+  const card = 'mt-2 block rounded-lg border border-solid border-border px-3 py-2 text-fg';
+  const content = (
+    <>
       <div class="mb-1 flex min-w-0 items-baseline gap-1.5 text-sm">
         <span class="sr-only">Quoting</span>
         <Avatar person={quoted.author} size={20} class="self-center" />
@@ -45,6 +53,20 @@ export function QuotedCommit({ quoted }: { quoted: Commit | DeletedCommit | null
       <CommitImages images={quoted.images ?? []} hash={quoted.short_hash} link={null} />
       {quoted.poll && <CommitPoll poll={quoted.poll} interactive={false} />}
       {quoted.link_preview && <LinkPreview preview={quoted.link_preview} interactive={false} />}
+    </>
+  );
+
+  if (!link) {
+    return (
+      <div data-quoted-commit class={card}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <a data-quoted-commit href={quoted.html_url} target="_blank" rel="noopener" class={`${card} hover:bg-canvas-muted`}>
+      {content}
     </a>
   );
 }

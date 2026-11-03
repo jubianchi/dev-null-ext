@@ -8,19 +8,25 @@ import { ACTION, FoldedBody, laneColor, Star } from './CommitParts.tsx';
 import { CommitPoll } from './CommitPoll.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 import { Lucide } from './Lucide.tsx';
+import { QuoteComposer } from './QuoteComposer.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
 import { Replies } from './Replies.tsx';
 import { ReplyComposer } from './ReplyComposer.tsx';
 
 /**
  * A commit of a log. Signed in, its Reply button opens a reply composer under it, and what is sent joins its replies;
+ * its Quote button opens the quote composer, in a dialog, and the quote sent joins its replies too, as /dev/null lists it;
  * with the `viewer`'s handle, its poll takes their vote unless it is theirs.
  */
 export function CommitItem({ commit, canReply = false, viewer }: { commit: Commit; canReply?: boolean; viewer?: string }) {
   const [replying, setReplying] = useState(false);
+  const [quoting, setQuoting] = useState(false);
   const [sent, setSent] = useState<Commit[]>([]);
   const repliesCount = commit.replies_count === undefined ? undefined : commit.replies_count + sent.length;
   const preview = commit.reply_preview ?? (sent.length > 0 ? { data: [], next_cursor: null } : null);
+  const own = viewer !== undefined && commit.author.handle.toLowerCase() === viewer.toLowerCase();
+  // As dev-null.sh's CommitQuoteButton: /dev/null only lets one quote an approved commit, or one's own.
+  const quotable = commit.status === undefined || commit.status === 'approved' || own;
 
   return (
     <li class="flex gap-3 border-b border-border-muted px-4 py-3 last:border-b-0">
@@ -43,22 +49,31 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
         {commit.parent_id && commit.parent !== undefined && <ReplyingTo parent={commit.parent} />}
         <FoldedBody segments={commit.body_segments ?? segmentBody(commit.body)} excerpt={commit.preview_segments ?? null} mentions={commit.mentions ?? []} />
         <CommitImages images={commit.images ?? []} hash={commit.short_hash} link={commit.html_url} />
-        {commit.poll && (
-          <CommitPoll
-            poll={commit.poll}
-            vote={viewer === undefined ? undefined : { commitId: commit.id, own: commit.author.handle.toLowerCase() === viewer.toLowerCase() }}
-          />
-        )}
+        {commit.poll && <CommitPoll poll={commit.poll} vote={viewer === undefined ? undefined : { commitId: commit.id, own }} />}
         {commit.quoted_commit_id && <QuotedCommit quoted={commit.quoted_commit ?? null} />}
         {commit.link_preview && <LinkPreview preview={commit.link_preview} interactive />}
         <div class="mt-2 flex items-center gap-4 text-xs text-fg-muted">
           {/* As dev-null.sh's ThreadActions: Star, Quote, Reply; the replies show under the commit, not as a count. */}
           <div data-actions class="flex items-center gap-4">
             {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
-            <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
-              <Lucide name="quote" />
-              Quote
-            </a>
+            {!quotable ? null : canReply ? (
+              <button
+                type="button"
+                onClick={() => setQuoting(true)}
+                aria-label={`Quote @${commit.author.handle}`}
+                aria-haspopup="dialog"
+                title="Quote"
+                class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit]`}
+              >
+                <Lucide name="quote" />
+                Quote
+              </button>
+            ) : (
+              <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
+                <Lucide name="quote" />
+                Quote
+              </a>
+            )}
             {canReply ? (
               <button
                 type="button"
@@ -90,6 +105,7 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
             onCancel={() => setReplying(false)}
           />
         )}
+        {quoting && <QuoteComposer quoted={commit} onQuoted={(quote) => setSent((current) => [quote, ...current])} onClose={() => setQuoting(false)} />}
         {preview && <Replies parent={{ ...commit, replies_count: repliesCount }} preview={preview} sent={sent} />}
       </div>
     </li>

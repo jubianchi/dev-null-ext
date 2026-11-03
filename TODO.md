@@ -24,7 +24,8 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       its commit once sent.
 - [ ] In a reply, "Replying to @a, @b": choose which of the parent's other mentioned people get it too
       (`reply_recipients`, user ids), as dev-null.sh's reply-recipient-picker does.
-- [ ] Quote a commit from a log the same way (`quoted_commit_id`; no `parent_id`, no poll).
+- [x] Quote a commit from a log, in a dialog as dev-null.sh's (`quoted_commit_id`; no `parent_id`, no poll): only an
+      approved commit or one's own, and the quote joins the commit's replies, as /dev/null lists and counts it.
 
 ## 3. Threads
 
