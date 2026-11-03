@@ -10,7 +10,7 @@ import type { TransferredImage } from './images.ts';
 export type Request =
   | { type: 'session' }
   | { type: 'mentions'; organization: string; cursor: string | null }
-  | { type: 'commit'; body: string; images?: TransferredImage[]; parentId?: string; poll?: NewPoll }
+  | { type: 'commit'; body: string; images?: TransferredImage[]; parentId?: string; quotedCommitId?: string; poll?: NewPoll }
   | { type: 'preview'; body: string }
   | { type: 'mention-suggestions'; query: string; reply?: string }
   | { type: 'image'; url: string }

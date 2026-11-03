@@ -244,6 +244,7 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
         {
           body: request.body,
           ...(request.parentId ? { parent_id: request.parentId } : {}),
+          ...(request.quotedCommitId ? { quoted_commit_id: request.quotedCommitId } : {}),
           ...(request.poll ? { poll: request.poll } : {}),
         },
         (request.images ?? []).map(fromTransfer),
