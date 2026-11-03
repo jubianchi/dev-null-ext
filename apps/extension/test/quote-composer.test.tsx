@@ -60,9 +60,9 @@ afterEach(() => {
   root.remove();
 });
 
-async function show(canReply = true) {
+async function show(canReply = true, shown: Commit = commit) {
   await act(async () => {
-    render(<CommitItem commit={commit} canReply={canReply} />, root);
+    render(<CommitItem commit={shown} canReply={canReply} viewer={viewer.handle} />, root);
   });
 }
 
@@ -145,6 +145,27 @@ describe('Quoting from a log', () => {
 
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'So proud', quotedCommitId: 'c1' });
     expect(dialog()).toBeNull();
+  });
+
+  it('lists the quote sent among the commit’s replies, marked as a quote, and counts it', async () => {
+    await show(true, { ...commit, replies_count: 2, reply_preview: { data: [], next_cursor: 'next' } });
+    await openComposer();
+    await write('So proud');
+    await send();
+
+    const sent = root.querySelector('[data-reply]');
+    expect(sent?.textContent).toContain('So proud');
+    expect(sent?.textContent).toContain('quoted');
+    expect(root.textContent).toContain('Show the last 2');
+  });
+
+  it("offers no Quote on someone else's commit not approved yet, which /dev/null refuses to quote", async () => {
+    await show(true, { ...commit, status: 'pending' });
+    expect(quoteButton()).toBeNull();
+    expect([...root.querySelectorAll('a')].some((link) => link.textContent === 'Quote')).toBe(false);
+
+    await show(true, { ...commit, status: 'pending', author: { ...taylor, handle: 'JuBianchi' } });
+    expect(root.querySelector('button[aria-label="Quote @JuBianchi"]')).not.toBeNull();
   });
 
   it("says why a quote wasn't sent, and keeps it", async () => {
