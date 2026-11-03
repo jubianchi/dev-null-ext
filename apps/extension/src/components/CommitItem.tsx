@@ -8,16 +8,19 @@ import { ACTION, FoldedBody, laneColor, Star } from './CommitParts.tsx';
 import { CommitPoll } from './CommitPoll.tsx';
 import { LinkPreview } from './LinkPreview.tsx';
 import { Lucide } from './Lucide.tsx';
+import { QuoteComposer } from './QuoteComposer.tsx';
 import { QuotedCommit } from './QuotedCommit.tsx';
 import { Replies } from './Replies.tsx';
 import { ReplyComposer } from './ReplyComposer.tsx';
 
 /**
  * A commit of a log. Signed in, its Reply button opens a reply composer under it, and what is sent joins its replies;
+ * its Quote button opens the quote composer, in a dialog;
  * with the `viewer`'s handle, its poll takes their vote unless it is theirs.
  */
 export function CommitItem({ commit, canReply = false, viewer }: { commit: Commit; canReply?: boolean; viewer?: string }) {
   const [replying, setReplying] = useState(false);
+  const [quoting, setQuoting] = useState(false);
   const [sent, setSent] = useState<Commit[]>([]);
   const repliesCount = commit.replies_count === undefined ? undefined : commit.replies_count + sent.length;
   const preview = commit.reply_preview ?? (sent.length > 0 ? { data: [], next_cursor: null } : null);
@@ -55,10 +58,24 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
           {/* As dev-null.sh's ThreadActions: Star, Quote, Reply; the replies show under the commit, not as a count. */}
           <div data-actions class="flex items-center gap-4">
             {commit.stars_count !== undefined && <Star commit={commit} count={commit.stars_count} />}
-            <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
-              <Lucide name="quote" />
-              Quote
-            </a>
+            {canReply ? (
+              <button
+                type="button"
+                onClick={() => setQuoting(true)}
+                aria-label={`Quote @${commit.author.handle}`}
+                aria-haspopup="dialog"
+                title="Quote"
+                class={`${ACTION} cursor-pointer border-0 bg-transparent font-[inherit]`}
+              >
+                <Lucide name="quote" />
+                Quote
+              </button>
+            ) : (
+              <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
+                <Lucide name="quote" />
+                Quote
+              </a>
+            )}
             {canReply ? (
               <button
                 type="button"
@@ -90,6 +107,7 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
             onCancel={() => setReplying(false)}
           />
         )}
+        {quoting && <QuoteComposer quoted={commit} onQuoted={() => {}} onClose={() => setQuoting(false)} />}
         {preview && <Replies parent={{ ...commit, replies_count: repliesCount }} preview={preview} sent={sent} />}
       </div>
     </li>
