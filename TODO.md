@@ -87,6 +87,23 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       `GET /api/v1/stats` returning `{ developers_count }`.
 - [x] Restyle the sign-in steps (the code to approve, the permission to grant, a failure) as design B.
 
+## 6. Share any page
+
+Commit about the page in the current tab, on any site, from the popup or a keyboard shortcut: see
+[the design](docs/share-any-page.md). Each item needs the user's approval of `activeTab` and `scripting` first.
+
+- [ ] Check the risks first: an extension's frame under a strict `frame-src` CSP, `activeTab` from a shortcut in
+      Firefox, the file picker in the popup, `storage.session` in Firefox.
+- [ ] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
+      github.com, disabled off the web): the page's link pre-inserted as an addition, warned about when removed, and
+      50 characters of one's own words required, links and quotes left out.
+- [ ] Clean the shared URL of its tracking parameters, and warn about pages that look private.
+- [ ] Keep the share view's draft per URL in `storage.session`; once committed, say so and close after ~2 s.
+- [ ] Show the page's card above the text, from its `og:` tags.
+- [ ] Quote the page's selected text in the share view.
+- [ ] The `Alt+Shift+D` shortcut, opening the share view in a modal over any page, with its setting in `FEATURES`.
+- [ ] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
+
 ## Not now
 
 - The organization's profile (bio, followers, admins, Follow): GitHub's page already shows the organization.
