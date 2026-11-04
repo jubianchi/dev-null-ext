@@ -1,11 +1,89 @@
 import type { Commit, CurrentUser } from '@dev-null-ext/client';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type Addition, additionsFor, type ComposerContext, isIn, withAddition } from './additions.ts';
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
 import { ask, BackgroundError } from './messages.ts';
 import { type DraftPoll, newPoll, pollReady } from './polls.ts';
 import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
+import { debounced, stashName } from './stash.ts';
+import type { StashImageInput } from './stash-store.ts';
 import { replaceText } from './textarea.ts';
+
+/** As dev-null.sh waits before writing a stash. */
+const STASH_DELAY = 300;
+
+/**
+ * The composer's stash: restored once the session is known (guests never stash), saved as the user types, and once
+ * more when the composer or the page goes away, so that Escape, Cancel or a reload loses nothing.
+ */
+function useStash(name: string, text: string, images: AttachedImage[]) {
+  const [restored, setRestored] = useState(false);
+  const active = useRef(false);
+  const latest = useRef({ text, images });
+  latest.current = { text, images };
+  /** The images whose bytes the background already has. */
+  const stored = useRef(new Set<string>());
+
+  const save = useMemo(
+    () =>
+      debounced(() => {
+        const { text, images } = latest.current;
+        void (async () => {
+          const sent = await Promise.all(
+            images.map(async ({ id, file, description }): Promise<StashImageInput> => {
+              const image = { id, type: file.type, name: file.name, description };
+              if (stored.current.has(id)) return image;
+              stored.current.add(id);
+              return { ...image, data: (await toTransfer(file, '')).data };
+            }),
+          );
+          await ask({ type: 'stash:put', name, text, images: sent }).catch(() => undefined);
+        })();
+      }, STASH_DELAY),
+    [name],
+  );
+
+  useEffect(() => {
+    if (active.current) save();
+  }, [text, images]);
+
+  useEffect(() => {
+    const flush = () => save.flush();
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, [save]);
+
+  return {
+    restored,
+    async restore(): Promise<{ text: string; images: AttachedImage[] } | null> {
+      try {
+        const stash = await ask({ type: 'stash:get', name });
+        if (!stash) return null;
+
+        const images = stash.images.map(({ id, type, name: file, description, data }) => {
+          stored.current.add(id);
+          const blob = new File([Uint8Array.from(atob(data), (char) => char.charCodeAt(0))], file, { type });
+          return { id, file: blob, url: URL.createObjectURL(blob), description };
+        });
+        setRestored(true);
+        return { text: stash.text, images };
+      } catch {
+        return null;
+      } finally {
+        active.current = true;
+      }
+    },
+    drop() {
+      save.cancel();
+      stored.current.clear();
+      setRestored(false);
+      void ask({ type: 'stash:drop', name }).catch(() => undefined);
+    },
+  };
+}
 
 export type Target = ComposerContext;
 
@@ -48,16 +126,29 @@ export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCom
   const quotedCommitId = 'quotedCommitId' in target ? target.quotedCommitId : null;
   const additions = 'parentId' in target || 'quotedCommitId' in target ? [] : additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
   const [text, setText] = useState('');
-
-  useEffect(() => {
-    ask({ type: 'session' }).then(
-      (user) => setState(user ? { step: 'writing', user } : { step: 'signed-out' }),
-      () => setState({ step: 'signed-out' }),
-    );
-  }, []);
-
   const [images, setImages] = useState<AttachedImage[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
+
+  const stash = useStash(stashName(target), text, images);
+
+  useEffect(() => {
+    void (async () => {
+      let user: CurrentUser | null = null;
+      try {
+        user = await ask({ type: 'session' });
+      } catch {
+        // Unreachable background: as signed out.
+      }
+      setState(user ? { step: 'writing', user } : { step: 'signed-out' });
+      if (!user) return;
+
+      const restored = await stash.restore();
+      if (restored) {
+        setText(restored.text);
+        setImages(restored.images);
+      }
+    })();
+  }, []);
 
   const [poll, setPoll] = useState<DraftPoll | null>(null);
 
@@ -122,6 +213,7 @@ export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCom
         ...(poll ? { poll: { ...poll, options: poll.options.map((option) => option.trim()) } } : {}),
       });
       setState({ step: 'sent', user, commit });
+      stash.drop();
       setText('');
       setPoll(null);
       for (const image of images) URL.revokeObjectURL(image.url);
@@ -157,6 +249,17 @@ export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCom
     length,
     canCommit,
     submit,
+    /** The composer opened with its stash, until it is dropped or sent. */
+    restored: stash.restored,
+    /** Discards the stash and empties the composer. */
+    drop: () => {
+      stash.drop();
+      for (const image of images) URL.revokeObjectURL(image.url);
+      setImages([]);
+      setImageErrors([]);
+      setPoll(null);
+      setText('');
+    },
     /** Back to writing, for the next commit, once one is sent. */
     writeAnother: () => {
       if ('user' in state) setState({ step: 'writing', user: state.user });

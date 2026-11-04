@@ -49,7 +49,10 @@ let root: HTMLElement;
 
 beforeEach(() => {
   ask.mockReset();
-  ask.mockImplementation(async (request: { type: string }) => (request.type === 'mention-suggestions' ? { users: [], organizations: [] } : user));
+  ask.mockImplementation(async (request: { type: string }) => {
+    if (request.type.startsWith('stash:')) return null;
+    return request.type === 'mention-suggestions' ? { users: [], organizations: [] } : user;
+  });
   root = document.createElement('div');
   document.body.append(root);
 });
@@ -235,7 +238,7 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({
+    expect(ask).toHaveBeenCalledWith({
       type: 'commit',
       body: '',
       images: [{ data: btoa(String.fromCharCode(1, 2)), type: 'image/png', description: null }],
@@ -256,7 +259,7 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Hello' });
     expect(root.textContent).toContain('View on /dev/null');
   });
 
@@ -289,7 +292,7 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
   });
 });
 
