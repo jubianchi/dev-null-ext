@@ -68,6 +68,10 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [ ] In the preview, show where the first link's card will go, as dev-null.sh does ("Unfurls into a link card
       after you commit.").
 - [ ] Format GitLab and Codeberg links as dev-null.sh does, as GitHub's are.
+- [ ] Stash unsent commits, replies and quotes, as dev-null.sh does: one stash per context (the page shared, the
+      commit replied to or quoted), kept as the user types with its images, restored in place with `stash@{0}` and
+      `drop`, cleared once committed, emptied, dropped or on disconnecting; `stash@{0}` on the Reply and Quote actions
+      while one waits there.
 
 ## 5. Polish
 
@@ -86,6 +90,24 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       count (`DevelopersCountQuery`) is not in the API; it needs an unsigned endpoint in dev-null.sh, e.g.
       `GET /api/v1/stats` returning `{ developers_count }`.
 - [x] Restyle the sign-in steps (the code to approve, the permission to grant, a failure) as design B.
+
+## 6. Share any page
+
+Commit about the page in the current tab, on any site, from the popup or a keyboard shortcut: see
+[the design](docs/share-any-page.md). Each item needs the user's approval of `activeTab` and `scripting` first.
+
+- [ ] Check the risks first: an extension's frame under a strict `frame-src` CSP, `activeTab` from a shortcut in
+      Firefox, the file picker in the popup.
+- [ ] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
+      github.com, disabled off the web): the page's link pre-inserted as an addition, warned about when removed, and
+      50 characters of one's own words required, links and quotes left out.
+- [ ] Clean the shared URL of its tracking parameters, and warn about pages that look private.
+- [ ] Stash the share view's commit per page, as dev-null.sh does (`stash@{0}`, `drop`, the hint on the popup's
+      button), cleared once committed; once committed, say so and close after ~2 s.
+- [ ] Show the page's card above the text, from its `og:` tags.
+- [ ] Quote the page's selected text in the share view.
+- [ ] The `Alt+Shift+D` shortcut, opening the share view in a modal over any page, with its setting in `FEATURES`.
+- [ ] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
 
 ## Not now
 
