@@ -48,14 +48,15 @@ The extension's popup shows your /dev/null profile, and lets you turn off anythi
 
 ## Install
 
-The extension isn't on the Chrome Web Store or Firefox Add-ons yet. Download it from the
-[latest release](https://github.com/jubianchi/dev-null-ext/releases/latest):
+- **Chrome 137+** (and other Chromium browsers): install it from the
+  [Chrome Web Store](https://chromewebstore.google.com/detail/devnull/hokhoefheignhmakhfbccmlnkkfbnico).
+- **Firefox 129+**: the extension isn't on Firefox Add-ons yet, and the archive isn't signed, so Firefox only loads it
+  until it restarts. Download `dev-null-ext-<version>-firefox.zip` from the
+  [latest release](https://github.com/jubianchi/dev-null-ext/releases/latest), open
+  `about:debugging#/runtime/this-firefox`, then **Load Temporary Add-on** and pick the archive.
 
-- **Chrome 137+** (and other Chromium browsers): unzip `dev-null-ext-<version>-chrome.zip`, open
-  `chrome://extensions`, turn on **Developer mode**, then **Load unpacked** and pick the unzipped folder.
-- **Firefox 129+**: the archive isn't signed yet, so Firefox only loads it until it restarts. Open
-  `about:debugging#/runtime/this-firefox`, then **Load Temporary Add-on** and pick
-  `dev-null-ext-<version>-firefox.zip`.
+To try a release before it reaches the Chrome Web Store, unzip its `dev-null-ext-<version>-chrome.zip`, open
+`chrome://extensions`, turn on **Developer mode**, then **Load unpacked** and pick the unzipped folder.
 
 You can also build it from source, as described in [CONTRIBUTING.md](CONTRIBUTING.md#getting-started).
 
