@@ -54,10 +54,23 @@ the site's CSP. When the page has none, the card shows the title and the domain.
 Write and Preview, mentions (`@`), images (up to 3) and polls, as in the other composers. Opening the file picker
 closes the popup in some browsers: in the popup, attaching an image may need the modal (to check while building it).
 
-### Draft
+### Stash
 
-The text (not the images) is kept per URL in `storage.session`, shared by the popup and the modal of the same page:
-the popup closes as soon as the user clicks elsewhere. It is lost when the browser closes, and cleared once committed.
+An unsent commit is a **stash**, as on dev-null.sh (`use-stash.ts`, `stash-label.tsx`), which matters all the more
+here since the popup closes as soon as the user clicks elsewhere:
+
+- **One stash per page**, named `share:<URL>` with the cleaned URL, under the user's prefix: `stash:<userId>:share:…`.
+  The popup and the modal of the same page share it.
+- **Kept as the user types**, with no *Stash* action and no confirmation on closing: the text in `storage.local`
+  (debounced, about 300 ms), the images and their descriptions in the extension's IndexedDB under the same key. The
+  poll isn't kept, as on dev-null.sh.
+- **No expiry**: it is cleared once committed, when its text is emptied, on `drop`, and on disconnecting. Guests never
+  stash.
+- **Restored in place**: the composer opens with its stash, which stays stashed until committed, emptied or dropped.
+  `Escape` or a click outside closes the modal and keeps it.
+- **Shown as dev-null.sh does**, in muted monospace, never blue, with no icon and no toast: only when a stash came back
+  on opening (typing alone never shows it), the counter row reads `stash@{0}` ("Restored your unsent draft") and a
+  `drop` text button ("Discard the restored draft").
 
 ### Once committed
 
@@ -70,7 +83,8 @@ popup with `window.close()`, the modal by asking the script that inserted it to 
 
 On the profile card, a **Commit this page** button opens the share view, which can go back to the card. It isn't shown
 to guests, nor on github.com, where the page's own buttons share it; on a page that isn't on the web, it is disabled
-and says why.
+and says why. When the page has a stash, the button shows `stash@{0}` in 11px ("You have an unsent commit about this
+page"), as dev-null.sh's Reply and Quote actions do.
 
 ### The keyboard shortcut
 
@@ -112,7 +126,8 @@ sequenceDiagram
     P-->>B: page context
     B->>P: executeScript: insert backdrop + iframe
     P->>F: load share.html?tab=<id>
-    F->>B: ask: page context, session, draft
+    F->>B: ask: page context, session
+    F->>F: restore the page's stash
     U->>F: writes 50+ characters, Commit
     F->>B: ask: commit
     B->>D: signed POST /api/v1/commits
@@ -138,4 +153,3 @@ on any site, which lets any site detect the extension: on Chrome, `use_dynamic_u
 
 - An extension's frame inserted on a site whose CSP restricts `frame-src`, in Chrome and Firefox.
 - `activeTab` granted by a `commands` shortcut in Firefox, and the popup's file picker in both browsers.
-- Firefox's `storage.session` from an extension page.
