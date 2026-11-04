@@ -23,6 +23,7 @@ import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
 import { SERVER } from '../lib/server.ts';
+import { indexedDbStore, localStorageArea, Stashes } from '../lib/stash-store.ts';
 
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
@@ -71,6 +72,8 @@ const follows = new Follows({
   me: () => userItem.getValue(),
   store: { get: () => followCacheItem.getValue(), set: (cache) => followCacheItem.setValue(cache) },
 });
+
+const stashes = new Stashes({ texts: localStorageArea(), images: indexedDbStore('dev-null-ext-stash', 'images') });
 
 let signInAbort: AbortController | null = null;
 
@@ -280,6 +283,16 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return cancelSignIn();
     case 'sign-out':
       return signOut();
+    case 'stash:get':
+      return stashes.get(request.name);
+    case 'stash:put':
+      await stashes.put(request.name, request.text, request.images);
+      return null;
+    case 'stash:drop':
+      await stashes.drop(request.name);
+      return null;
+    case 'stash:which':
+      return stashes.which(request.names);
   }
 }
 
