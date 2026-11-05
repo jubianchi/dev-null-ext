@@ -84,6 +84,26 @@ async function attach(...files: File[]) {
 
 const png = (name = 'shot.png') => new File([new Uint8Array([137, 80, 78, 71])], name, { type: 'image/png' });
 
+describe('InlineComposer, stash', () => {
+  it("opens with the stash of the organization's log, and says so", async () => {
+    render(null, root);
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return user;
+      if (request.type === 'stash:get') return { text: 'Shipped', images: [] };
+      return null;
+    });
+    await act(async () => {
+      render(<InlineComposer organization="laravel" onCommitted={onCommitted} />, root);
+    });
+    await act(async () => {});
+    await act(async () => {});
+
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:get', name: 'organization:laravel' });
+    expect(root.querySelector('textarea')?.value).toBe('Shipped');
+    expect(root.querySelector('[title="Restored your unsent draft"]')?.textContent).toBe('stash@{0}');
+  });
+});
+
 describe('InlineComposer, images', () => {
   it('attaches images from its toolbar, GitHub style footer and file picker, showing them', async () => {
     expect(root.querySelector('input[type="file"]')?.getAttribute('accept')).toBe('image/jpeg,image/png,image/webp');

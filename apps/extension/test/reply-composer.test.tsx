@@ -73,6 +73,27 @@ async function openComposer() {
   await act(async () => {});
 }
 
+describe('ReplyComposer, stash', () => {
+  it('reopens with its stash, says so, and drops it on demand', async () => {
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return viewer;
+      if (request.type === 'stash:get') return { text: 'Congrats!', images: [] };
+      return null;
+    });
+    await show();
+    await openComposer();
+
+    expect(textarea()?.value).toBe('Congrats!');
+    expect(root.querySelector('[data-reply-composer]')?.textContent).toContain('stash@{0}');
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[title="Discard the restored draft"]')?.click());
+
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:drop', name: 'reply-c1' });
+    expect(textarea()?.value).toBe('');
+    expect(root.querySelector('[data-reply-composer]')?.textContent).not.toContain('stash@{0}');
+  });
+});
+
 async function write(value: string) {
   await act(async () => {
     textarea()!.value = value;

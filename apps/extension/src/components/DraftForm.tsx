@@ -7,6 +7,7 @@ import { CommitError } from './CommitError.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
+import { StashLabel } from './StashLabel.tsx';
 
 const TOOL =
   'rounded-md border-0 bg-transparent p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent';
@@ -118,8 +119,11 @@ export function DraftForm({
           >
             <Octicon name="eye" />
           </button>
-          <span class={`ml-auto mr-2 text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
-            {length} / {MAX_COMMIT_LENGTH}
+          <span class="ml-auto mr-2 flex items-center gap-3">
+            <StashLabel restored={draft.restored} onDrop={draft.drop} />
+            <span class={`text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
+              {length} / {MAX_COMMIT_LENGTH}
+            </span>
           </span>
           <button
             type="button"
