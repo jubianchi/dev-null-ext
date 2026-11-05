@@ -40,6 +40,74 @@ afterEach(() => {
 
 const counter = (label: RegExp) => [...root.querySelectorAll('[aria-label]')].find((element) => label.test(element.getAttribute('aria-label') ?? ''));
 
+describe('CommitItem, stashes', () => {
+  function stashed(names: Record<string, true>) {
+    ask.mockImplementation(async (request: { type: string }) => (request.type === 'stash:which' ? names : null));
+  }
+
+  async function show(...commits: Commit[]) {
+    await act(async () => {
+      render(
+        commits.map((item) => <CommitItem key={item.id} commit={item} canReply />),
+        root,
+      );
+    });
+    await settle();
+  }
+
+  /** The lookups are batched on the next turn of the event loop. */
+  const settle = () =>
+    act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+  const hint = (title: string) => root.querySelector(`[title="${title}"]`);
+
+  it('tells a reply or a quote waits in a stash on its action, as dev-null.sh does', async () => {
+    stashed({ 'reply-c1': true, 'quote-c1': true });
+    await show(commit);
+
+    expect(root.querySelector('button[aria-label="Reply to @jubianchi"]')?.textContent).toBe('Replystash@{0}');
+    expect(hint('You have an unsent reply here')?.textContent).toBe('stash@{0}');
+    expect(hint('You have an unsent quote here')?.textContent).toBe('stash@{0}');
+  });
+
+  it('asks once for every commit of the log', async () => {
+    stashed({ 'reply-c2': true });
+    await show(commit, { ...commit, id: 'c2' });
+
+    expect(ask.mock.calls.filter(([request]) => request.type === 'stash:which')).toEqual([
+      [{ type: 'stash:which', names: ['reply-c1', 'quote-c1', 'reply-c2', 'quote-c2'] }],
+    ]);
+    expect(root.querySelectorAll('[title="You have an unsent reply here"]')).toHaveLength(1);
+  });
+
+  it('hides the hint while the reply is open, and asks again once it closes', async () => {
+    stashed({ 'reply-c1': true });
+    await show(commit);
+
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Reply to @jubianchi"]')?.click());
+    await settle();
+    expect(hint('You have an unsent reply here')).toBeNull();
+
+    ask.mockClear();
+    await act(async () => root.querySelector<HTMLButtonElement>('button[aria-label="Reply to @jubianchi"]')?.click());
+    await settle();
+    expect(hint('You have an unsent reply here')?.textContent).toBe('stash@{0}');
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:which', names: ['reply-c1', 'quote-c1'] });
+  });
+
+  it('never asks for a guest, who never stashes', async () => {
+    stashed({ 'reply-c1': true });
+    await act(async () => {
+      render(<CommitItem commit={commit} />, root);
+    });
+    await settle();
+
+    expect(ask).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'stash:which' }));
+  });
+});
+
 describe('CommitItem', () => {
   it("lays its actions out as dev-null.sh does: Star, Quote and Reply, with dev-null.sh's icons", () => {
     render(<CommitItem commit={commit} />, root);
