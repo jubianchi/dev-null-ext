@@ -141,7 +141,23 @@ button would, and it ignores the request on a page without one.
 `commands` is a manifest key, not a permission. The share page must be a `web_accessible_resources` entry to be framed
 on any site, which lets any site detect the extension: on Chrome, `use_dynamic_url` mitigates it.
 
-## Risks to check first
+## Risks checked
 
-- An extension's frame inserted on a site whose CSP restricts `frame-src`, in Chrome and Firefox.
-- `activeTab` granted by a `commands` shortcut in Firefox, and the popup's file picker in both browsers.
+A throwaway prototype (branch `spike/share-any-page-risks`, not merged) checked the risks on 2026-11-05: `Alt+Shift+D`
+reads the page with `scripting` under `activeTab`, then frames the extension's share page over it; the popup shows the
+active tab and offers a file picker.
+
+| Risk | Chrome | Firefox |
+| --- | --- | --- |
+| The share page framed under a strict `frame-src` (MDN, GitLab; GitHub and Wikipedia too) | Loads, and talks to the page with `postMessage` | To check |
+| `activeTab` granted by the shortcut, the page read with `scripting` (URL, `og:title`, `og:image`, selection) | Works | To check |
+| A remote `og:image` in the share page, despite the site's CSP (MDN: `default-src 'self'`) | Loads | To check |
+| The file picker, in the framed share page and in the popup | Both work; the popup stays open | To check |
+| `Escape` and a click on the backdrop close the modal | Both work | To check |
+| The suggested shortcut once the extension is updated rather than installed | Assigned | To check |
+
+Things learned on the way:
+
+- What frames the share page can't be inspected from the page: the page sees the backdrop, not the frame's content.
+  The frame tells it is ready with `postMessage`, which the injected script checks comes from its own frame.
+- A development build loaded from `.output/chrome-mv3-dev` (`pnpm dev`) is rebuilt with `wxt build --mode development`.
