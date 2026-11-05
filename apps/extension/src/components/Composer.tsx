@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH, shareLabel } from '../lib/share.ts';
-import { IMAGES_OR_POLL, type Target, useCommitDraft } from '../lib/use-commit-draft.ts';
+import { IMAGES_OR_POLL, type Target, useCommitDraft, type WebTarget } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { Avatar } from './Avatar.tsx';
@@ -19,8 +19,14 @@ export type { Target } from '../lib/use-commit-draft.ts';
 const TOOL =
   'rounded-md p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-fg-muted';
 
+function placeholder(target: Target | WebTarget, poll: boolean): string {
+  if (poll) return 'Ask a question';
+  if ('web' in target) return 'What do you think of it?';
+  return target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`;
+}
+
 /** The modal composer, laid out like dev-null.sh's: the author's avatar beside the text, the tools below it. */
-export function Composer({ target }: { target: Target }) {
+export function Composer({ target }: { target: Target | WebTarget }) {
   const draft = useCommitDraft(target);
   const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit } = draft;
   const [previewing, setPreviewing] = useState(false);
@@ -31,6 +37,11 @@ export function Composer({ target }: { target: Target }) {
   useEffect(() => {
     if (state.step === 'writing' && !previewing) textarea.current?.focus();
   }, [state.step, previewing]);
+
+  // The page's link was inserted for the user to write before it; before the paint, so the caret doesn't jump.
+  useLayoutEffect(() => {
+    if (draft.prefilled) textarea.current?.setSelectionRange(0, 0);
+  }, [draft.prefilled]);
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Cmd+Enter commits from any field of the composer, as on GitHub.
@@ -88,7 +99,7 @@ export function Composer({ target }: { target: Target }) {
                     draft.attach(files);
                   }}
                   rows={2}
-                  placeholder={draft.poll ? 'Ask a question' : target.page ? `What about ${shareLabel(target.page)}?` : `What about @${target.organization}?`}
+                  placeholder={placeholder(target, draft.poll !== null)}
                   class="block max-h-[50vh] min-h-12 w-full resize-none border-0 bg-transparent px-0 py-2 text-base text-fg [field-sizing:content] placeholder:text-fg-muted focus:outline-none"
                   disabled={state.step === 'sending'}
                 />
@@ -151,6 +162,12 @@ export function Composer({ target }: { target: Target }) {
                 {state.step === 'sending' ? 'Committing…' : 'Commit'}
               </button>
             </div>
+
+            {draft.remaining > 0 && (
+              <p class="m-0 mt-2 text-right text-xs text-fg-attention">
+                {draft.remaining} more {draft.remaining === 1 ? 'character' : 'characters'} to say what you think of it
+              </p>
+            )}
           </div>
         </form>
       )}
