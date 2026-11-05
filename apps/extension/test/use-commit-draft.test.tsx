@@ -61,6 +61,81 @@ describe('useCommitDraft, quoting a commit', () => {
   });
 });
 
+describe('useCommitDraft, sharing a web page', () => {
+  const web = { url: 'https://cbea.ms/git-commit/', title: 'How to Write a Git Commit Message' };
+  const words = 'Still the reference I send to every new teammate, seven rules.';
+
+  async function sharing() {
+    await act(async () => {
+      render(<Harness target={{ web }} />, root);
+    });
+    await act(async () => {});
+  }
+
+  it("opens with the page's link, the caret before it, and its own stash", async () => {
+    await sharing();
+
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:get', name: `page:${web.url}` });
+    expect(draft.text).toBe(`\n\n${web.url}`);
+    expect(draft.prefilled).toBe(true);
+    expect(draft.additions).toMatchObject([{ id: 'page-link', text: web.url, label: 'cbea.ms' }]);
+  });
+
+  it('opens with its stash rather than the link, when one comes back', async () => {
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return viewer;
+      if (request.type === 'stash:get') return { text: `Worth it\n\n${web.url}`, images: [] };
+      return null;
+    });
+    await sharing();
+
+    expect(draft.text).toBe(`Worth it\n\n${web.url}`);
+    expect(draft.prefilled).toBe(false);
+  });
+
+  it('asks for 50 characters of their own words before committing, the link and quotes left out', async () => {
+    await sharing();
+    expect(draft.remaining).toBe(50);
+    expect(draft.canCommit).toBe(false);
+
+    await act(async () => draft.setText(`> Separate subject from body with a blank line\n\nSo true.\n\n${web.url}`));
+    expect(draft.remaining).toBe(42);
+    expect(draft.canCommit).toBe(false);
+
+    await act(async () => draft.setText(`${words}\n\n${web.url}`));
+    expect(draft.remaining).toBe(0);
+    expect(draft.canCommit).toBe(true);
+  });
+
+  it('warns when the link is removed, and commits without it if the user chooses to', async () => {
+    await sharing();
+    await act(async () => draft.setText(words));
+
+    expect(draft.warnings).toMatchObject([{ id: 'page-link', missing: "This commit doesn't share the page." }]);
+    expect(draft.canCommit).toBe(true);
+  });
+
+  it('keeps no stash of the link alone, the composer closed untouched', async () => {
+    await sharing();
+    await act(async () => render(null, root));
+    await act(async () => {});
+
+    const puts = ask.mock.calls.map(([request]) => request).filter((request) => request.type === 'stash:put');
+    expect(puts.every((request) => request.text === '')).toBe(true);
+  });
+
+  it('asks nothing of a commit that shares no page', async () => {
+    await act(async () => {
+      render(<Harness target={{ quotedCommitId: 'c1' }} />, root);
+    });
+    await act(async () => draft.setText('Yes'));
+
+    expect(draft.remaining).toBe(0);
+    expect(draft.prefilled).toBe(false);
+    expect(draft.canCommit).toBe(true);
+  });
+});
+
 describe('useCommitDraft, stashing', () => {
   const stashed = { text: 'So true', images: [{ id: 'img-1', type: 'image/png', name: 'a.png', description: 'A diagram', data: btoa('png bytes') }] };
 

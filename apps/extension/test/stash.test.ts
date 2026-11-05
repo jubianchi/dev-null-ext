@@ -19,6 +19,7 @@ describe('stashName', () => {
 
     expect(stashName({ page, organization: 'dev-null-sh' })).toBe('page:https://github.com/dev-null-sh/dev-null.sh/issues/1335');
     expect(stashName({ page: null, organization: 'dev-null-sh' })).toBe('organization:dev-null-sh');
+    expect(stashName({ web: { url: 'https://cbea.ms/git-commit/', title: 'Git commit' } })).toBe('page:https://cbea.ms/git-commit/');
   });
 });
 
