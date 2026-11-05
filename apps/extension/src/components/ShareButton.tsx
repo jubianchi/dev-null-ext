@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { readAuthor } from '../lib/github/page.ts';
 import { ask } from '../lib/messages.ts';
 import type { SharedPage } from '../lib/share.ts';
+import { onSharePage } from '../lib/shortcut.ts';
 import { useSession } from '../lib/use-session.ts';
 import { ComposerDialog } from './ComposerDialog.tsx';
 import { Glyph } from './Glyph.tsx';
@@ -22,6 +23,7 @@ export function ShareButton({
   size,
   spacing,
   disabled,
+  shortcut = false,
 }: {
   page: SharedPage;
   size: 'medium' | 'small';
@@ -32,10 +34,14 @@ export function ShareButton({
   spacing?: 'start' | 'end';
   /** The additions the user turned off in the extension's settings. */
   disabled?: ReadonlySet<string>;
+  /** The page's own button, which Alt+Shift+D opens; not one of several, as a release's. */
+  shortcut?: boolean;
 }) {
   const user = useSession();
   const [opened, setOpened] = useState<SharedPage | null>(null);
   const [organization, setOrganization] = useState<string | null>(null);
+
+  useEffect(() => (shortcut && user ? onSharePage(() => setOpened(withAuthor(page))) : undefined), [shortcut, user, page]);
 
   useEffect(() => {
     ask({ type: 'owner-type', login: page.owner }).then(

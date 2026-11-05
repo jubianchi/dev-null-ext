@@ -36,6 +36,8 @@ export default defineConfig({
       optional_permissions: ['webNavigation'],
       host_permissions: ['https://github.com/*', hostPermission(server()), 'https://api.github.com/*'],
       action: { default_title: name, default_icon: icons },
+      // The user can change it in the browser's shortcut settings. src/lib/shortcut.ts names the command.
+      commands: { 'share-page': { suggested_key: { default: 'Alt+Shift+D' }, description: 'Commit this page' } },
       // Ed25519 in WebCrypto: Chrome 137, Firefox 129.
       ...(browser === 'firefox'
         ? { browser_specific_settings: { gecko: { id: 'dev-null-ext@jubianchi.fr', strict_min_version: '129.0' } } }

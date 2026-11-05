@@ -107,7 +107,7 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 - [ ] Show the page's card above the text, from its `og:` tags.
 - [ ] Quote the page's selected text in the share view.
 - [ ] The `Alt+Shift+D` shortcut, opening the share view in a modal over any page, with its setting in `FEATURES`.
-- [ ] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
+- [x] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
 
 ## Not now
 
