@@ -193,10 +193,16 @@ async function signOut(): Promise<null> {
     // Offline, or already revoked on the web: forgetting the key locally is what matters.
   }
 
-  await deleteKey();
-  await userItem.setValue(null);
+  await forgetUser();
   await signInItem.setValue({ status: 'idle' });
   return null;
+}
+
+/** Forgets the key, and what the user left behind: their stashes. */
+async function forgetUser(): Promise<void> {
+  await deleteKey();
+  await stashes.clear();
+  await userItem.setValue(null);
 }
 
 /** The cached user, refreshed in the background. A device revoked on the web signs the extension out. */
@@ -209,8 +215,7 @@ async function session(): Promise<CurrentUser | null> {
     .then((fresh) => userItem.setValue(fresh))
     .catch(async (error: unknown) => {
       if (error instanceof ApiError && (error.code === 'device_not_approved' || error.code === 'invalid_signature')) {
-        await deleteKey();
-        await userItem.setValue(null);
+        await forgetUser();
       }
     });
 
