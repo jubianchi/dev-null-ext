@@ -306,7 +306,61 @@ function toPayload(error: unknown): ErrorPayload {
   return { message: error instanceof Error ? error.message : String(error) };
 }
 
+/** SPIKE, not to merge: what the page tells, read under activeTab. */
+function readPage() {
+  const meta = (property: string) => document.querySelector<HTMLMetaElement>(`meta[property="${property}"], meta[name="${property}"]`)?.content ?? null;
+  return { url: location.href, title: meta('og:title') ?? document.title, image: meta('og:image'), selection: String(getSelection() ?? '') };
+}
+
+/** SPIKE, not to merge: the backdrop and the frame, inserted in the page. */
+function insertFrame(src: string) {
+  const id = 'dev-null-share-spike';
+  document.getElementById(id)?.remove();
+  const host = document.createElement('div');
+  host.id = id;
+  host.style.cssText =
+    'position:fixed;inset:0;z-index:2147483647;background:rgba(9,9,11,.5);display:flex;justify-content:center;align-items:flex-start;padding-top:10vh';
+  const frame = document.createElement('iframe');
+  frame.src = src;
+  frame.style.cssText = 'width:600px;height:440px;border:0;border-radius:12px;background:#fff;box-shadow:0 24px 48px rgba(0,0,0,.25)';
+  host.append(frame);
+  const close = () => {
+    host.remove();
+    document.removeEventListener('keydown', onKey, true);
+  };
+  const onKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') close();
+  };
+  host.addEventListener('click', (event) => {
+    if (event.target === host) close();
+  });
+  document.addEventListener('keydown', onKey, true);
+  window.addEventListener('message', (event) => {
+    if (event.source !== frame.contentWindow) return;
+    if (event.data === 'dev-null-share:ready') host.dataset.ready = 'true';
+    if (event.data === 'dev-null-share:close') close();
+  });
+  document.documentElement.append(host);
+  frame.focus();
+}
+
+async function spikeShare(tabId: number | undefined) {
+  if (tabId === undefined) return;
+  try {
+    const [read] = await browser.scripting.executeScript({ target: { tabId }, func: readPage });
+    const src = `${browser.runtime.getURL('/share.html')}?context=${encodeURIComponent(JSON.stringify(read?.result ?? {}))}`;
+    await browser.scripting.executeScript({ target: { tabId }, func: insertFrame, args: [src] });
+    console.log('[dev-null spike] inserted', read?.result);
+  } catch (error) {
+    console.error('[dev-null spike] failed', error);
+  }
+}
+
 export default defineBackground(() => {
+  browser.commands.onCommand.addListener((command, tab) => {
+    if (command === 'share-page') void spikeShare(tab?.id);
+  });
+
   // sendResponse and `return true` rather than a returned promise: the one form every supported browser honours.
   browser.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
     handle(message as Request).then(

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>/dev/null share (spike)</title>
+  </head>
+  <body style="margin: 0; font: 13px system-ui, sans-serif; color: #18181b; background: #fff">
+    <main style="padding: 16px; display: flex; flex-direction: column; gap: 8px">
+      <strong>SPIKE · the share page, framed</strong>
+      <div>Origin: <code id="origin"></code></div>
+      <div>Page: <code id="context" style="word-break: break-all"></code></div>
+      <label>Frame file picker: <input id="picker" type="file" accept="image/*" /></label>
+      <div>Picked: <span id="picked">none</span></div>
+      <div>
+        Remote image (og:image under the extension's CSP):
+        <img id="remote" alt="remote" style="max-width: 120px; max-height: 60px; vertical-align: middle" />
+        <span id="remote-status">loading</span>
+      </div>
+      <textarea placeholder="Typing works?" style="height: 60px"></textarea>
+      <button id="close" type="button">Close</button>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

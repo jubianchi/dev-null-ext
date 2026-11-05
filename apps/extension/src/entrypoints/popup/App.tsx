@@ -8,6 +8,7 @@ import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
 import { PopupSignIn } from '../../components/PopupSignIn.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
+import { SpikePanel } from '../../components/SpikePanel.tsx';
 import { ask, type SignInState } from '../../lib/messages.ts';
 import { hostPermission, isDefaultServer, SERVER, serverName } from '../../lib/server.ts';
 import { readSettings, type Settings } from '../../lib/settings.ts';
@@ -77,6 +78,7 @@ export function App() {
 
   return (
     <main class="flex w-[360px] flex-col bg-white font-sans text-sm text-zinc-900">
+      <SpikePanel />
       <header class="flex items-center gap-2 px-4 py-3">
         <Glyph class="size-5" />
         <h1 class="m-0 text-sm font-semibold">{SERVER_NAME}</h1>

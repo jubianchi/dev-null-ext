@@ -29,7 +29,9 @@ export default defineConfig({
       icons,
       // The Chrome Web Store takes 132 characters at most.
       description: 'Read what /dev/null says about an organization, and share what you see on it, without leaving GitHub.',
-      permissions: ['storage'],
+      permissions: ['storage', 'activeTab', 'scripting'],
+      commands: { 'share-page': { suggested_key: { default: 'Alt+Shift+D' }, description: 'Commit this page' } },
+      web_accessible_resources: [{ resources: ['share.html'], matches: ['<all_urls>'] }],
       // Only for signing in on a /dev/null server without the device grant (dev-null-sh/dev-null.sh#585), and asked for
       // at that moment: it reads where tabs navigate, which a user should only grant knowingly.
       optional_permissions: ['webNavigation'],
