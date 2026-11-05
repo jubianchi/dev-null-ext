@@ -10,6 +10,7 @@ import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
+import { StashLabel } from './StashLabel.tsx';
 
 type Tab = 'write' | 'preview';
 
@@ -154,8 +155,11 @@ export function InlineComposer({
             <Octicon name="image" />
             Paste, drop, or click to add files
           </button>
-          <span class={`ml-auto ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : ''}`}>
-            {length} / {MAX_COMMIT_LENGTH}
+          <span class="ml-auto flex items-center gap-3">
+            <StashLabel restored={draft.restored} onDrop={draft.drop} />
+            <span class={length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : ''}>
+              {length} / {MAX_COMMIT_LENGTH}
+            </span>
           </span>
         </div>
       </div>

@@ -12,6 +12,7 @@ import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
+import { StashLabel } from './StashLabel.tsx';
 
 export type { Target } from '../lib/use-commit-draft.ts';
 
@@ -136,8 +137,11 @@ export function Composer({ target }: { target: Target }) {
                 </button>
               </div>
 
-              <span class={`ml-auto text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
-                {length} / {MAX_COMMIT_LENGTH}
+              <span class="ml-auto flex items-center gap-3">
+                <StashLabel restored={draft.restored} onDrop={draft.drop} />
+                <span class={`text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
+                  {length} / {MAX_COMMIT_LENGTH}
+                </span>
               </span>
               <button
                 type="submit"

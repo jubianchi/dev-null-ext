@@ -56,21 +56,13 @@ closes the popup in some browsers: in the popup, attaching an image may need the
 
 ### Stash
 
-An unsent commit is a **stash**, as on dev-null.sh (`use-stash.ts`, `stash-label.tsx`), which matters all the more
-here since the popup closes as soon as the user clicks elsewhere:
+An unsent commit is a [stash](../CONTRIBUTING.md#stashes), as in the other composers, which matters all the more here
+since the popup closes as soon as the user clicks elsewhere:
 
-- **One stash per page**, named `share:<URL>` with the cleaned URL, under the user's prefix: `stash:<userId>:share:…`.
+- **One stash per page**, named `page:<URL>` with the cleaned URL, as the share buttons on GitHub's pages name theirs.
   The popup and the modal of the same page share it.
-- **Kept as the user types**, with no *Stash* action and no confirmation on closing: the text in `storage.local`
-  (debounced, about 300 ms), the images and their descriptions in the extension's IndexedDB under the same key. The
-  poll isn't kept, as on dev-null.sh.
-- **No expiry**: it is cleared once committed, when its text is emptied, on `drop`, and on disconnecting. Guests never
-  stash.
-- **Restored in place**: the composer opens with its stash, which stays stashed until committed, emptied or dropped.
+- **Kept, restored and shown as everywhere else**: `stash@{0}` and `drop` in the counter row when it comes back;
   `Escape` or a click outside closes the modal and keeps it.
-- **Shown as dev-null.sh does**, in muted monospace, never blue, with no icon and no toast: only when a stash came back
-  on opening (typing alone never shows it), the counter row reads `stash@{0}` ("Restored your unsent draft") and a
-  `drop` text button ("Discard the restored draft").
 
 ### Once committed
 

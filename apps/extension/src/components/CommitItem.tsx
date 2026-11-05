@@ -1,7 +1,9 @@
 import { type Commit, type DeletedCommit, isDeleted } from '@dev-null-ext/client';
 import { useState } from 'preact/hooks';
 import { segmentBody } from '../lib/segments.ts';
+import { stashName } from '../lib/stash.ts';
 import { relativeTime } from '../lib/time.ts';
+import { useStashed } from '../lib/use-stashed.ts';
 import { Avatar } from './Avatar.tsx';
 import { CommitImages } from './CommitImages.tsx';
 import { ACTION, FoldedBody, laneColor, Star } from './CommitParts.tsx';
@@ -27,6 +29,10 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
   const own = viewer !== undefined && commit.author.handle.toLowerCase() === viewer.toLowerCase();
   // As dev-null.sh's CommitQuoteButton: /dev/null only lets one quote an approved commit, or one's own.
   const quotable = commit.status === undefined || commit.status === 'approved' || own;
+  const replyStash = stashName({ parentId: commit.id });
+  const quoteStash = stashName({ quotedCommitId: commit.id });
+  // Guests never stash: only a signed-in user, who can reply, has stashes to be told about.
+  const stashed = useStashed(canReply ? [replyStash, quoteStash] : [], [replying, quoting]);
 
   return (
     <li class="flex gap-3 border-b border-border-muted px-4 py-3 last:border-b-0">
@@ -67,6 +73,7 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
               >
                 <Lucide name="quote" />
                 Quote
+                {stashed.has(quoteStash) && !quoting && <StashHint title="You have an unsent quote here" />}
               </button>
             ) : (
               <a href={commit.html_url} target="_blank" rel="noopener" title="Quote on /dev/null" class={ACTION}>
@@ -85,6 +92,7 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
               >
                 <Lucide name="message-square-reply" />
                 Reply
+                {stashed.has(replyStash) && !replying && <StashHint title="You have an unsent reply here" />}
               </button>
             ) : (
               <a href={commit.html_url} target="_blank" rel="noopener" title="Reply on /dev/null" class={ACTION}>
@@ -109,6 +117,15 @@ export function CommitItem({ commit, canReply = false, viewer }: { commit: Commi
         {preview && <Replies parent={{ ...commit, replies_count: repliesCount }} preview={preview} sent={sent} />}
       </div>
     </li>
+  );
+}
+
+/** As dev-null.sh's reply-stash-hint: muted monospace, never blue. */
+function StashHint({ title }: { title: string }) {
+  return (
+    <span title={title} class="font-mono text-[11px] text-fg-muted">
+      stash@{'{0}'}
+    </span>
   );
 }
 

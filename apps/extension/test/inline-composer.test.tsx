@@ -32,6 +32,7 @@ beforeEach(async () => {
   ask.mockReset();
   ask.mockImplementation(async (request: { type: string }) => {
     if (request.type === 'session') return user;
+    if (request.type.startsWith('stash:')) return null;
     if (request.type === 'preview') return preview;
     if (request.type === 'mention-suggestions') return { users: [nuno], organizations: [] };
     return committed;
@@ -82,6 +83,26 @@ async function attach(...files: File[]) {
 }
 
 const png = (name = 'shot.png') => new File([new Uint8Array([137, 80, 78, 71])], name, { type: 'image/png' });
+
+describe('InlineComposer, stash', () => {
+  it("opens with the stash of the organization's log, and says so", async () => {
+    render(null, root);
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return user;
+      if (request.type === 'stash:get') return { text: 'Shipped', images: [] };
+      return null;
+    });
+    await act(async () => {
+      render(<InlineComposer organization="laravel" onCommitted={onCommitted} />, root);
+    });
+    await act(async () => {});
+    await act(async () => {});
+
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:get', name: 'organization:laravel' });
+    expect(root.querySelector('textarea')?.value).toBe('Shipped');
+    expect(root.querySelector('[title="Restored your unsent draft"]')?.textContent).toBe('stash@{0}');
+  });
+});
 
 describe('InlineComposer, images', () => {
   it('attaches images from its toolbar, GitHub style footer and file picker, showing them', async () => {
@@ -139,7 +160,7 @@ describe('InlineComposer, images', () => {
     await submit();
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({
+    expect(ask).toHaveBeenCalledWith({
       type: 'commit',
       body: '',
       images: [{ data: btoa(String.fromCharCode(137, 80, 78, 71)), type: 'image/png', description: 'The new popup' }],
@@ -236,7 +257,7 @@ describe('InlineComposer, polls', () => {
     await submit();
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
     expect(root.querySelector('fieldset')).toBeNull();
   });
 
@@ -387,7 +408,7 @@ describe('InlineComposer', () => {
     await type('Shipped');
     await submit();
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Shipped' });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Shipped' });
   });
 
   it('previews the commit as /dev/null will render it in the Preview tab', async () => {
@@ -422,7 +443,7 @@ describe('InlineComposer', () => {
     await type('Shipped @laravel');
     await submit();
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Shipped @laravel' });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Shipped @laravel' });
     expect(onCommitted).toHaveBeenCalledWith(committed);
     expect(root.querySelector('textarea')?.value).toBe('');
     expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')?.textContent).toBe('Commit');

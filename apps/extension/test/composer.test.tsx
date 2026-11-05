@@ -49,7 +49,10 @@ let root: HTMLElement;
 
 beforeEach(() => {
   ask.mockReset();
-  ask.mockImplementation(async (request: { type: string }) => (request.type === 'mention-suggestions' ? { users: [], organizations: [] } : user));
+  ask.mockImplementation(async (request: { type: string }) => {
+    if (request.type.startsWith('stash:')) return null;
+    return request.type === 'mention-suggestions' ? { users: [], organizations: [] } : user;
+  });
   root = document.createElement('div');
   document.body.append(root);
 });
@@ -68,6 +71,18 @@ async function mount(vnode: preact.ComponentChild) {
 }
 
 describe('Composer', () => {
+  it('opens with the stash of the page it shares, and says so', async () => {
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'stash:get') return { text: 'Worth a read', images: [] };
+      return request.type.startsWith('stash:') ? null : user;
+    });
+    await mount(<Composer target={{ page, organization: null }} />);
+
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:get', name: `page:${page.url}` });
+    expect(root.querySelector('textarea')?.value).toBe('Worth a read');
+    expect(root.querySelector('[title="Restored your unsent draft"]')?.textContent).toBe('stash@{0}');
+  });
+
   it("shows the signed-in user's avatar beside the text", async () => {
     await mount(<Composer target={{ page, organization: null }} />);
 
@@ -235,7 +250,7 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({
+    expect(ask).toHaveBeenCalledWith({
       type: 'commit',
       body: '',
       images: [{ data: btoa(String.fromCharCode(1, 2)), type: 'image/png', description: null }],
@@ -256,7 +271,7 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Hello' });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Hello' });
     expect(root.textContent).toContain('View on /dev/null');
   });
 
@@ -289,7 +304,7 @@ describe('Composer', () => {
     });
     await act(async () => {});
 
-    expect(ask).toHaveBeenLastCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Tabs or spaces?', poll: { options: ['Tabs', 'Spaces'], duration: 1440 } });
   });
 });
 

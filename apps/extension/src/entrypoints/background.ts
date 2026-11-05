@@ -23,6 +23,7 @@ import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
 import { SERVER } from '../lib/server.ts';
+import { indexedDbStore, localStorageArea, Stashes } from '../lib/stash-store.ts';
 
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
@@ -71,6 +72,8 @@ const follows = new Follows({
   me: () => userItem.getValue(),
   store: { get: () => followCacheItem.getValue(), set: (cache) => followCacheItem.setValue(cache) },
 });
+
+const stashes = new Stashes({ texts: localStorageArea(), images: indexedDbStore('dev-null-ext-stash', 'images') });
 
 let signInAbort: AbortController | null = null;
 
@@ -190,10 +193,16 @@ async function signOut(): Promise<null> {
     // Offline, or already revoked on the web: forgetting the key locally is what matters.
   }
 
-  await deleteKey();
-  await userItem.setValue(null);
+  await forgetUser();
   await signInItem.setValue({ status: 'idle' });
   return null;
+}
+
+/** Forgets the key, and what the user left behind: their stashes. */
+async function forgetUser(): Promise<void> {
+  await deleteKey();
+  await stashes.clear();
+  await userItem.setValue(null);
 }
 
 /** The cached user, refreshed in the background. A device revoked on the web signs the extension out. */
@@ -206,8 +215,7 @@ async function session(): Promise<CurrentUser | null> {
     .then((fresh) => userItem.setValue(fresh))
     .catch(async (error: unknown) => {
       if (error instanceof ApiError && (error.code === 'device_not_approved' || error.code === 'invalid_signature')) {
-        await deleteKey();
-        await userItem.setValue(null);
+        await forgetUser();
       }
     });
 
@@ -280,6 +288,16 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
       return cancelSignIn();
     case 'sign-out':
       return signOut();
+    case 'stash:get':
+      return stashes.get(request.name);
+    case 'stash:put':
+      await stashes.put(request.name, request.text, request.images);
+      return null;
+    case 'stash:drop':
+      await stashes.drop(request.name);
+      return null;
+    case 'stash:which':
+      return stashes.which(request.names);
   }
 }
 
