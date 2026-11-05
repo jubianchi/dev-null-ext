@@ -68,7 +68,7 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
 - [ ] In the preview, show where the first link's card will go, as dev-null.sh does ("Unfurls into a link card
       after you commit.").
 - [ ] Format GitLab and Codeberg links as dev-null.sh does, as GitHub's are.
-- [ ] Stash unsent commits, replies and quotes, as dev-null.sh does: one stash per context (the page shared, the
+- [x] Stash unsent commits, replies and quotes, as dev-null.sh does: one stash per context (the page shared, the
       commit replied to or quoted), kept as the user types with its images, restored in place with `stash@{0}` and
       `drop`, cleared once committed, emptied, dropped or on disconnecting; `stash@{0}` on the Reply and Quote actions
       while one waits there.
