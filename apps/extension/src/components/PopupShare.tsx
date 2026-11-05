@@ -1,5 +1,5 @@
 import type { WebPage } from '../lib/web-page.ts';
-import { Composer } from './Composer.tsx';
+import { PopupComposer } from './PopupComposer.tsx';
 
 /** The popup's share view: the composer, on the page in the current tab, under a header that goes back to the card. */
 export function PopupShare({ page, onBack }: { page: WebPage; onBack: () => void }) {
@@ -18,7 +18,7 @@ export function PopupShare({ page, onBack }: { page: WebPage; onBack: () => void
         </button>
         <h1 class="m-0 text-[15px] font-semibold">Commit this page</h1>
       </header>
-      <Composer target={{ web: page }} />
+      <PopupComposer page={page} />
     </section>
   );
 }
