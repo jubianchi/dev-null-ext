@@ -1,12 +1,14 @@
 import type { CurrentUser } from '@dev-null-ext/client';
+import type { ComponentChildren } from 'preact';
 import { Avatar } from './Avatar.tsx';
 import { laneColor } from './CommitParts.tsx';
 
 /**
  * The popup when connected, as dev-null.sh's profile card: the user's avatar in a dashed ring of their lane, their name
- * and handle, their counts when /dev/null sends them, and the way to their profile.
+ * and handle, their counts when /dev/null sends them, and the way to their profile; then what `children` adds, above
+ * the footer.
  */
-export function PopupProfile({ user, onDisconnect }: { user: CurrentUser; onDisconnect: () => void }) {
+export function PopupProfile({ user, onDisconnect, children }: { user: CurrentUser; onDisconnect: () => void; children?: ComponentChildren }) {
   const counts = [
     [user.commits_count, 'commits'],
     [user.following_count, 'following'],
@@ -41,6 +43,8 @@ export function PopupProfile({ user, onDisconnect }: { user: CurrentUser; onDisc
           Open my profile
         </a>
       </section>
+
+      {children}
 
       <footer class="flex items-center justify-between border-0 border-t border-solid border-zinc-200 px-4 py-2.5">
         <span class="text-[11px] text-zinc-600">This browser is one of your devices</span>

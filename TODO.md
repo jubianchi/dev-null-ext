@@ -98,7 +98,7 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 
 - [ ] Check the risks first: an extension's frame under a strict `frame-src` CSP, `activeTab` from a shortcut in
       Firefox, the file picker in the popup.
-- [ ] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
+- [x] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
       github.com, disabled off the web): the page's link pre-inserted as an addition, warned about when removed, and
       50 characters of one's own words required, links and quotes left out.
 - [ ] Clean the shared URL of its tracking parameters, and warn about pages that look private.
