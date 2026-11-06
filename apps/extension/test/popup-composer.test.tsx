@@ -106,6 +106,22 @@ describe('PopupComposer', () => {
     expect(root.textContent).toContain('Committed to /dev/null');
   });
 
+  it('warns about a page that looks private, without blocking', async () => {
+    await act(async () => {
+      render(<PopupComposer page={{ url: 'http://192.168.1.145:8080/', title: 'NAS' }} />, root);
+    });
+    await act(async () => {});
+    await act(async () => {});
+
+    expect(root.querySelector('[data-privacy]')?.textContent).toBe('This page looks private (192.168.1.145): others may not be able to open it.');
+  });
+
+  it('says nothing of a public page', async () => {
+    await show();
+
+    expect(root.querySelector('[data-privacy]')).toBeNull();
+  });
+
   it('warns when the link is removed, with a way to insert it again', async () => {
     await show();
     await type(words);

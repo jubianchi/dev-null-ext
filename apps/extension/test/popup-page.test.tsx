@@ -52,6 +52,14 @@ describe('PopupPage', () => {
     expect(onShare).toHaveBeenCalledWith(article);
   });
 
+  it('shares the page without its tracking parameters', async () => {
+    await show({ url: `${article.url}?utm_source=hn&fbclid=abc#seven-rules`, title: article.title });
+    await act(async () => button()?.click());
+
+    expect(onShare).toHaveBeenCalledWith({ url: `${article.url}#seven-rules`, title: article.title });
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:which', names: [`page:${article.url}#seven-rules`] });
+  });
+
   it('says a stash waits for the page, as dev-null.sh says one waits for a reply', async () => {
     ask.mockImplementation(async (request: { type: string }) => (request.type === 'stash:which' ? { [`page:${article.url}`]: true } : {}));
     await show(article);

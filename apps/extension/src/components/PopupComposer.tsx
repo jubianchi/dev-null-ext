@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { IMAGES_OR_POLL, useCommitDraft } from '../lib/use-commit-draft.ts';
-import type { WebPage } from '../lib/web-page.ts';
+import { privacyWarning, type WebPage } from '../lib/web-page.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
@@ -32,6 +32,7 @@ export function PopupComposer({ page }: { page: WebPage }) {
   const textarea = useRef<HTMLTextAreaElement>(null);
   const picker = useRef<HTMLInputElement>(null);
   const mentions = useMentionSuggestions(textarea, text, additionCandidates(additions));
+  const privacy = privacyWarning(page.url);
 
   useEffect(() => {
     if (state.step === 'writing' && tab === 'write') textarea.current?.focus();
@@ -78,6 +79,12 @@ export function PopupComposer({ page }: { page: WebPage }) {
           <span class="truncate text-[13px] font-semibold">{page.title}</span>
           <span class="text-[11px] text-zinc-600">Unfurls into a link card after you commit.</span>
         </div>
+
+        {privacy && (
+          <p data-privacy class="m-0 rounded-md border border-solid border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
+            {privacy}
+          </p>
+        )}
 
         <div role="tablist" aria-label="Commit" class="flex gap-1">
           {(['write', 'preview'] as const).map((name) => (

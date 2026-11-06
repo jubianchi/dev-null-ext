@@ -1,6 +1,6 @@
 import { stashName } from '../lib/stash.ts';
 import { useStashed } from '../lib/use-stashed.ts';
-import { pageKind, type WebPage } from '../lib/web-page.ts';
+import { cleanUrl, pageKind, type WebPage } from '../lib/web-page.ts';
 
 /** The active tab, as the browser tells it once the user clicked the extension's button (activeTab). */
 export interface ActiveTab {
@@ -14,7 +14,7 @@ export interface ActiveTab {
  */
 export function PopupPage({ tab, onShare }: { tab: ActiveTab | null; onShare: (page: WebPage) => void }) {
   const kind = pageKind(tab?.url);
-  const page = tab?.url && kind === 'web' ? { url: tab.url, title: tab.title ?? tab.url } : null;
+  const page = tab?.url && kind === 'web' ? { url: cleanUrl(tab.url), title: tab.title ?? tab.url } : null;
   const stash = page ? stashName({ web: page }) : null;
   const stashed = useStashed(stash ? [stash] : [], []);
 

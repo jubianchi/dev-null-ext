@@ -101,7 +101,7 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 - [x] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
       github.com, disabled off the web): the page's link pre-inserted as an addition, warned about when removed, and
       50 characters of one's own words required, links and quotes left out.
-- [ ] Clean the shared URL of its tracking parameters, and warn about pages that look private.
+- [x] Clean the shared URL of its tracking parameters, and warn about pages that look private.
 - [ ] Stash the share view's commit per page, as dev-null.sh does (`stash@{0}`, `drop`, the hint on the popup's
       button), cleared once committed; once committed, say so and close after ~2 s.
 - [ ] Show the page's card above the text, from its `og:` tags.

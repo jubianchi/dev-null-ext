@@ -24,6 +24,70 @@ export function pageKind(url: string | undefined): PageKind {
   return hostname === 'github.com' ? 'github' : 'web';
 }
 
+const TRACKING = new Set(['fbclid', 'gclid', 'dclid', 'gbraid', 'wbraid', 'msclkid', 'mc_eid', 'mc_cid', 'igshid', 'yclid', 'twclid', '_hsenc', '_hsmi']);
+
+const isTracking = (name: string) => name.startsWith('utm_') || TRACKING.has(name);
+
+const parameterName = (pair: string) => {
+  const name = pair.split('=')[0] ?? '';
+  try {
+    return decodeURIComponent(name).toLowerCase();
+  } catch {
+    return name.toLowerCase();
+  }
+};
+
+/**
+ * The URL without its tracking parameters (`utm_*`, `fbclid`, `gclid`…), the others kept as written and in their
+ * order, and the fragment kept: it often points at the section that matters.
+ */
+export function cleanUrl(url: string): string {
+  const hashAt = url.indexOf('#');
+  const beforeHash = hashAt === -1 ? url : url.slice(0, hashAt);
+  const hash = hashAt === -1 ? '' : url.slice(hashAt);
+  const queryAt = beforeHash.indexOf('?');
+  if (queryAt === -1) return url;
+
+  const pairs = beforeHash.slice(queryAt + 1).split('&');
+  const kept = pairs.filter((pair) => pair !== '' && !isTracking(parameterName(pair)));
+  if (kept.length === pairs.length) return url;
+
+  return `${beforeHash.slice(0, queryAt)}${kept.length > 0 ? `?${kept.join('&')}` : ''}${hash}`;
+}
+
+const SECRETS = new Set(['token', 'auth', 'key', 'apikey', 'code', 'secret', 'password', 'passwd', 'session', 'sig', 'signature']);
+
+const isSecret = (name: string) => SECRETS.has(name) || /_(token|key|secret|password)$/.test(name);
+
+function isPrivateHost(host: string): boolean {
+  if (host === 'localhost' || host === '[::1]') return true;
+  if (/\.(local|internal|lan|localhost|home\.arpa)$/.test(host)) return true;
+
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/);
+  if (ipv4) {
+    const [first, second] = [Number(ipv4[1]), Number(ipv4[2])];
+    return (
+      first === 10 || first === 127 || (first === 172 && second >= 16 && second <= 31) || (first === 192 && second === 168) || (first === 169 && second === 254)
+    );
+  }
+
+  // A single label, as an intranet's: no public host is reached that way.
+  return !host.includes('.') && !host.startsWith('[');
+}
+
+/**
+ * Why sharing the page may be a mistake, or null: a host others may not reach, or a link that may hold a secret. A
+ * warning only: the user decides.
+ */
+export function privacyWarning(url: string): string | null {
+  if (!URL.canParse(url)) return null;
+  const { hostname, search } = new URL(url);
+  if (isPrivateHost(hostname)) return `This page looks private (${hostname}): others may not be able to open it.`;
+
+  const secret = search.slice(1).split('&').map(parameterName).find(isSecret);
+  return secret ? `This link may hold a secret (${secret}): check it before you share it.` : null;
+}
+
 /** The length of what the user wrote: the text less the page's link and the quoted lines, in code points. */
 export function ownLength(text: string, link: string): number {
   const own = text
