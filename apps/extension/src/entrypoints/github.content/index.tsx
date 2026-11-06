@@ -178,7 +178,8 @@ function releaseButtons(ctx: ContentScriptContext, page: Extract<GitHubPage, { k
         anchor: box,
         append: 'first',
         // Spaced from Compare as GitHub spaces a release's header buttons (mr-2).
-        onMount: (container) => render(<ShareButton page={release} size="small" spacing="end" disabled={disabled} />, container),
+        // On a release's own page, its one button is the page's: Alt+Shift+D opens it.
+        onMount: (container) => render(<ShareButton page={release} size="small" spacing="end" disabled={disabled} shortcut={page.one === true} />, container),
         onRemove: (container) => container && render(null, container),
       });
       ui.mount();
