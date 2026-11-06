@@ -39,6 +39,9 @@ export default defineConfig({
       action: { default_title: name, default_icon: icons },
       // The user can change it in the browser's shortcut settings. src/lib/shortcut.ts names the command.
       commands: { 'share-page': { suggested_key: { default: 'Alt+Shift+D' }, description: 'Commit this page' } },
+      // The share view, framed over any page by Alt+Shift+D. Any site can tell the extension is installed by loading it:
+      // the price of a composer that keeps its styles and escapes the site's CSP.
+      web_accessible_resources: [{ resources: ['share.html'], matches: ['<all_urls>'] }],
       // Ed25519 in WebCrypto: Chrome 137, Firefox 129.
       ...(browser === 'firefox'
         ? { browser_specific_settings: { gecko: { id: 'dev-null-ext@jubianchi.fr', strict_min_version: '129.0' } } }

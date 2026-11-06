@@ -37,6 +37,7 @@ describe('PopupSettings', () => {
       'Discussions',
       'People',
       'Composer',
+      'Everywhere',
     ]);
   });
 

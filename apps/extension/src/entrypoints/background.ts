@@ -22,10 +22,13 @@ import { fetchImageAsDataUrl } from '../lib/image-proxy.ts';
 import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
+import { readPageMeta } from '../lib/page-meta.ts';
 import { SERVER } from '../lib/server.ts';
+import { loadSettings } from '../lib/settings-store.ts';
+import { insertShareFrame, shareFrameUrl } from '../lib/share-frame.ts';
 import { SHARE_PAGE_COMMAND, SHARE_PAGE_MESSAGE } from '../lib/shortcut.ts';
 import { indexedDbStore, localStorageArea, Stashes } from '../lib/stash-store.ts';
-import { pageKind } from '../lib/web-page.ts';
+import { cleanUrl, pageKind, type WebPage } from '../lib/web-page.ts';
 
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
@@ -318,10 +321,32 @@ export default defineBackground(() => {
     return true;
   });
 
-  // Alt+Shift+D. On github.com, the tab's content script opens the page's own composer; elsewhere, nothing yet.
+  // Alt+Shift+D. On github.com, the tab's content script opens the page's own composer; on the rest of the web, the
+  // share view framed over the page, for a signed-in user who left it on.
   browser.commands.onCommand.addListener((command, tab) => {
-    if (command !== SHARE_PAGE_COMMAND || tab?.id === undefined || pageKind(tab.url) !== 'github') return;
+    if (command !== SHARE_PAGE_COMMAND || tab?.id === undefined) return;
+    const kind = pageKind(tab.url);
     // A tab whose content script isn't there yet (still loading) has no one to tell: nothing to do.
-    browser.tabs.sendMessage(tab.id, SHARE_PAGE_MESSAGE).catch(() => undefined);
+    if (kind === 'github') browser.tabs.sendMessage(tab.id, SHARE_PAGE_MESSAGE).catch(() => undefined);
+    if (kind === 'web' && tab.url) void frameShareView(tab.id, tab.url, tab.title);
   });
 });
+
+/** Frames the share view over the page in the tab, under the activeTab grant the shortcut gives. */
+async function frameShareView(tabId: number, url: string, title: string | undefined): Promise<void> {
+  if (!(await userItem.getValue()) || !(await loadSettings())['page-shortcut']) return;
+
+  try {
+    const [read] = await browser.scripting.executeScript({ target: { tabId }, func: readPageMeta });
+    const meta = read?.result ?? undefined;
+    const page: WebPage = {
+      url: cleanUrl(url),
+      title: title ?? url,
+      ...(meta ? { meta } : {}),
+      ...(meta?.selection ? { selection: meta.selection } : {}),
+    };
+    await browser.scripting.executeScript({ target: { tabId }, func: insertShareFrame, args: [shareFrameUrl(browser.runtime.getURL('/share.html'), page)] });
+  } catch {
+    // A page the browser won't let extensions script (the Web Store, a PDF viewer): the popup still shares it.
+  }
+}
