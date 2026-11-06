@@ -62,6 +62,8 @@ From the popup, **Commit this page** opens a composer on the page in your tab:
 
 Once committed, the popup says so and closes.
 
+![The popup on laravel.com/cloud: Commit this page, the page's card above the text and its link below it](docs/screenshots/share-page-popup.jpg)
+
 ### Alt+Shift+D, from the keyboard
 
 On any page, **Alt+Shift+D** opens the same composer over the page, without reaching for the mouse. On GitHub, it
