@@ -142,9 +142,22 @@ the modal once the log is scrolled down. Elsewhere on GitHub, a releases page in
 | `scripting` | Read the page's `<meta>` tags and selection, and insert the modal, in the tab `activeTab` grants. |
 
 `commands` is a manifest key, not a permission. The share page must be a `web_accessible_resources` entry to be framed
-on any site, which lets any site detect the extension: on Chrome, `use_dynamic_url` mitigates it.
+on any site, which lets any site detect the extension. On Chrome, `use_dynamic_url` would mitigate it; it isn't used
+yet, as it wasn't tried with the frame.
 
-## Risks to check first
+## Risks
 
-- An extension's frame inserted on a site whose CSP restricts `frame-src`, in Chrome and Firefox.
-- `activeTab` granted by a `commands` shortcut in Firefox, and the popup's file picker in both browsers.
+A throwaway prototype checked them in Chrome on 2026-11-05, on MDN, GitLab, GitHub and Wikipedia (MDN and GitLab
+restrict `frame-src`); the feature, since merged, behaves the same.
+
+| Risk | Chrome | Firefox |
+| --- | --- | --- |
+| The share page framed under a strict `frame-src` | Loads, and talks to the page with `postMessage` | To check |
+| `activeTab` granted by the shortcut, the page read with `scripting` | Works | To check |
+| A remote `og:image` in the share page, despite the site's CSP | Loads | To check |
+| The file picker, in the framed share page and in the popup | Both work; the popup stays open | To check |
+| `Escape` and a click on the backdrop close the modal | Both work | To check |
+| The suggested shortcut once the extension is updated rather than installed | Assigned | To check |
+
+The page can't see into the frame: it sees the backdrop, not the share page's content. For Firefox, the prototype's
+build is on the `spike/share-any-page-risks` branch; the merged feature can be tried as well.
