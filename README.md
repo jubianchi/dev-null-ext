@@ -1,8 +1,9 @@
 # dev-null-ext
 
-**/dev/null**, the browser extension: it brings [/dev/null](https://dev-null.sh) to the sites developers work on. For
-now, it makes /dev/null feel like a GitHub feature: read what developers ship about an organization, and commit about
-what you're looking at, without leaving GitHub.
+**/dev/null**, the browser extension: it brings [/dev/null](https://dev-null.sh) to the sites developers work on. On
+GitHub, it makes /dev/null feel like a GitHub feature: read what developers ship about an organization, and commit about
+what you're looking at, without leaving GitHub. Anywhere else, share the article you're reading, with what you think of
+it.
 
 It looks like GitHub, in its light, dark and high-contrast themes, and speaks like /dev/null.
 
@@ -44,7 +45,34 @@ way, from its page, when it is on /dev/null. Someone who isn't on /dev/null yet 
 
 ### Your profile and settings in the toolbar
 
-The extension's popup shows your /dev/null profile, and lets you turn off anything the extension adds to GitHub.
+The extension's popup shows your /dev/null profile, and lets you turn off anything the extension adds.
+
+## And on any page
+
+### Commit the page you're reading
+
+From the popup, **Commit this page** opens a composer on the page in your tab:
+
+- its link is already there, without its tracking parameters (`utm_*`, `fbclid`…), and the card /dev/null will show
+  is above the text: its image, title and description;
+- text you selected on the page comes in as a quote;
+- /dev/null is not a bookmark feed: **Commit** turns on once you've written 50 characters of your own, the link and
+  the quote left out;
+- a page that looks private (`localhost`, your network, a link with a token) gets a warning before you share it.
+
+Once committed, the popup says so and closes.
+
+### Alt+Shift+D, from the keyboard
+
+On any page, **Alt+Shift+D** opens the same composer over the page, without reaching for the mouse. On GitHub, it
+opens the page's own composer, or the organization log's. Change the shortcut in your browser's settings, or turn it
+off in the extension's.
+
+## Nothing you write is lost
+
+Close a composer, or reload the page, and what you wrote comes back when you return, images included, as on
+dev-null.sh: `stash@{0}`, with a way to `drop` it. A reply or a quote waiting this way shows `stash@{0}` on its
+action.
 
 ## Install
 
@@ -67,6 +95,10 @@ dev-null.sh, as you would a phone. Disconnecting revokes it.
 
 - Besides github.com, the extension talks to dev-null.sh, to read logs and publish your commits, and to
   api.github.com, to look up the owners of the pages you share. Nothing else, and no telemetry.
+- Outside GitHub, it reads a page only when you ask, from the popup or with Alt+Shift+D, and only that page: its
+  address, title, link card and the text you selected. The card's image loads from the site itself. Nothing leaves
+  your browser until you commit.
+- What you write stays in your browser until you commit or drop it, and is forgotten when you disconnect.
 - Your key is generated in the browser and can't be read back, not even by the extension: it only signs.
 - It only uses /dev/null's public API and its existing sign-in.
 
