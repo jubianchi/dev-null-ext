@@ -1,8 +1,11 @@
 import type { WebPage } from '../lib/web-page.ts';
 import { PopupComposer } from './PopupComposer.tsx';
 
-/** The popup's share view: the composer, on the page in the current tab, under a header that goes back to the card. */
-export function PopupShare({ page, onBack }: { page: WebPage; onBack: () => void }) {
+/**
+ * The popup's share view: the composer, on the page in the current tab, under a header that goes back to the card.
+ * Once committed, the popup closes by itself: the user is back on the page they shared.
+ */
+export function PopupShare({ page, onBack, onDone = () => window.close() }: { page: WebPage; onBack: () => void; onDone?: () => void }) {
   return (
     <section class="flex flex-col">
       <header class="flex items-center gap-2 border-0 border-b border-solid border-zinc-200 px-3 py-2.5">
@@ -18,7 +21,7 @@ export function PopupShare({ page, onBack }: { page: WebPage; onBack: () => void
         </button>
         <h1 class="m-0 text-[15px] font-semibold">Commit this page</h1>
       </header>
-      <PopupComposer page={page} />
+      <PopupComposer page={page} onDone={onDone} />
     </section>
   );
 }

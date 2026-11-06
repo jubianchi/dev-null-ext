@@ -6,7 +6,6 @@ import { privacyWarning, type WebPage } from '../lib/web-page.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
-import { Committed } from './Committed.tsx';
 import { Loader } from './Loader.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
@@ -25,7 +24,10 @@ const TOOL =
  * Write and Preview, the text across the whole width, the stash and the count under it, and a footer with the tools
  * on the left and Commit on the right.
  */
-export function PopupComposer({ page }: { page: WebPage }) {
+/** How long the confirmation stays before the popup closes. */
+const CLOSE_DELAY = 2000;
+
+export function PopupComposer({ page, onDone }: { page: WebPage /** Once committed and said so: the popup closes. */; onDone?: () => void }) {
   const draft = useCommitDraft({ web: page });
   const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit, remaining } = draft;
   const [tab, setTab] = useState<Tab>('write');
@@ -38,6 +40,12 @@ export function PopupComposer({ page }: { page: WebPage }) {
     if (state.step === 'writing' && tab === 'write') textarea.current?.focus();
   }, [state.step, tab]);
 
+  useEffect(() => {
+    if (state.step !== 'sent' || !onDone) return;
+    const timer = setTimeout(onDone, CLOSE_DELAY);
+    return () => clearTimeout(timer);
+  }, [state.step]);
+
   // The page's link was inserted for the user to write before it; before the paint, so the caret doesn't jump.
   useLayoutEffect(() => {
     if (draft.prefilled) textarea.current?.setSelectionRange(0, 0);
@@ -46,9 +54,18 @@ export function PopupComposer({ page }: { page: WebPage }) {
   if (state.step === 'loading') return <Loader label="Checking your /dev/null session…" />;
   if (state.step === 'signed-out') return <p class="m-0 p-4 text-zinc-600">Connect your /dev/null account first.</p>;
   if (state.step === 'sent') {
+    const pending = state.commit.status === 'pending';
     return (
-      <div class="p-4">
-        <Committed commit={state.commit} onWriteAnother={draft.writeAnother} />
+      <div role="status" class="flex flex-col items-center gap-2 px-4 py-8 text-center">
+        <span class={`flex size-12 items-center justify-center rounded-full ${pending ? 'bg-amber-50 text-amber-800' : 'bg-cyan-50 text-cyan-700'}`}>
+          <Octicon name="check-circle-fill" class="size-6" />
+        </span>
+        <p class="m-0 text-[17px] font-bold">{pending ? 'Committed, awaiting review' : 'Committed'}</p>
+        {pending && <p class="m-0 text-[13px] text-zinc-600">It shows publicly once it passes review.</p>}
+        <a href={state.commit.html_url} target="_blank" rel="noopener" class="text-[13px] font-semibold text-blue-600 hover:underline">
+          View the commit
+        </a>
+        <p class="m-0 mt-2 text-[11px] text-zinc-600">Closing…</p>
       </div>
     );
   }

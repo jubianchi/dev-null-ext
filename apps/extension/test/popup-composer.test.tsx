@@ -82,6 +82,52 @@ describe('PopupComposer', () => {
     expect(commit()?.disabled).toBe(false);
   });
 
+  it('says it is committed, links the commit, and closes after about two seconds', async () => {
+    const committed = {
+      id: 'c1',
+      short_hash: 'abc1234',
+      body: `${words}\n\n${page.url}`,
+      parent_id: null,
+      status: 'approved',
+      html_url: 'https://dev-null.sh/@jubianchi/commits/c1',
+      created_at: '2026-11-05T10:00:00Z',
+      author: viewer,
+    };
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return viewer;
+      return request.type === 'commit' ? committed : null;
+    });
+    const onDone = vi.fn();
+    await act(async () => {
+      render(<PopupComposer page={page} onDone={onDone} />, root);
+    });
+    await act(async () => {});
+    await act(async () => {});
+    await type(`${words}\n\n${page.url}`);
+
+    vi.useFakeTimers();
+    try {
+      await act(async () => commit()?.click());
+      await act(async () => {});
+
+      const status = root.querySelector('[role="status"]');
+      expect(status?.textContent).toContain('Committed');
+      expect(status?.textContent).toContain('Closing…');
+      expect(root.querySelector<HTMLAnchorElement>('a[href="https://dev-null.sh/@jubianchi/commits/c1"]')?.textContent).toBe('View the commit');
+
+      await act(async () => {
+        vi.advanceTimersByTime(1999);
+      });
+      expect(onDone).not.toHaveBeenCalled();
+      await act(async () => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(onDone).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('commits what the user wrote about the page, and says so', async () => {
     const committed = {
       id: 'c1',
@@ -103,7 +149,7 @@ describe('PopupComposer', () => {
     await act(async () => {});
 
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: `${words}\n\n${page.url}` });
-    expect(root.textContent).toContain('Committed to /dev/null');
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Committed');
   });
 
   it('warns about a page that looks private, without blocking', async () => {
