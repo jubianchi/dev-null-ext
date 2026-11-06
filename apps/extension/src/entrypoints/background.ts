@@ -23,7 +23,9 @@ import { fromTransfer } from '../lib/images.ts';
 import { deleteKey, loadKey, loadOrCreateKey } from '../lib/keystore.ts';
 import type { ErrorPayload, OwnerType, Request, Responses, SignInState } from '../lib/messages.ts';
 import { SERVER } from '../lib/server.ts';
+import { SHARE_PAGE_COMMAND, SHARE_PAGE_MESSAGE } from '../lib/shortcut.ts';
 import { indexedDbStore, localStorageArea, Stashes } from '../lib/stash-store.ts';
+import { pageKind } from '../lib/web-page.ts';
 
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
@@ -314,5 +316,12 @@ export default defineBackground(() => {
       (error: unknown) => sendResponse({ ok: false, error: toPayload(error) }),
     );
     return true;
+  });
+
+  // Alt+Shift+D. On github.com, the tab's content script opens the page's own composer; elsewhere, nothing yet.
+  browser.commands.onCommand.addListener((command, tab) => {
+    if (command !== SHARE_PAGE_COMMAND || tab?.id === undefined || pageKind(tab.url) !== 'github') return;
+    // A tab whose content script isn't there yet (still loading) has no one to tell: nothing to do.
+    browser.tabs.sendMessage(tab.id, SHARE_PAGE_MESSAGE).catch(() => undefined);
   });
 });

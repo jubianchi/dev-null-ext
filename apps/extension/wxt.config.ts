@@ -29,12 +29,15 @@ export default defineConfig({
       icons,
       // The Chrome Web Store takes 132 characters at most.
       description: 'Read what /dev/null says about an organization, and share what you see on it, without leaving GitHub.',
-      permissions: ['storage'],
+      // activeTab: the URL and title of the tab the user opens the popup on, to commit about it; no access to other tabs.
+      permissions: ['storage', 'activeTab'],
       // Only for signing in on a /dev/null server without the device grant (dev-null-sh/dev-null.sh#585), and asked for
       // at that moment: it reads where tabs navigate, which a user should only grant knowingly.
       optional_permissions: ['webNavigation'],
       host_permissions: ['https://github.com/*', hostPermission(server()), 'https://api.github.com/*'],
       action: { default_title: name, default_icon: icons },
+      // The user can change it in the browser's shortcut settings. src/lib/shortcut.ts names the command.
+      commands: { 'share-page': { suggested_key: { default: 'Alt+Shift+D' }, description: 'Commit this page' } },
       // Ed25519 in WebCrypto: Chrome 137, Firefox 129.
       ...(browser === 'firefox'
         ? { browser_specific_settings: { gecko: { id: 'dev-null-ext@jubianchi.fr', strict_min_version: '129.0' } } }

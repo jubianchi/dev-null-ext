@@ -4,14 +4,17 @@ import { browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 import { Glyph } from '../../components/Glyph.tsx';
 import { Loader } from '../../components/Loader.tsx';
+import { type ActiveTab, PopupPage } from '../../components/PopupPage.tsx';
 import { PopupProfile } from '../../components/PopupProfile.tsx';
 import { PopupSettings } from '../../components/PopupSettings.tsx';
+import { PopupShare } from '../../components/PopupShare.tsx';
 import { PopupSignIn } from '../../components/PopupSignIn.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
 import { ask, type SignInState } from '../../lib/messages.ts';
 import { hostPermission, isDefaultServer, SERVER, serverName } from '../../lib/server.ts';
 import { readSettings, type Settings } from '../../lib/settings.ts';
 import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
+import type { WebPage } from '../../lib/web-page.ts';
 
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
@@ -33,9 +36,12 @@ export function App() {
   const [signIn, setSignIn] = useState<SignInState>({ status: 'idle' });
   const [hostAccess, setHostAccess] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<'home' | 'settings'>('home');
+  const [view, setView] = useState<'home' | 'settings' | { share: WebPage }>('home');
   const [settings, setSettings] = useState<Settings>(() => readSettings(undefined));
+  const [tab, setTab] = useState<ActiveTab | null>(null);
   useEffect(() => {
+    // The tab's URL and title: activeTab grants them since the user clicked the extension's button to open the popup.
+    void browser.tabs.query({ active: true, currentWindow: true }).then(([active]) => setTab(active ? { url: active.url, title: active.title } : null));
     void browser.permissions.contains({ origins: ORIGINS }).then(setHostAccess);
     void signInItem.getValue().then(setSignIn);
     void loadSettings().then(setSettings);
@@ -50,6 +56,14 @@ export function App() {
       unwatchSettings();
     };
   }, []);
+
+  if (typeof view === 'object' && user) {
+    return (
+      <main class="w-[360px] bg-white font-sans text-sm text-zinc-900">
+        <PopupShare page={view.share} onBack={() => setView('home')} />
+      </main>
+    );
+  }
 
   if (view === 'settings') {
     return (
@@ -101,7 +115,11 @@ export function App() {
         </button>
       </header>
 
-      {user && <PopupProfile user={user} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))} />}
+      {user && (
+        <PopupProfile user={user} onDisconnect={() => void run(() => ask({ type: 'sign-out' }))}>
+          <PopupPage tab={tab} onShare={(page) => setView({ share: page })} />
+        </PopupProfile>
+      )}
 
       {user === null && signIn.status === 'idle' && <PopupWelcome developers={DEVELOPERS} onJoin={() => void run(() => ask({ type: 'sign-in' }))} />}
 

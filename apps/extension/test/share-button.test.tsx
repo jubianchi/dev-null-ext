@@ -10,6 +10,7 @@ vi.mock('../src/lib/messages.ts', () => ({
 }));
 
 const { ShareButton } = await import('../src/components/ShareButton.tsx');
+const { dispatchSharePage } = await import('../src/lib/shortcut.ts');
 
 const user = { id: '1', handle: 'jubianchi', name: null, avatar_url: null, bio: null, github_url: '', html_url: '', terms_accepted: true };
 const page = {
@@ -40,6 +41,40 @@ async function mount(session: typeof user | null, size: 'medium' | 'small' = 'me
     render(<ShareButton page={page} size={size} spacing={spacing} />, root);
   });
 }
+
+describe('ShareButton, keyboard shortcut', () => {
+  async function mountWith(shortcut: boolean) {
+    ask.mockImplementation(async (request: { type: string }) =>
+      request.type === 'session' ? user : request.type.startsWith('stash:') ? null : 'Organization',
+    );
+    await act(async () => {
+      render(<ShareButton page={page} size="medium" shortcut={shortcut} />, root);
+    });
+    // The session answers, then the button listens.
+    await act(async () => {});
+  }
+
+  it("opens its composer when the shortcut asks for the page's", async () => {
+    await mountWith(true);
+    expect(root.querySelector('dialog')).toBeNull();
+
+    await act(async () => {
+      dispatchSharePage();
+    });
+
+    expect(root.querySelector('dialog')).not.toBeNull();
+    expect(root.querySelector('button')?.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it("leaves it to the page's own button, when it isn't that one", async () => {
+    await mountWith(false);
+    await act(async () => {
+      dispatchSharePage();
+    });
+
+    expect(root.querySelector('dialog')).toBeNull();
+  });
+});
 
 describe('ShareButton', () => {
   it('shows the Commit button when signed in', async () => {

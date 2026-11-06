@@ -1,6 +1,6 @@
 import type { Commit, CurrentUser } from '@dev-null-ext/client';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { type Addition, additionsFor, type ComposerContext, isIn, withAddition } from './additions.ts';
+import { type Addition, additionsFor, type ComposerContext, isIn, webPageLink, withAddition } from './additions.ts';
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
 import { ask, BackgroundError } from './messages.ts';
 import { type DraftPoll, newPoll, pollReady } from './polls.ts';
@@ -8,6 +8,7 @@ import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
 import { debounced, stashName } from './stash.ts';
 import type { StashImageInput } from './stash-store.ts';
 import { replaceText } from './textarea.ts';
+import { MIN_OWN_LENGTH, ownLength, type WebPage } from './web-page.ts';
 
 /** As dev-null.sh waits before writing a stash. */
 const STASH_DELAY = 300;
@@ -100,6 +101,19 @@ export interface QuoteTarget {
   quotedCommitId: string;
 }
 
+/** The page in the current tab, whatever the site: its link comes first, and the user's own words are required. */
+export interface WebTarget {
+  web: WebPage;
+}
+
+export type AnyTarget = Target | ReplyTarget | QuoteTarget | WebTarget;
+
+function additionsOf(target: AnyTarget, viewer: string | null): Addition[] {
+  if ('web' in target) return [webPageLink(target.web)];
+  if ('parentId' in target || 'quotedCommitId' in target) return [];
+  return additionsFor({ ...target, viewer });
+}
+
 /** An image attached to the draft: the file, a URL to show it, and its description (alt text). */
 export interface AttachedImage {
   id: string;
@@ -120,16 +134,19 @@ export type DraftState =
  * A commit being written, whichever composer shows it: the session, the text (the only truth about what is sent), the
  * additions the user can insert, and what leaving one out would mean.
  */
-export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCommitted?: (commit: Commit) => void) {
+export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit) => void) {
   const [state, setState] = useState<DraftState>({ step: 'loading' });
   const parentId = 'parentId' in target ? target.parentId : null;
   const quotedCommitId = 'quotedCommitId' in target ? target.quotedCommitId : null;
-  const additions = 'parentId' in target || 'quotedCommitId' in target ? [] : additionsFor({ ...target, viewer: 'user' in state ? state.user.handle : null });
+  const web = 'web' in target ? target.web : null;
+  const additions = additionsOf(target, 'user' in state ? state.user.handle : null);
   const [text, setText] = useState('');
+  const [prefilled, setPrefilled] = useState(false);
   const [images, setImages] = useState<AttachedImage[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
 
-  const stash = useStash(stashName(target), text, images);
+  // The page's link alone is what the share view opens with, not something the user wrote: nothing to stash.
+  const stash = useStash(stashName(target), web && text.trim() === web.url ? '' : text, images);
 
   useEffect(() => {
     void (async () => {
@@ -146,6 +163,9 @@ export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCom
       if (restored) {
         setText(restored.text);
         setImages(restored.images);
+      } else if (web) {
+        setText(`\n\n${web.url}`);
+        setPrefilled(true);
       }
     })();
   }, []);
@@ -154,11 +174,14 @@ export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCom
 
   const body = text.trim();
   const length = commitLength(body);
+  /** How many more characters of their own words a shared page still needs. */
+  const remaining = web ? Math.max(0, MIN_OWN_LENGTH - ownLength(text, web.url)) : 0;
   // With images, the text may be empty, as /dev/null allows; a poll still needs it, its question.
   const canCommit =
     (body !== '' || (images.length > 0 && !poll)) &&
     (!poll || pollReady(poll)) &&
     length <= MAX_COMMIT_LENGTH &&
+    remaining === 0 &&
     (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
 
   /** Attaches the images /dev/null would take, in order, and says why it leaves out the others. */
@@ -248,6 +271,9 @@ export function useCommitDraft(target: Target | ReplyTarget | QuoteTarget, onCom
     body,
     length,
     canCommit,
+    remaining,
+    /** The composer opened with the page's link inserted, the caret to go before it. */
+    prefilled,
     submit,
     /** The composer opened with its stash, until it is dropped or sent. */
     restored: stash.restored,

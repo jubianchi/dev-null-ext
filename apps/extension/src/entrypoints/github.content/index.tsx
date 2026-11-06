@@ -1,4 +1,5 @@
 import { render } from 'preact';
+import { browser } from 'wxt/browser';
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { createIntegratedUi } from 'wxt/utils/content-script-ui/integrated';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
@@ -32,6 +33,7 @@ import { watchSession } from '../../lib/session-store.ts';
 import { decorationsFor, disabledFeatures, type Settings } from '../../lib/settings.ts';
 import { loadSettings, watchSettings } from '../../lib/settings-store.ts';
 import type { SharedPage } from '../../lib/share.ts';
+import { dispatchSharePage, isSharePageMessage } from '../../lib/shortcut.ts';
 import '../../assets/tailwind.css';
 
 const TAB_HASH = '#dev-null';
@@ -68,6 +70,13 @@ export default defineContentScript({
       void remount();
     });
     ctx.onInvalidated(stop);
+
+    // Alt+Shift+D, relayed by the background: the page's share button opens its composer, if the page has one.
+    const relay = (message: unknown) => {
+      if (isSharePageMessage(message)) dispatchSharePage();
+    };
+    browser.runtime.onMessage.addListener(relay);
+    ctx.onInvalidated(() => browser.runtime.onMessage.removeListener(relay));
 
     // Signing in or out from the popup shows the log and the buttons, or takes them away, without reloading the page.
     ctx.onInvalidated(watchSession(() => void remount()));
@@ -123,7 +132,7 @@ async function shareButton(ctx: ContentScriptContext, page: Extract<GitHubPage, 
     onMount: (container) => {
       const placement = shareButtonAnchor();
       const spacing = placement?.position === 'after' ? 'start' : undefined;
-      render(<ShareButton page={page} size={placement?.size ?? 'medium'} spacing={spacing} disabled={disabled} />, container);
+      render(<ShareButton page={page} size={placement?.size ?? 'medium'} spacing={spacing} disabled={disabled} shortcut />, container);
     },
     onRemove: (container) => container && render(null, container),
   });

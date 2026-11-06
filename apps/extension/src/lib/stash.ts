@@ -1,4 +1,4 @@
-import type { QuoteTarget, ReplyTarget, Target } from './use-commit-draft.ts';
+import type { AnyTarget } from './use-commit-draft.ts';
 
 /**
  * An unsent commit, kept as the user types so that closing its composer or reloading the page loses nothing, as
@@ -18,9 +18,10 @@ export interface StashedImage {
   description: string;
 }
 
-export function stashName(target: Target | ReplyTarget | QuoteTarget): string {
+export function stashName(target: AnyTarget): string {
   if ('parentId' in target) return `reply-${target.parentId}`;
   if ('quotedCommitId' in target) return `quote-${target.quotedCommitId}`;
+  if ('web' in target) return `page:${target.web.url}`;
   return target.page ? `page:${target.page.url}` : `organization:${target.organization}`;
 }
 

@@ -1,4 +1,5 @@
 import { type SharedPage, shareLabel } from './share.ts';
+import type { WebPage } from './web-page.ts';
 
 /**
  * What the extension can add to a commit the user did not write: each addition is a piece of text it proposes for a
@@ -46,10 +47,30 @@ export const pageLink: AdditionSource = ({ page }) =>
           text: page.url,
           label: shareLabel(page),
           reason: 'Links this page, which /dev/null shows as a card.',
-          pattern: new RegExp(`(?<![^\\s(\\[<])${escapeRegExp(page.url)}(?=$|[\\s.,;:!?)\\]>])`),
+          pattern: linkPattern(page.url),
         },
       ]
     : [];
+
+/**
+ * The page in the current tab, whatever the site. Sharing it is the share view's very purpose, so its link is inserted
+ * when the composer opens, unlike the other additions; leaving it out is the user's choice, of which they are warned.
+ */
+export function webPageLink(page: WebPage): Addition {
+  return {
+    id: 'page-link',
+    kind: 'link',
+    text: page.url,
+    label: new URL(page.url).hostname,
+    reason: 'Links this page, which /dev/null shows as a card.',
+    pattern: linkPattern(page.url),
+    missing: "This commit doesn't share the page.",
+  };
+}
+
+function linkPattern(url: string): RegExp {
+  return new RegExp(`(?<![^\\s(\\[<])${escapeRegExp(url)}(?=$|[\\s.,;:!?)\\]>])`);
+}
 
 function mentionPattern(handle: string): RegExp {
   return new RegExp(`(?<![\\w@./])@${escapeRegExp(handle)}(?![\\w/-])`, 'i');

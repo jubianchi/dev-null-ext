@@ -98,7 +98,7 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 
 - [ ] Check the risks first: an extension's frame under a strict `frame-src` CSP, `activeTab` from a shortcut in
       Firefox, the file picker in the popup.
-- [ ] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
+- [x] A **Commit this page** button on the popup's profile card, opening a share view (not for guests, not on
       github.com, disabled off the web): the page's link pre-inserted as an addition, warned about when removed, and
       50 characters of one's own words required, links and quotes left out.
 - [ ] Clean the shared URL of its tracking parameters, and warn about pages that look private.
@@ -107,7 +107,7 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 - [ ] Show the page's card above the text, from its `og:` tags.
 - [ ] Quote the page's selected text in the share view.
 - [ ] The `Alt+Shift+D` shortcut, opening the share view in a modal over any page, with its setting in `FEATURES`.
-- [ ] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
+- [x] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
 
 ## Not now
 

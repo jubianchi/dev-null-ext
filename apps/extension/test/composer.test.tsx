@@ -70,6 +70,40 @@ async function mount(vnode: preact.ComponentChild) {
   await act(async () => {});
 }
 
+describe('Composer, sharing a web page', () => {
+  const web = { url: 'https://cbea.ms/git-commit/', title: 'How to Write a Git Commit Message' };
+
+  it("opens with the page's link, the caret before it, and asks what the user thinks of it", async () => {
+    await mount(<Composer target={{ web }} />);
+    // The session, then the stash, then the link and the caret.
+    await act(async () => {});
+
+    const textarea = root.querySelector('textarea');
+    expect(textarea?.value).toBe(`\n\n${web.url}`);
+    expect(textarea?.selectionStart).toBe(0);
+    expect(textarea?.selectionEnd).toBe(0);
+    expect(document.activeElement).toBe(textarea);
+    expect(textarea?.placeholder).toBe('What do you think of it?');
+  });
+
+  it("says how many more characters of one's own words it needs, and commits only then", async () => {
+    await mount(<Composer target={{ web }} />);
+    const commit = () => [...root.querySelectorAll('button')].find((button) => button.textContent === 'Commit');
+
+    expect(root.textContent).toContain('50 more characters to say what you think of it');
+    expect(commit()?.disabled).toBe(true);
+
+    const textarea = root.querySelector('textarea')!;
+    await act(async () => {
+      textarea.value = `Still the reference I send to every new teammate, seven rules.\n\n${web.url}`;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    expect(root.textContent).not.toContain('more characters');
+    expect(commit()?.disabled).toBe(false);
+  });
+});
+
 describe('Composer', () => {
   it('opens with the stash of the page it shares, and says so', async () => {
     ask.mockImplementation(async (request: { type: string }) => {
