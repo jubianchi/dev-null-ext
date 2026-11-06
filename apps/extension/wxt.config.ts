@@ -30,7 +30,8 @@ export default defineConfig({
       // The Chrome Web Store takes 132 characters at most.
       description: 'Read what /dev/null says about an organization, and share what you see on it, without leaving GitHub.',
       // activeTab: the URL and title of the tab the user opens the popup on, to commit about it; no access to other tabs.
-      permissions: ['storage', 'activeTab'],
+      // scripting: in that tab only, under activeTab, reading the page's card (its <meta> tags).
+      permissions: ['storage', 'activeTab', 'scripting'],
       // Only for signing in on a /dev/null server without the device grant (dev-null-sh/dev-null.sh#585), and asked for
       // at that moment: it reads where tabs navigate, which a user should only grant knowingly.
       optional_permissions: ['webNavigation'],

@@ -24,6 +24,14 @@ const TOOL =
  * Write and Preview, the text across the whole width, the stash and the count under it, and a footer with the tools
  * on the left and Commit on the right.
  */
+/** The page's image, decorative beside its title; gone if it doesn't load, rather than a broken image. */
+function CardImage({ src }: { src: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+
+  return <img src={src} alt="" onError={() => setFailed(true)} class="size-14 shrink-0 rounded-md bg-zinc-100 object-cover" />;
+}
+
 /** How long the confirmation stays before the popup closes. */
 const CLOSE_DELAY = 2000;
 
@@ -91,10 +99,14 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
       <ImagePicker picker={picker} onFiles={draft.attach} />
 
       <div class="flex flex-col gap-2 px-3 py-2.5">
-        <div data-page-card class="flex flex-col gap-0.5 rounded-lg border border-solid border-zinc-200 px-3 py-2">
-          <span class="truncate font-mono text-[11px] text-zinc-600">{new URL(page.url).hostname}</span>
-          <span class="truncate text-[13px] font-semibold">{page.title}</span>
-          <span class="text-[11px] text-zinc-600">Unfurls into a link card after you commit.</span>
+        <div data-page-card class="flex gap-2.5 rounded-lg border border-solid border-zinc-200 p-2">
+          {page.meta?.image && <CardImage src={page.meta.image} />}
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span class="truncate font-mono text-[11px] text-zinc-600">{page.meta?.siteName ?? new URL(page.url).hostname}</span>
+            <span class="truncate text-[13px] font-semibold">{page.meta?.title ?? page.title}</span>
+            {page.meta?.description && <span class="line-clamp-2 text-[11px] text-zinc-600">{page.meta.description}</span>}
+            <span class="text-[11px] text-zinc-500">Unfurls into a link card after you commit.</span>
+          </div>
         </div>
 
         {privacy && (

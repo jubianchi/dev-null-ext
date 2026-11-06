@@ -1,3 +1,4 @@
+import type { PageMeta } from '../lib/page-meta.ts';
 import { stashName } from '../lib/stash.ts';
 import { useStashed } from '../lib/use-stashed.ts';
 import { cleanUrl, pageKind, type WebPage } from '../lib/web-page.ts';
@@ -6,6 +7,8 @@ import { cleanUrl, pageKind, type WebPage } from '../lib/web-page.ts';
 export interface ActiveTab {
   url?: string;
   title?: string;
+  /** The page's card, read from it once the popup opens; none when the page can't be read. */
+  meta?: PageMeta;
 }
 
 /**
@@ -14,7 +17,8 @@ export interface ActiveTab {
  */
 export function PopupPage({ tab, onShare }: { tab: ActiveTab | null; onShare: (page: WebPage) => void }) {
   const kind = pageKind(tab?.url);
-  const page = tab?.url && kind === 'web' ? { url: cleanUrl(tab.url), title: tab.title ?? tab.url } : null;
+  const page: WebPage | null =
+    tab?.url && kind === 'web' ? { url: cleanUrl(tab.url), title: tab.title ?? tab.url, ...(tab.meta ? { meta: tab.meta } : {}) } : null;
   const stash = page ? stashName({ web: page }) : null;
   const stashed = useStashed(stash ? [stash] : [], []);
 

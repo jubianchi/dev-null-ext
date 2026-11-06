@@ -57,6 +57,25 @@ describe('PopupComposer', () => {
     expect(card?.textContent).toContain('Unfurls into a link card after you commit.');
   });
 
+  it('shows the card the page declares: its image, site, title and description', async () => {
+    const meta = {
+      title: 'How to Write a Git Commit Message',
+      description: 'Commit messages matter.',
+      image: 'https://cbea.ms/card.png',
+      siteName: 'Chris Beams',
+    };
+    await act(async () => {
+      render(<PopupComposer page={{ ...page, meta }} />, root);
+    });
+    await act(async () => {});
+
+    const card = root.querySelector('[data-page-card]');
+    expect(card?.querySelector('img')?.getAttribute('src')).toBe('https://cbea.ms/card.png');
+    expect(card?.querySelector('img')?.getAttribute('alt')).toBe('');
+    expect(card?.textContent).toContain('Chris Beams');
+    expect(card?.textContent).toContain('Commit messages matter.');
+  });
+
   it("writes in a full-width box, opened on the page's link with the caret before it", async () => {
     await show();
 

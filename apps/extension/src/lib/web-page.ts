@@ -1,3 +1,5 @@
+import type { PageMeta } from './page-meta.ts';
+
 /**
  * Sharing the page in the current tab, whatever the site. /dev/null is not a bookmark feed: a commit sharing a page
  * says something about it, so the extension asks for this many characters of the user's own words. /dev/null itself
@@ -9,6 +11,8 @@ export const MIN_OWN_LENGTH = 50;
 export interface WebPage {
   url: string;
   title: string;
+  /** Its card, once read from the page; a page that can't be read has none. */
+  meta?: PageMeta;
 }
 
 /**
