@@ -101,8 +101,11 @@ more `await act(async () => {})` before asserting.
 
 ### Privacy
 
-The extension talks to dev-null.sh and api.github.com only, and has no telemetry. Keep it that way: a new host, a new
-permission or anything leaving the browser must be discussed in an issue first.
+The extension talks to dev-null.sh and api.github.com only, and has no telemetry. One exception, by design: the share
+view shows the shared page's card, whose image loads from the site itself, as the page already loads it. Outside
+GitHub, the extension reads a page only when the user asks, from the popup or with Alt+Shift+D, and only that page
+(see [the design](docs/share-any-page.md)). Keep it that way: a new host, a new permission or anything leaving the
+browser must be discussed in an issue first.
 
 ## Architecture
 
