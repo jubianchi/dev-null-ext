@@ -47,6 +47,14 @@
   color-scheme: light dark;
 }
 
+/*
+ * The extension's own pages (the popup, the share view framed over a page) are drawn light. Without a color-scheme,
+ * Lightning CSS's light-dark() fallback leaves the lanes without a colour there: the wordmark's hollow slash vanishes.
+ */
+:root {
+  color-scheme: light;
+}
+
 /* /dev/null's highlighter classes (tempest/highlight), in GitHub's own syntax colours. */
 .hl-keyword {
   color: var(--color-prettylights-syntax-keyword, #cf222e);

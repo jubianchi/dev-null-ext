@@ -22,6 +22,7 @@ export const FEATURES = [
   { id: 'profile-follow', group: 'People', label: 'Follow button on profiles', hint: "Under GitHub's own Follow" },
   { id: 'author-mention', group: 'Composer', label: 'Offer to mention the author', hint: 'Of the issue or pull request you share' },
   { id: 'organization-mention', group: 'Composer', label: 'Offer to mention the organization', hint: 'So the commit shows in its log' },
+  { id: 'page-shortcut', group: 'Everywhere', label: 'Alt+Shift+D on any page', hint: 'Opens the composer over the page you are on' },
 ] as const;
 
 export type FeatureId = (typeof FEATURES)[number]['id'];

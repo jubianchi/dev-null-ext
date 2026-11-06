@@ -31,6 +31,14 @@ describe('FEATURES', () => {
     expect(FEATURES.find(({ id }) => id === 'discussions-sidebar')).toMatchObject({ group: 'Discussions', label: 'On /dev/null section' });
   });
 
+  it('lets the user turn off Alt+Shift+D over the pages off GitHub', () => {
+    expect(FEATURES.find(({ id }) => id === 'page-shortcut')).toMatchObject({
+      group: 'Everywhere',
+      label: 'Alt+Shift+D on any page',
+      hint: 'Opens the composer over the page you are on',
+    });
+  });
+
   it('says where a button goes as "next to", never "by"', () => {
     for (const feature of FEATURES) expect(feature.hint).not.toMatch(/\bby\b/i);
     expect(FEATURES.find((feature) => feature.id === 'issue-button')?.hint).toBe('Next to New issue');
