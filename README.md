@@ -68,6 +68,8 @@ On any page, **Alt+Shift+D** opens the same composer over the page, without reac
 opens the page's own composer, or the organization log's. Change the shortcut in your browser's settings, or turn it
 off in the extension's.
 
+![Alt+Shift+D on laravel.com/cloud: the composer over the page, the page's card above the text and its link below it](docs/screenshots/share-page.jpg)
+
 ## Nothing you write is lost
 
 Close a composer, or reload the page, and what you wrote comes back when you return, images included, as on
