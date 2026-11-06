@@ -38,11 +38,22 @@ describe('readAuthor', () => {
 
 describe('readPage, releases', () => {
   it("reads a repository's releases, a list or one, where each release is shared on its own", () => {
-    for (const path of ['releases', 'releases/tag/v5.32.0', 'releases?page=2']) {
+    for (const path of ['releases', 'releases?page=2']) {
       expect(readPage(new URL(`https://github.com/laravel/installer/${path}`), documentWith('repository:1'))).toEqual({
         kind: 'releases',
         owner: 'laravel',
         repository: 'installer',
+      });
+    }
+  });
+
+  it('tells a page showing one release, whose button Alt+Shift+D opens, from the list', () => {
+    for (const path of ['releases/tag/v5.32.0', 'releases/tag/packages/queue-1.0']) {
+      expect(readPage(new URL(`https://github.com/laravel/installer/${path}`), documentWith('repository:1'))).toEqual({
+        kind: 'releases',
+        owner: 'laravel',
+        repository: 'installer',
+        one: true,
       });
     }
   });

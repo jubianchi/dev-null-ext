@@ -11,8 +11,11 @@ export type GitHubPage =
   | { kind: 'organization'; organization: string; discussions?: true; people?: true }
   /** `people` on its stargazers and watchers, each of whom can be followed on /dev/null. */
   | { kind: 'repository'; owner: string; repository: string; url: string; people?: true }
-  /** A repository's releases, a list or one: nothing to share as a whole, each release on its own. */
-  | { kind: 'releases'; owner: string; repository: string }
+  /**
+   * A repository's releases, a list or one: nothing to share as a whole, each release on its own. `one` on a release's
+   * own page, whose single button Alt+Shift+D opens.
+   */
+  | { kind: 'releases'; owner: string; repository: string; one?: true }
   /** One release, shared from its card on a releases page. */
   | { kind: 'release'; owner: string; repository: string; tag: string; url: string }
   | {
@@ -94,7 +97,7 @@ export function readPage(location: Location | URL, document: Document): GitHubPa
 
   const base = `https://github.com/${owner}/${repository}`;
 
-  if (section === 'releases') return { kind: 'releases', owner, repository };
+  if (section === 'releases') return number === 'tag' ? { kind: 'releases', owner, repository, one: true } : { kind: 'releases', owner, repository };
 
   if ((section === 'pull' || section === 'issues' || section === 'discussions') && number && /^\d+$/.test(number)) {
     const kind = section === 'pull' ? 'pull-request' : section === 'issues' ? 'issue' : 'discussion';

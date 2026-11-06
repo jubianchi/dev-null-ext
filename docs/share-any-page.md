@@ -132,7 +132,8 @@ sequenceDiagram
 On github.com, the content script is already there: the background asks it to open the page's composer, as its share
 button would. On an organization's /dev/null log, the shortcut goes where the log's composer is, as
 [the contributing guide](../CONTRIBUTING.md#where-the-composer-opens) places it: the inline composer while it is in view,
-the modal once the log is scrolled down. Elsewhere on GitHub, a releases page included, it does nothing.
+the modal once the log is scrolled down. On a release's own page, it opens that release's composer; on the list of
+releases, with a button per release, and elsewhere on GitHub, it does nothing.
 
 ## Permissions
 
