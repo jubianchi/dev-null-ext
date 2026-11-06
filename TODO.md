@@ -105,7 +105,7 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 - [x] Stash the share view's commit per page, as dev-null.sh does (`stash@{0}`, `drop`, the hint on the popup's
       button), cleared once committed; once committed, say so and close after ~2 s.
 - [x] Show the page's card above the text, from its `og:` tags.
-- [ ] Quote the page's selected text in the share view.
+- [x] Quote the page's selected text in the share view.
 - [ ] The `Alt+Shift+D` shortcut, opening the share view in a modal over any page, with its setting in `FEATURES`.
 - [x] The shortcut on github.com: open the page's own composer where it has a share button, ignore it elsewhere.
 

@@ -40,8 +40,8 @@ export function Composer({ target }: { target: Target | WebTarget }) {
 
   // The page's link was inserted for the user to write before it; before the paint, so the caret doesn't jump.
   useLayoutEffect(() => {
-    if (draft.prefilled) textarea.current?.setSelectionRange(0, 0);
-  }, [draft.prefilled]);
+    if (draft.caret !== null) textarea.current?.setSelectionRange(draft.caret, draft.caret);
+  }, [draft.caret]);
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Cmd+Enter commits from any field of the composer, as on GitHub.

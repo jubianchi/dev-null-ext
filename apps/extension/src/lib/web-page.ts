@@ -13,6 +13,18 @@ export interface WebPage {
   title: string;
   /** Its card, once read from the page; a page that can't be read has none. */
   meta?: PageMeta;
+  /** The text the user selected on it, quoted when the composer opens. */
+  selection?: string;
+}
+
+/** The selection as a Markdown quote, each line of it quoted, followed by the blank line that ends the quote. */
+export function quoteOf(selection: string): string {
+  const lines = selection
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => `> ${line.trim()}`.trimEnd());
+
+  return `${lines.join('\n')}\n\n`;
 }
 
 /**

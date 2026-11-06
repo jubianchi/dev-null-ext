@@ -63,6 +63,7 @@ describe('PopupComposer', () => {
       description: 'Commit messages matter.',
       image: 'https://cbea.ms/card.png',
       siteName: 'Chris Beams',
+      selection: null,
     };
     await act(async () => {
       render(<PopupComposer page={{ ...page, meta }} />, root);

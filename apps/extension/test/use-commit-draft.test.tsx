@@ -77,8 +77,21 @@ describe('useCommitDraft, sharing a web page', () => {
 
     expect(ask).toHaveBeenCalledWith({ type: 'stash:get', name: `page:${web.url}` });
     expect(draft.text).toBe(`\n\n${web.url}`);
-    expect(draft.prefilled).toBe(true);
+    expect(draft.caret).toBe(0);
     expect(draft.additions).toMatchObject([{ id: 'page-link', text: web.url, label: 'cbea.ms' }]);
+  });
+
+  it('quotes the text selected on the page above the caret, which goes between the quote and the link', async () => {
+    await act(async () => {
+      render(<Harness target={{ web: { ...web, selection: '  Separate subject from body\nwith a blank line  ' } }} />, root);
+    });
+    await act(async () => {});
+    await act(async () => {});
+
+    const quote = '> Separate subject from body\n> with a blank line\n\n';
+    expect(draft.text).toBe(`${quote}\n\n${web.url}`);
+    expect(draft.caret).toBe(quote.length);
+    expect(draft.remaining).toBe(50);
   });
 
   it('opens with its stash rather than the link, when one comes back', async () => {
@@ -90,7 +103,7 @@ describe('useCommitDraft, sharing a web page', () => {
     await sharing();
 
     expect(draft.text).toBe(`Worth it\n\n${web.url}`);
-    expect(draft.prefilled).toBe(false);
+    expect(draft.caret).toBeNull();
   });
 
   it('asks for 50 characters of their own words before committing, the link and quotes left out', async () => {
@@ -131,7 +144,7 @@ describe('useCommitDraft, sharing a web page', () => {
     await act(async () => draft.setText('Yes'));
 
     expect(draft.remaining).toBe(0);
-    expect(draft.prefilled).toBe(false);
+    expect(draft.caret).toBeNull();
     expect(draft.canCommit).toBe(true);
   });
 });

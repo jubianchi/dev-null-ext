@@ -54,11 +54,19 @@ describe('PopupPage', () => {
   });
 
   it('shares the card read from the page with it', async () => {
-    const meta = { title: 'Git commit', description: null, image: 'https://cbea.ms/card.png', siteName: null };
+    const meta = { title: 'Git commit', description: null, image: 'https://cbea.ms/card.png', siteName: null, selection: null };
     await show({ ...article, meta });
     await act(async () => button()?.click());
 
     expect(onShare).toHaveBeenCalledWith({ ...article, meta });
+  });
+
+  it('shares the text selected on the page, to quote', async () => {
+    const meta = { title: null, description: null, image: null, siteName: null, selection: 'Separate subject from body' };
+    await show({ ...article, meta });
+    await act(async () => button()?.click());
+
+    expect(onShare).toHaveBeenCalledWith({ ...article, meta, selection: 'Separate subject from body' });
   });
 
   it('shares the page without its tracking parameters', async () => {

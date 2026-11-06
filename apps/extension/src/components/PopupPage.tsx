@@ -18,7 +18,14 @@ export interface ActiveTab {
 export function PopupPage({ tab, onShare }: { tab: ActiveTab | null; onShare: (page: WebPage) => void }) {
   const kind = pageKind(tab?.url);
   const page: WebPage | null =
-    tab?.url && kind === 'web' ? { url: cleanUrl(tab.url), title: tab.title ?? tab.url, ...(tab.meta ? { meta: tab.meta } : {}) } : null;
+    tab?.url && kind === 'web'
+      ? {
+          url: cleanUrl(tab.url),
+          title: tab.title ?? tab.url,
+          ...(tab.meta ? { meta: tab.meta } : {}),
+          ...(tab.meta?.selection ? { selection: tab.meta.selection } : {}),
+        }
+      : null;
   const stash = page ? stashName({ web: page }) : null;
   const stashed = useStashed(stash ? [stash] : [], []);
 

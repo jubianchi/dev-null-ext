@@ -56,8 +56,8 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
 
   // The page's link was inserted for the user to write before it; before the paint, so the caret doesn't jump.
   useLayoutEffect(() => {
-    if (draft.prefilled) textarea.current?.setSelectionRange(0, 0);
-  }, [draft.prefilled]);
+    if (draft.caret !== null) textarea.current?.setSelectionRange(draft.caret, draft.caret);
+  }, [draft.caret]);
 
   if (state.step === 'loading') return <Loader label="Checking your /dev/null session…" />;
   if (state.step === 'signed-out') return <p class="m-0 p-4 text-zinc-600">Connect your /dev/null account first.</p>;

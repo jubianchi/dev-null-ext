@@ -25,6 +25,7 @@ describe('readPageMeta', () => {
       description: 'Commit messages matter.',
       image: 'https://cbea.ms/img/card.png',
       siteName: 'cbea.ms',
+      selection: null,
     });
   });
 
@@ -35,7 +36,13 @@ describe('readPageMeta', () => {
     `);
     document.title = 'Fallback title';
 
-    expect(readPageMeta()).toEqual({ title: 'Fallback title', description: 'A plain description.', image: 'https://example.com/t.png', siteName: null });
+    expect(readPageMeta()).toEqual({
+      title: 'Fallback title',
+      description: 'A plain description.',
+      image: 'https://example.com/t.png',
+      siteName: null,
+      selection: null,
+    });
   });
 
   it("resolves a relative image against the page, and leaves out one that isn't on the web", () => {
@@ -46,9 +53,23 @@ describe('readPageMeta', () => {
     expect(readPageMeta().image).toBeNull();
   });
 
+  it('reads the text the user selected, if any', () => {
+    document.body.innerHTML = '<p id="p">Separate subject from body with a blank line</p>';
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('p')!);
+    getSelection()?.removeAllRanges();
+    getSelection()?.addRange(range);
+
+    expect(readPageMeta().selection).toBe('Separate subject from body with a blank line');
+
+    getSelection()?.removeAllRanges();
+    expect(readPageMeta().selection).toBeNull();
+    document.body.innerHTML = '';
+  });
+
   it('says nothing of what the page leaves empty', () => {
     head('<meta property="og:title" content="  ">');
 
-    expect(readPageMeta()).toEqual({ title: null, description: null, image: null, siteName: null });
+    expect(readPageMeta()).toEqual({ title: null, description: null, image: null, siteName: null, selection: null });
   });
 });

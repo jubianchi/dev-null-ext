@@ -1,10 +1,12 @@
-/** What a page tells of itself for its link card, as /dev/null unfurls it. */
+/** What a page tells of itself for its link card, as /dev/null unfurls it, and what the user selected on it. */
 export interface PageMeta {
   title: string | null;
   description: string | null;
   /** An http(s) URL, resolved against the page. */
   image: string | null;
   siteName: string | null;
+  /** The text the user selected on the page, to quote. */
+  selection: string | null;
 }
 
 /**
@@ -35,5 +37,6 @@ export function readPageMeta(): PageMeta {
     description: content('og:description', 'twitter:description', 'description'),
     image: resolved,
     siteName: content('og:site_name'),
+    selection: String(getSelection() ?? '').trim() || null,
   };
 }
