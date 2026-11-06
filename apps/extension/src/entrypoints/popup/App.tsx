@@ -11,10 +11,11 @@ import { PopupShare } from '../../components/PopupShare.tsx';
 import { PopupSignIn } from '../../components/PopupSignIn.tsx';
 import { PopupWelcome } from '../../components/PopupWelcome.tsx';
 import { ask, type SignInState } from '../../lib/messages.ts';
+import { readPageMeta } from '../../lib/page-meta.ts';
 import { hostPermission, isDefaultServer, SERVER, serverName } from '../../lib/server.ts';
 import { readSettings, type Settings } from '../../lib/settings.ts';
 import { loadSettings, saveSetting, watchSettings } from '../../lib/settings-store.ts';
-import type { WebPage } from '../../lib/web-page.ts';
+import { pageKind, type WebPage } from '../../lib/web-page.ts';
 
 const signInItem = storage.defineItem<SignInState>('local:signIn', { fallback: { status: 'idle' } });
 const userItem = storage.defineItem<CurrentUser | null>('local:user', { fallback: null });
@@ -40,8 +41,20 @@ export function App() {
   const [settings, setSettings] = useState<Settings>(() => readSettings(undefined));
   const [tab, setTab] = useState<ActiveTab | null>(null);
   useEffect(() => {
-    // The tab's URL and title: activeTab grants them since the user clicked the extension's button to open the popup.
-    void browser.tabs.query({ active: true, currentWindow: true }).then(([active]) => setTab(active ? { url: active.url, title: active.title } : null));
+    // The tab's URL and title, then its card: activeTab grants them since the user clicked the extension's button.
+    void browser.tabs.query({ active: true, currentWindow: true }).then(async ([active]) => {
+      if (!active) return setTab(null);
+      const read = { url: active.url, title: active.title };
+      setTab(read);
+      if (active.id === undefined || pageKind(active.url) !== 'web') return;
+
+      try {
+        const [result] = await browser.scripting.executeScript({ target: { tabId: active.id }, func: readPageMeta });
+        if (result?.result) setTab({ ...read, meta: result.result });
+      } catch {
+        // A page the browser won't let extensions read (the Web Store, a PDF viewer): the card stays plain.
+      }
+    });
     void browser.permissions.contains({ origins: ORIGINS }).then(setHostAccess);
     void signInItem.getValue().then(setSignIn);
     void loadSettings().then(setSettings);

@@ -2,11 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { IMAGES_OR_POLL, useCommitDraft } from '../lib/use-commit-draft.ts';
-import type { WebPage } from '../lib/web-page.ts';
+import { privacyWarning, type WebPage } from '../lib/web-page.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
-import { Committed } from './Committed.tsx';
 import { Loader } from './Loader.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
@@ -25,29 +24,56 @@ const TOOL =
  * Write and Preview, the text across the whole width, the stash and the count under it, and a footer with the tools
  * on the left and Commit on the right.
  */
-export function PopupComposer({ page }: { page: WebPage }) {
+/** The page's image, decorative beside its title; gone if it doesn't load, rather than a broken image. */
+function CardImage({ src }: { src: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+
+  return <img src={src} alt="" onError={() => setFailed(true)} class="size-14 shrink-0 rounded-md bg-zinc-100 object-cover" />;
+}
+
+/** How long the confirmation stays before the popup closes. */
+const CLOSE_DELAY = 2000;
+
+export function PopupComposer({ page, onDone }: { page: WebPage /** Once committed and said so: the popup closes. */; onDone?: () => void }) {
   const draft = useCommitDraft({ web: page });
   const { state, text, setText, additions, inCommit, insert, warnings, body, length, canCommit, submit, remaining } = draft;
   const [tab, setTab] = useState<Tab>('write');
   const textarea = useRef<HTMLTextAreaElement>(null);
   const picker = useRef<HTMLInputElement>(null);
   const mentions = useMentionSuggestions(textarea, text, additionCandidates(additions));
+  const privacy = privacyWarning(page.url);
 
   useEffect(() => {
     if (state.step === 'writing' && tab === 'write') textarea.current?.focus();
   }, [state.step, tab]);
 
+  useEffect(() => {
+    if (state.step !== 'sent' || !onDone) return;
+    const timer = setTimeout(onDone, CLOSE_DELAY);
+    return () => clearTimeout(timer);
+  }, [state.step]);
+
   // The page's link was inserted for the user to write before it; before the paint, so the caret doesn't jump.
   useLayoutEffect(() => {
-    if (draft.prefilled) textarea.current?.setSelectionRange(0, 0);
-  }, [draft.prefilled]);
+    if (draft.caret !== null) textarea.current?.setSelectionRange(draft.caret, draft.caret);
+  }, [draft.caret]);
 
   if (state.step === 'loading') return <Loader label="Checking your /dev/null session…" />;
   if (state.step === 'signed-out') return <p class="m-0 p-4 text-zinc-600">Connect your /dev/null account first.</p>;
   if (state.step === 'sent') {
+    const pending = state.commit.status === 'pending';
     return (
-      <div class="p-4">
-        <Committed commit={state.commit} onWriteAnother={draft.writeAnother} />
+      <div role="status" class="flex flex-col items-center gap-2 px-4 py-8 text-center">
+        <span class={`flex size-12 items-center justify-center rounded-full ${pending ? 'bg-amber-50 text-amber-800' : 'bg-cyan-50 text-cyan-700'}`}>
+          <Octicon name="check-circle-fill" class="size-6" />
+        </span>
+        <p class="m-0 text-[17px] font-bold">{pending ? 'Committed, awaiting review' : 'Committed'}</p>
+        {pending && <p class="m-0 text-[13px] text-zinc-600">It shows publicly once it passes review.</p>}
+        <a href={state.commit.html_url} target="_blank" rel="noopener" class="text-[13px] font-semibold text-blue-600 hover:underline">
+          View the commit
+        </a>
+        <p class="m-0 mt-2 text-[11px] text-zinc-600">Closing…</p>
       </div>
     );
   }
@@ -73,11 +99,21 @@ export function PopupComposer({ page }: { page: WebPage }) {
       <ImagePicker picker={picker} onFiles={draft.attach} />
 
       <div class="flex flex-col gap-2 px-3 py-2.5">
-        <div data-page-card class="flex flex-col gap-0.5 rounded-lg border border-solid border-zinc-200 px-3 py-2">
-          <span class="truncate font-mono text-[11px] text-zinc-600">{new URL(page.url).hostname}</span>
-          <span class="truncate text-[13px] font-semibold">{page.title}</span>
-          <span class="text-[11px] text-zinc-600">Unfurls into a link card after you commit.</span>
+        <div data-page-card class="flex gap-2.5 rounded-lg border border-solid border-zinc-200 p-2">
+          {page.meta?.image && <CardImage src={page.meta.image} />}
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span class="truncate font-mono text-[11px] text-zinc-600">{page.meta?.siteName ?? new URL(page.url).hostname}</span>
+            <span class="truncate text-[13px] font-semibold">{page.meta?.title ?? page.title}</span>
+            {page.meta?.description && <span class="line-clamp-2 text-[11px] text-zinc-600">{page.meta.description}</span>}
+            <span class="text-[11px] text-zinc-500">Unfurls into a link card after you commit.</span>
+          </div>
         </div>
+
+        {privacy && (
+          <p data-privacy class="m-0 rounded-md border border-solid border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
+            {privacy}
+          </p>
+        )}
 
         <div role="tablist" aria-label="Commit" class="flex gap-1">
           {(['write', 'preview'] as const).map((name) => (

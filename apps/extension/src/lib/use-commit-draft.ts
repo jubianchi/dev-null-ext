@@ -8,7 +8,7 @@ import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
 import { debounced, stashName } from './stash.ts';
 import type { StashImageInput } from './stash-store.ts';
 import { replaceText } from './textarea.ts';
-import { MIN_OWN_LENGTH, ownLength, type WebPage } from './web-page.ts';
+import { MIN_OWN_LENGTH, ownLength, quoteOf, type WebPage } from './web-page.ts';
 
 /** As dev-null.sh waits before writing a stash. */
 const STASH_DELAY = 300;
@@ -141,7 +141,7 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
   const web = 'web' in target ? target.web : null;
   const additions = additionsOf(target, 'user' in state ? state.user.handle : null);
   const [text, setText] = useState('');
-  const [prefilled, setPrefilled] = useState(false);
+  const [caret, setCaret] = useState<number | null>(null);
   const [images, setImages] = useState<AttachedImage[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
 
@@ -164,8 +164,9 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
         setText(restored.text);
         setImages(restored.images);
       } else if (web) {
-        setText(`\n\n${web.url}`);
-        setPrefilled(true);
+        const quote = web.selection ? quoteOf(web.selection) : '';
+        setText(`${quote}\n\n${web.url}`);
+        setCaret(quote.length);
       }
     })();
   }, []);
@@ -272,8 +273,11 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     length,
     canCommit,
     remaining,
-    /** The composer opened with the page's link inserted, the caret to go before it. */
-    prefilled,
+    /**
+     * Where the caret goes in what the composer opened with: after the quoted selection, before the page's link; null
+     * when it opened with nothing, or with a stash.
+     */
+    caret,
     submit,
     /** The composer opened with its stash, until it is dropped or sent. */
     restored: stash.restored,

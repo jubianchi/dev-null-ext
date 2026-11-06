@@ -10,6 +10,7 @@ vi.mock('../src/lib/messages.ts', () => ({
 }));
 
 const { PopupPage } = await import('../src/components/PopupPage.tsx');
+type ActiveTab = import('../src/components/PopupPage.tsx').ActiveTab;
 
 const article = { url: 'https://cbea.ms/git-commit/', title: 'How to Write a Git Commit Message' };
 
@@ -29,7 +30,7 @@ afterEach(() => {
   root.remove();
 });
 
-async function show(tab: { url?: string; title?: string } | null) {
+async function show(tab: ActiveTab | null) {
   await act(async () => {
     render(<PopupPage tab={tab} onShare={onShare} />, root);
   });
@@ -50,6 +51,30 @@ describe('PopupPage', () => {
 
     await act(async () => button()?.click());
     expect(onShare).toHaveBeenCalledWith(article);
+  });
+
+  it('shares the card read from the page with it', async () => {
+    const meta = { title: 'Git commit', description: null, image: 'https://cbea.ms/card.png', siteName: null, selection: null };
+    await show({ ...article, meta });
+    await act(async () => button()?.click());
+
+    expect(onShare).toHaveBeenCalledWith({ ...article, meta });
+  });
+
+  it('shares the text selected on the page, to quote', async () => {
+    const meta = { title: null, description: null, image: null, siteName: null, selection: 'Separate subject from body' };
+    await show({ ...article, meta });
+    await act(async () => button()?.click());
+
+    expect(onShare).toHaveBeenCalledWith({ ...article, meta, selection: 'Separate subject from body' });
+  });
+
+  it('shares the page without its tracking parameters', async () => {
+    await show({ url: `${article.url}?utm_source=hn&fbclid=abc#seven-rules`, title: article.title });
+    await act(async () => button()?.click());
+
+    expect(onShare).toHaveBeenCalledWith({ url: `${article.url}#seven-rules`, title: article.title });
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:which', names: [`page:${article.url}#seven-rules`] });
   });
 
   it('says a stash waits for the page, as dev-null.sh says one waits for a reply', async () => {
