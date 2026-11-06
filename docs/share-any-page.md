@@ -89,9 +89,10 @@ flowchart TD
     K[Alt+Shift+D] --> S{Signed in, and the setting on?}
     S -- no --> X[Nothing]
     S -- yes --> G{On github.com?}
-    G -- yes --> B{Does the page have a share button?}
-    B -- yes --> C[The content script opens GitHub's modal composer]
-    B -- no --> X
+    G -- yes --> B{Does the page have a share button, or an organization's log?}
+    B -- share button --> C[The content script opens its modal composer]
+    B -- log --> L[The inline composer takes the focus, or the modal opens once the log is scrolled down]
+    B -- neither --> X
     G -- no --> W{Is the page on the web?}
     W -- no --> X
     W -- yes --> M[The background injects the modal, which frames the share view]
@@ -129,7 +130,9 @@ sequenceDiagram
 ```
 
 On github.com, the content script is already there: the background asks it to open the page's composer, as its share
-button would, and it ignores the request on a page without one.
+button would. On an organization's /dev/null log, the shortcut goes where the log's composer is, as
+[the contributing guide](../CONTRIBUTING.md#where-the-composer-opens) places it: the inline composer while it is in view,
+the modal once the log is scrolled down. Elsewhere on GitHub, a releases page included, it does nothing.
 
 ## Permissions
 

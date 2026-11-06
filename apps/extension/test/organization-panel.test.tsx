@@ -11,6 +11,7 @@ vi.mock('../src/lib/messages.ts', () => ({
 
 const { OrganizationPanel } = await import('../src/components/OrganizationPanel.tsx');
 const { composerMode } = await import('../src/lib/composer-mode.ts');
+const { dispatchSharePage } = await import('../src/lib/shortcut.ts');
 
 const user = { id: '1', handle: 'jubianchi', name: null, avatar_url: null, bio: null, github_url: '', html_url: '', terms_accepted: true };
 
@@ -115,6 +116,25 @@ describe('OrganizationPanel', () => {
   it('shows a Commit button in its header once the log is scrolled down, which opens the composer in a modal', async () => {
     await scroll(false);
     await act(async () => root.querySelector<HTMLButtonElement>('header button')!.click());
+
+    expect(root.querySelector('dialog')?.open).toBe(true);
+  });
+
+  it('takes Alt+Shift+D to the inline composer while it is in view', async () => {
+    await scroll(true);
+    await act(async () => {
+      dispatchSharePage();
+    });
+
+    expect(document.activeElement).toBe(root.querySelector('textarea'));
+    expect(root.querySelector('dialog')).toBeNull();
+  });
+
+  it('opens the composer in a modal on Alt+Shift+D once the log is scrolled down, as its header button does', async () => {
+    await scroll(false);
+    await act(async () => {
+      dispatchSharePage();
+    });
 
     expect(root.querySelector('dialog')?.open).toBe(true);
   });

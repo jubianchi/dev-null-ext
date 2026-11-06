@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { composerMode } from '../lib/composer-mode.ts';
 import { ask, BackgroundError } from '../lib/messages.ts';
 import { SERVER } from '../lib/server.ts';
+import { onSharePage } from '../lib/shortcut.ts';
 import { dayKey, dayLabel } from '../lib/time.ts';
 import { useSession } from '../lib/use-session.ts';
 import { CommitItem } from './CommitItem.tsx';
@@ -53,6 +54,15 @@ export function OrganizationPanel({ organization, disabled }: { organization: st
     observer.observe(element);
     return () => observer.disconnect();
   }, [user]);
+
+  // Alt+Shift+D: to the inline composer while it is in view, else the modal, as the header's Commit button.
+  useEffect(() => {
+    if (!user) return;
+    return onSharePage(() => {
+      if (composerMode({ log: true, topInView }) === 'inline') inline.current?.querySelector('textarea')?.focus();
+      else setWriting(true);
+    });
+  }, [user, topInView]);
 
   function committed(commit: Commit) {
     if (commit.status === 'pending') return;
