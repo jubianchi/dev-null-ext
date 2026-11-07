@@ -74,7 +74,7 @@ describe('PopupSignIn', () => {
     await show({ status: 'failed', message: 'The code expired.' });
 
     expect(root.querySelector('h1')?.textContent).toBe("Couldn't connect");
-    expect(root.querySelector('.text-red-700')?.textContent).toBe('The code expired.');
+    expect(root.querySelector('.text-fg-danger')?.textContent).toBe('The code expired.');
     expect(footerButtons()).toEqual(['Try again with GitHub', 'Cancel']);
 
     click('Try again');

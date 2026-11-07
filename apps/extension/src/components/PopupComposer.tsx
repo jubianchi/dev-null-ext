@@ -29,7 +29,7 @@ function CardImage({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return null;
 
-  return <img src={src} alt="" onError={() => setFailed(true)} class="size-14 shrink-0 rounded-md bg-zinc-100 object-cover" />;
+  return <img src={src} alt="" onError={() => setFailed(true)} class="size-14 shrink-0 rounded-md bg-canvas-muted object-cover" />;
 }
 
 /** How long the confirmation stays before the popup closes. */
@@ -60,20 +60,22 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
   }, [draft.caret]);
 
   if (state.step === 'loading') return <Loader label="Checking your /dev/null session…" />;
-  if (state.step === 'signed-out') return <p class="m-0 p-4 text-zinc-600">Connect your /dev/null account first.</p>;
+  if (state.step === 'signed-out') return <p class="m-0 p-4 text-fg-muted">Connect your /dev/null account first.</p>;
   if (state.step === 'sent') {
     const pending = state.commit.status === 'pending';
     return (
       <div role="status" class="flex flex-col items-center gap-2 px-4 py-8 text-center">
-        <span class={`flex size-12 items-center justify-center rounded-full ${pending ? 'bg-amber-50 text-amber-800' : 'bg-cyan-50 text-cyan-700'}`}>
+        <span
+          class={`flex size-12 items-center justify-center rounded-full ${pending ? 'bg-fg-attention/10 text-fg-attention' : 'bg-fg-success/10 text-fg-success'}`}
+        >
           <Octicon name="check-circle-fill" class="size-6" />
         </span>
         <p class="m-0 text-[17px] font-bold">{pending ? 'Committed, awaiting review' : 'Committed'}</p>
-        {pending && <p class="m-0 text-[13px] text-zinc-600">It shows publicly once it passes review.</p>}
-        <a href={state.commit.html_url} target="_blank" rel="noopener" class="text-[13px] font-semibold text-blue-600 hover:underline">
+        {pending && <p class="m-0 text-[13px] text-fg-muted">It shows publicly once it passes review.</p>}
+        <a href={state.commit.html_url} target="_blank" rel="noopener" class="text-[13px] font-semibold text-fg-accent hover:underline">
           View the commit
         </a>
-        <p class="m-0 mt-2 text-[11px] text-zinc-600">Closing…</p>
+        <p class="m-0 mt-2 text-[11px] text-fg-muted">Closing…</p>
       </div>
     );
   }
@@ -99,18 +101,18 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
       <ImagePicker picker={picker} onFiles={draft.attach} />
 
       <div class="flex flex-col gap-2 px-3 py-2.5">
-        <div data-page-card class="flex gap-2.5 rounded-lg border border-solid border-zinc-200 p-2">
+        <div data-page-card class="flex gap-2.5 rounded-lg border border-solid border-border p-2">
           {page.meta?.image && <CardImage src={page.meta.image} />}
           <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span class="truncate font-mono text-[11px] text-zinc-600">{page.meta?.siteName ?? new URL(page.url).hostname}</span>
+            <span class="truncate font-mono text-[11px] text-fg-muted">{page.meta?.siteName ?? new URL(page.url).hostname}</span>
             <span class="truncate text-[13px] font-semibold">{page.meta?.title ?? page.title}</span>
-            {page.meta?.description && <span class="line-clamp-2 text-[11px] text-zinc-600">{page.meta.description}</span>}
-            <span class="text-[11px] text-zinc-500">Unfurls into a link card after you commit.</span>
+            {page.meta?.description && <span class="line-clamp-2 text-[11px] text-fg-muted">{page.meta.description}</span>}
+            <span class="text-[11px] text-fg-muted">Unfurls into a link card after you commit.</span>
           </div>
         </div>
 
         {privacy && (
-          <p data-privacy class="m-0 rounded-md border border-solid border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
+          <p data-privacy class="m-0 rounded-md border border-solid border-fg-attention/40 bg-fg-attention/10 px-2.5 py-1.5 text-[11px] text-fg-attention">
             {privacy}
           </p>
         )}
@@ -123,7 +125,7 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
               role="tab"
               aria-selected={tab === name}
               onClick={() => setTab(name)}
-              class="h-7 cursor-pointer rounded-md border border-solid border-transparent bg-transparent px-2.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 aria-selected:border-zinc-300 aria-selected:bg-white aria-selected:font-semibold aria-selected:text-zinc-900"
+              class="h-7 cursor-pointer rounded-md border border-solid border-transparent bg-transparent px-2.5 text-xs font-medium text-fg-muted hover:text-fg aria-selected:border-button-border aria-selected:bg-canvas aria-selected:font-semibold aria-selected:text-fg"
             >
               {name === 'write' ? 'Write' : 'Preview'}
             </button>
@@ -149,10 +151,10 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
             aria-label="Commit message"
             placeholder={draft.poll ? 'Ask a question' : 'What do you think of it?'}
             disabled={state.step === 'sending'}
-            class="box-border block w-full resize-none rounded-md border border-solid border-zinc-300 bg-white px-2.5 py-2 font-sans text-[13px] leading-normal text-zinc-900 placeholder:text-zinc-500 focus-visible:outline-2 focus-visible:outline-blue-600"
+            class="box-border block w-full resize-none rounded-md border border-solid border-button-border bg-canvas px-2.5 py-2 font-sans text-[13px] leading-normal text-fg placeholder:text-fg-muted focus-visible:outline-2 focus-visible:outline-fg-accent"
           />
         ) : (
-          <div class="box-border min-h-[134px] rounded-md border border-solid border-zinc-200 px-2.5 py-2 text-[13px]">
+          <div class="box-border min-h-[134px] rounded-md border border-solid border-border px-2.5 py-2 text-[13px]">
             <PreviewPanel body={body} images={draft.images} />
           </div>
         )}
@@ -173,18 +175,18 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
 
         <div class="flex items-center gap-2">
           <StashLabel restored={draft.restored} onDrop={draft.drop} />
-          <span data-counter class={`ml-auto font-mono text-[11px] ${length > MAX_COMMIT_LENGTH ? 'text-red-700' : 'text-zinc-600'}`}>
+          <span data-counter class={`ml-auto font-mono text-[11px] ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
             {length} / {MAX_COMMIT_LENGTH}
           </span>
         </div>
         {remaining > 0 && (
-          <p data-remaining class="m-0 text-right text-[11px] text-amber-800">
+          <p data-remaining class="m-0 text-right text-[11px] text-fg-attention">
             {remaining} more {remaining === 1 ? 'character' : 'characters'} to say what you think of it
           </p>
         )}
       </div>
 
-      <footer class="flex items-center gap-0.5 border-0 border-t border-solid border-zinc-200 px-3 py-2">
+      <footer class="flex items-center gap-0.5 border-0 border-t border-solid border-border px-3 py-2">
         <div role="toolbar" aria-label="Commit tools" class="flex items-center gap-0.5">
           <button
             type="button"
@@ -202,7 +204,7 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
         <button
           type="submit"
           disabled={!canCommit}
-          class="ml-auto h-8 cursor-pointer rounded-md border-0 bg-blue-600 px-4 text-[13px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
+          class="ml-auto h-8 cursor-pointer rounded-md border-0 bg-primary px-4 text-[13px] font-semibold text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state.step === 'sending' ? 'Committing…' : 'Commit'}
         </button>

@@ -23,13 +23,13 @@ export function PopupProfile({ user, onDisconnect, children }: { user: CurrentUs
         </div>
         <div>
           <p class="m-0 text-[17px] font-bold">{user.name ?? user.handle}</p>
-          <p class="m-0 font-mono text-xs text-zinc-600">@{user.handle}</p>
+          <p class="m-0 font-mono text-xs text-fg-muted">@{user.handle}</p>
         </div>
         {counts.length > 0 && (
-          <p class="m-0 flex gap-5 text-xs text-zinc-600">
+          <p class="m-0 flex gap-5 text-xs text-fg-muted">
             {counts.map(([count, label]) => (
               <span key={label}>
-                <strong class="text-sm text-zinc-900">{count}</strong> {label}
+                <strong class="text-sm text-fg">{count}</strong> {label}
               </span>
             ))}
           </p>
@@ -38,7 +38,7 @@ export function PopupProfile({ user, onDisconnect, children }: { user: CurrentUs
           href={user.html_url}
           target="_blank"
           rel="noopener"
-          class="flex h-9 w-full items-center justify-center rounded-lg bg-blue-600 text-sm font-semibold text-white no-underline hover:bg-blue-700"
+          class="flex h-9 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-fg no-underline hover:bg-primary-hover"
         >
           Open my profile
         </a>
@@ -46,12 +46,12 @@ export function PopupProfile({ user, onDisconnect, children }: { user: CurrentUs
 
       {children}
 
-      <footer class="flex items-center justify-between border-0 border-t border-solid border-zinc-200 px-4 py-2.5">
-        <span class="text-[11px] text-zinc-600">This browser is one of your devices</span>
+      <footer class="flex items-center justify-between border-0 border-t border-solid border-border px-4 py-2.5">
+        <span class="text-[11px] text-fg-muted">This browser is one of your devices</span>
         <button
           type="button"
           onClick={onDisconnect}
-          class="h-7 cursor-pointer rounded-md border border-solid border-zinc-200 bg-white px-2.5 text-xs font-medium text-red-700 hover:bg-red-50"
+          class="h-7 cursor-pointer rounded-md border border-solid border-border bg-canvas px-2.5 text-xs font-medium text-fg-danger hover:bg-fg-danger/10"
         >
           Disconnect
         </button>

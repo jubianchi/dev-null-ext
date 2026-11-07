@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FRAME_ID, insertShareFrame, readShareContext, shareFrameUrl } from '../src/lib/share-frame.ts';
 
 const page = {
@@ -39,6 +39,20 @@ describe('insertShareFrame', () => {
     expect(host?.style.position).toBe('fixed');
     expect(frame()?.getAttribute('src')).toBe('https://example.com/share.html#x');
     expect(frame()?.title).toBe('Commit this page to /dev/null');
+  });
+
+  it('paints the frame as the share page will be, light or dark as the browser is set', () => {
+    const media = (dark: boolean) => vi.fn((query: string) => ({ matches: dark && query === '(prefers-color-scheme: dark)' }) as MediaQueryList);
+
+    vi.stubGlobal('matchMedia', media(false));
+    insertShareFrame('https://example.com/share.html#x');
+    expect(frame()?.style.background).toBe('#ffffff');
+
+    vi.stubGlobal('matchMedia', media(true));
+    insertShareFrame('https://example.com/share.html#x');
+    expect(frame()?.style.background).toBe('#18181a');
+
+    vi.unstubAllGlobals();
   });
 
   it('replaces the frame it inserted before, rather than stacking another', () => {
