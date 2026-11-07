@@ -46,6 +46,15 @@ describe('PopupSettings', () => {
     expect(toggle('Commit button on pull requests').checked).toBe(true);
   });
 
+  it("draws each switch's knob in the colour that stands out from its track, light or dark", () => {
+    const knob = (label: string) => toggle(label).nextElementSibling?.firstElementChild?.className ?? '';
+
+    expect(toggle('Commit button on pull requests').nextElementSibling?.className).toContain('bg-primary');
+    expect(knob('Commit button on pull requests')).toContain('bg-primary-fg');
+    expect(toggle('Commit button on issues').nextElementSibling?.className).toContain('bg-fg-muted');
+    expect(knob('Commit button on issues')).toContain('bg-canvas');
+  });
+
   it('tells assistive technologies whether each switch is on', () => {
     expect(toggle('Commit button on issues').getAttribute('aria-checked')).toBe('false');
     expect(toggle('Commit button on pull requests').getAttribute('aria-checked')).toBe('true');

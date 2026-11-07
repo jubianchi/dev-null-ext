@@ -93,6 +93,8 @@ describe('PopupComposer', () => {
     const footer = root.querySelector('footer');
     expect(footer?.querySelector('[role="toolbar"] button[aria-label="Attach images"]')).not.toBeNull();
     expect(commit()?.disabled).toBe(true);
+    // Faded, and still on hover, as dev-null.sh's disabled buttons.
+    expect(commit()?.className).toContain('disabled:hover:bg-primary');
     expect(root.querySelector('[data-counter]')?.textContent).toBe('23 / 4000');
     expect(root.querySelector('[data-remaining]')?.textContent).toBe('50 more characters to say what you think of it');
 

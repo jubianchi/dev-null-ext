@@ -204,7 +204,7 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
         <button
           type="submit"
           disabled={!canCommit}
-          class="ml-auto h-8 cursor-pointer rounded-md border-0 bg-primary px-4 text-[13px] font-semibold text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="ml-auto h-8 cursor-pointer rounded-md border-0 bg-primary px-4 text-[13px] font-semibold text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
         >
           {state.step === 'sending' ? 'Committing…' : 'Commit'}
         </button>

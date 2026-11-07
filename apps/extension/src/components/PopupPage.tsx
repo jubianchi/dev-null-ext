@@ -44,7 +44,7 @@ export function PopupPage({ tab, onShare }: { tab: ActiveTab | null; onShare: (p
         type="button"
         disabled={!page}
         onClick={() => page && onShare(page)}
-        class="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-solid border-button-border bg-canvas text-sm font-semibold text-fg hover:bg-canvas-muted disabled:cursor-not-allowed disabled:opacity-50"
+        class="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-solid border-button-border bg-canvas text-sm font-semibold text-fg hover:bg-canvas-muted disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-canvas"
       >
         Commit this page
         {stash && stashed.has(stash) && (

@@ -89,6 +89,8 @@ describe('PopupPage', () => {
     await show({ url: 'chrome://extensions', title: 'Extensions' });
 
     expect(button()?.disabled).toBe(true);
+    // Faded, and still on hover, as dev-null.sh's disabled buttons.
+    expect(button()?.className).toContain('disabled:hover:bg-canvas');
     expect(root.textContent).toContain("Only web pages can be committed: this one is the browser's own.");
   });
 

@@ -41,9 +41,9 @@ export function PopupSettings({ settings, onChange, onBack }: { settings: Settin
                   <input type="checkbox" role="switch" checked={on} aria-checked={on} onChange={() => onChange(feature.id, !on)} class="peer sr-only" />
                   <span
                     aria-hidden="true"
-                    class={`relative h-[18px] w-8 shrink-0 rounded-full transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-fg-accent ${on ? 'bg-primary' : 'bg-button-border'}`}
+                    class={`relative h-[18px] w-8 shrink-0 rounded-full transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-fg-accent ${on ? 'bg-primary' : 'bg-fg-muted'}`}
                   >
-                    <span class={`absolute top-0.5 size-3.5 rounded-full bg-white transition-[left] ${on ? 'left-4' : 'left-0.5'}`} />
+                    <span class={`absolute top-0.5 size-3.5 rounded-full transition-[left] ${on ? 'left-4 bg-primary-fg' : 'left-0.5 bg-canvas'}`} />
                   </span>
                 </label>
               );

@@ -41,12 +41,13 @@ export function insertShareFrame(src: string): void {
   host.style.cssText =
     'position:fixed;inset:0;z-index:2147483647;display:flex;justify-content:center;align-items:flex-start;padding:10vh 16px 0;background:rgba(9,9,11,.5);box-sizing:border-box';
 
-  // Painted as the share page will be, dev-null.sh's surface light or dark, so it doesn't flash while it loads.
-  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  // Painted as the share page will be, dev-null.sh's surface (tailwind.css, --bgColor-default), so it doesn't flash
+  // while it loads; light or dark as the browser is set, and as it changes. The page can't read the extension's CSS.
   const frame = document.createElement('iframe');
   frame.src = src;
   frame.title = 'Commit this page to /dev/null';
-  frame.style.cssText = `width:560px;max-width:100%;height:480px;max-height:80vh;border:0;border-radius:12px;box-shadow:0 24px 48px rgba(0,0,0,.25);color-scheme:normal;background:${dark ? '#18181a' : '#ffffff'}`;
+  frame.style.cssText =
+    'width:560px;max-width:100%;height:480px;max-height:80vh;border:0;border-radius:12px;box-shadow:0 24px 48px rgba(0,0,0,.25);color-scheme:light dark;background:light-dark(#ffffff, #18181a)';
   host.append(frame);
 
   const close = () => {

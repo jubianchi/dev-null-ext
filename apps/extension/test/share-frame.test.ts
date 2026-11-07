@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { FRAME_ID, insertShareFrame, readShareContext, shareFrameUrl } from '../src/lib/share-frame.ts';
 
 const page = {
@@ -41,18 +41,12 @@ describe('insertShareFrame', () => {
     expect(frame()?.title).toBe('Commit this page to /dev/null');
   });
 
-  it('paints the frame as the share page will be, light or dark as the browser is set', () => {
-    const media = (dark: boolean) => vi.fn((query: string) => ({ matches: dark && query === '(prefers-color-scheme: dark)' }) as MediaQueryList);
-
-    vi.stubGlobal('matchMedia', media(false));
+  it('paints the frame as the share page will be, following the browser light or dark, even while it is open', () => {
     insertShareFrame('https://example.com/share.html#x');
-    expect(frame()?.style.background).toBe('#ffffff');
+    expect(frame()?.getAttribute('style')).toMatch(/color-scheme:\s*light dark/);
 
-    vi.stubGlobal('matchMedia', media(true));
-    insertShareFrame('https://example.com/share.html#x');
-    expect(frame()?.style.background).toBe('#18181a');
-
-    vi.unstubAllGlobals();
+    // happy-dom drops light-dark(), which Chrome 123+ and Firefox 120+ read: the function is injected as its source.
+    expect(insertShareFrame.toString()).toMatch(/background:light-dark\(#ffffff, #18181a\)/);
   });
 
   it('replaces the frame it inserted before, rather than stacking another', () => {
