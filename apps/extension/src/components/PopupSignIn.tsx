@@ -5,11 +5,11 @@ import { Octicon } from './Octicon.tsx';
 
 type Step = Exclude<SignInState, { status: 'idle' }>;
 
-const PRIMARY = 'flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700';
+const PRIMARY =
+  'flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-primary text-sm font-semibold text-primary-fg hover:bg-primary-hover';
 const SECONDARY =
-  'flex h-9 flex-1 cursor-pointer items-center justify-center rounded-lg border border-solid border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-900 no-underline hover:bg-zinc-50';
-const CANCEL =
-  'h-7 cursor-pointer self-center rounded-md border-0 bg-transparent px-2.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900';
+  'flex h-9 flex-1 cursor-pointer items-center justify-center rounded-lg border border-solid border-border bg-canvas px-3 text-sm font-medium text-fg no-underline hover:bg-canvas-muted';
+const CANCEL = 'h-7 cursor-pointer self-center rounded-md border-0 bg-transparent px-2.5 text-xs font-medium text-fg-muted hover:bg-canvas-muted hover:text-fg';
 
 /** A sign-in step in the popup, laid out as the welcome screen: a title, what to do, then its actions in the footer. */
 export function PopupSignIn({
@@ -45,10 +45,10 @@ export function PopupSignIn({
           </div>
         }
       >
-        <p class="m-0 text-[13px] leading-relaxed text-zinc-600">On {server}, in the tab that just opened, check that it shows this code:</p>
+        <p class="m-0 text-[13px] leading-relaxed text-fg-muted">On {server}, in the tab that just opened, check that it shows this code:</p>
         <p
           data-user-code
-          class="m-0 rounded-lg border border-solid border-zinc-200 bg-zinc-50 py-3 text-center font-mono text-2xl font-semibold tracking-[0.2em]"
+          class="m-0 rounded-lg border border-solid border-border bg-canvas-muted py-3 text-center font-mono text-2xl font-semibold tracking-[0.2em]"
         >
           {state.userCode}
         </p>
@@ -56,7 +56,7 @@ export function PopupSignIn({
       </Step>
     ) : (
       <Step title="Approve this browser" footer={<div class="flex gap-2">{cancel}</div>}>
-        <p class="m-0 text-[13px] leading-relaxed text-zinc-600">On {server}, in the tab that just opened, approve this browser as one of your devices.</p>
+        <p class="m-0 text-[13px] leading-relaxed text-fg-muted">On {server}, in the tab that just opened, approve this browser as one of your devices.</p>
         {waiting}
       </Step>
     );
@@ -75,7 +75,7 @@ export function PopupSignIn({
           </>
         }
       >
-        <p class="m-0 text-[13px] leading-relaxed text-zinc-600">
+        <p class="m-0 text-[13px] leading-relaxed text-fg-muted">
           This /dev/null server signs browsers in through a redirect. To catch it, the extension needs to see where the sign-in tab goes. It only looks for its
           own redirect.
         </p>
@@ -96,7 +96,7 @@ export function PopupSignIn({
         </>
       }
     >
-      <p class="m-0 text-[13px] leading-relaxed text-red-700">{state.message}</p>
+      <p class="m-0 text-[13px] leading-relaxed text-fg-danger">{state.message}</p>
     </Step>
   );
 }
@@ -108,7 +108,7 @@ function Step({ title, children, footer }: { title: string; children: ComponentC
         <h1 class="m-0 text-xl font-bold leading-tight tracking-tight">{title}</h1>
         {children}
       </section>
-      <footer class="flex flex-col gap-2 border-0 border-t border-solid border-zinc-200 p-4">{footer}</footer>
+      <footer class="flex flex-col gap-2 border-0 border-t border-solid border-border p-4">{footer}</footer>
     </>
   );
 }

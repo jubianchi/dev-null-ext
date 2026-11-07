@@ -1,17 +1,12 @@
 import { Octicon } from './Octicon.tsx';
 
-const LANES = [
-  'border-[#d9480f] bg-orange-50',
-  'border-[#2f9e44] bg-green-50',
-  'border-[#9c36b5] bg-purple-50',
-  'border-[#0c8599] bg-cyan-50',
-  'border-[#c2255c] bg-pink-50',
-];
+// The lanes, light or dark as dev-null.sh draws them: identity only, on decorative rings and glyphs.
+const LANES = ['border-lane-0', 'border-lane-1', 'border-lane-2', 'border-lane-3', 'border-lane-4'];
 
 const POINTS = [
-  ['text-[#d9480f]', 'Commit about a repository, an issue or a release'],
-  ['text-[#2f9e44]', "Read an organization's log, in its tabs"],
-  ['text-[#9c36b5]', 'Star and reply without leaving GitHub'],
+  ['text-lane-0', 'Commit about a repository, an issue or a release'],
+  ['text-lane-1', "Read an organization's log, in its tabs"],
+  ['text-lane-2', 'Star and reply without leaving GitHub'],
 ] as const;
 
 /**
@@ -27,14 +22,14 @@ export function PopupWelcome({ developers, onJoin }: { developers: number | null
       <div class="flex flex-1 flex-col justify-center gap-5 px-6 py-4">
         <div class="flex items-center">
           {LANES.map((lane, index) => (
-            <span key={lane} class={`size-10 rounded-full border-2 border-dashed ${lane} ${index > 0 ? '-ml-2.5' : ''}`} aria-hidden="true" />
+            <span key={lane} class={`size-10 rounded-full border-2 border-dashed bg-canvas-muted ${lane} ${index > 0 ? '-ml-2.5' : ''}`} aria-hidden="true" />
           ))}
-          {count && <span class="ml-2.5 font-mono text-xs text-zinc-600">{count}</span>}
+          {count && <span class="ml-2.5 font-mono text-xs text-fg-muted">{count}</span>}
         </div>
 
         <div>
           <h1 class="m-0 mb-2 text-2xl font-bold leading-tight tracking-tight">{count ? `Join ${count} developers.` : 'Only developers post here.'}</h1>
-          <p class="m-0 text-[13px] leading-relaxed text-zinc-600">
+          <p class="m-0 text-[13px] leading-relaxed text-fg-muted">
             {count ? `${count} developers are already here. ` : ''}Sign in with GitHub to follow them, star commits, and join the conversation, right from
             GitHub's pages.
           </p>
@@ -52,16 +47,16 @@ export function PopupWelcome({ developers, onJoin }: { developers: number | null
         </ul>
       </div>
 
-      <footer class="flex flex-col gap-2 border-0 border-t border-solid border-zinc-200 p-4">
+      <footer class="flex flex-col gap-2 border-0 border-t border-solid border-border p-4">
         <button
           type="button"
           onClick={onJoin}
-          class="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700"
+          class="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border-0 bg-primary text-sm font-semibold text-primary-fg hover:bg-primary-hover"
         >
           <Octicon name="mark-github" />
           Join with GitHub
         </button>
-        <p class="m-0 text-center text-[11px] text-zinc-600">Already on /dev/null? The same button connects this browser, as one of your devices.</p>
+        <p class="m-0 text-center text-[11px] text-fg-muted">Already on /dev/null? The same button connects this browser, as one of your devices.</p>
       </footer>
     </>
   );

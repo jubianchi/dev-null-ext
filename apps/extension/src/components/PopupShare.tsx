@@ -8,12 +8,12 @@ import { PopupComposer } from './PopupComposer.tsx';
 export function PopupShare({ page, onBack, onDone = () => window.close() }: { page: WebPage; onBack: () => void; onDone?: () => void }) {
   return (
     <section class="flex flex-col">
-      <header class="flex items-center gap-2 border-0 border-b border-solid border-zinc-200 px-3 py-2.5">
+      <header class="flex items-center gap-2 border-0 border-b border-solid border-border px-3 py-2.5">
         <button
           type="button"
           onClick={onBack}
           aria-label="Back"
-          class="flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-zinc-600 hover:bg-zinc-100"
+          class="flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-fg-muted hover:bg-canvas-muted"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M10 3 5 8l5 5" />

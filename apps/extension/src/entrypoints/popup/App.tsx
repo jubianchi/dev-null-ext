@@ -30,7 +30,7 @@ const DEVELOPERS = 12_000;
 const ORIGINS = ['https://github.com/*', hostPermission(SERVER), 'https://api.github.com/*'];
 const SERVER_NAME = serverName(SERVER);
 
-const primary = 'h-9 cursor-pointer rounded-lg border-0 bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700';
+const primary = 'h-9 cursor-pointer rounded-lg border-0 bg-primary px-3 text-sm font-semibold text-primary-fg hover:bg-primary-hover';
 
 export function App() {
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
@@ -72,7 +72,7 @@ export function App() {
 
   if (typeof view === 'object' && user) {
     return (
-      <main class="w-[360px] bg-white font-sans text-sm text-zinc-900">
+      <main class="w-[360px] bg-canvas font-sans text-sm text-fg">
         <PopupShare page={view.share} onBack={() => setView('home')} />
       </main>
     );
@@ -80,7 +80,7 @@ export function App() {
 
   if (view === 'settings') {
     return (
-      <main class="w-[360px] bg-white font-sans text-sm text-zinc-900">
+      <main class="w-[360px] bg-canvas font-sans text-sm text-fg">
         <PopupSettings
           settings={settings}
           onChange={(id, on) => {
@@ -103,14 +103,14 @@ export function App() {
   }
 
   return (
-    <main class="flex w-[360px] flex-col bg-white font-sans text-sm text-zinc-900">
+    <main class="flex w-[360px] flex-col bg-canvas font-sans text-sm text-fg">
       <header class="flex items-center gap-2 px-4 py-3">
         <Glyph class="size-5" />
         <h1 class="m-0 text-sm font-semibold">{SERVER_NAME}</h1>
         {isDefaultServer(SERVER) ? (
-          <span class="rounded border border-solid border-zinc-200 px-1.5 font-mono text-[11px] text-zinc-600">extension</span>
+          <span class="rounded border border-solid border-border px-1.5 font-mono text-[11px] text-fg-muted">extension</span>
         ) : (
-          <span title="A build for a development server" class="rounded bg-amber-100 px-1.5 font-mono text-[11px] font-semibold text-amber-800">
+          <span title="A build for a development server" class="rounded bg-fg-attention/15 px-1.5 font-mono text-[11px] font-semibold text-fg-attention">
             dev
           </span>
         )}
@@ -119,7 +119,7 @@ export function App() {
           onClick={() => setView('settings')}
           aria-label="Settings"
           title="Settings"
-          class="ml-auto flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+          class="ml-auto flex size-8 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-fg-muted hover:bg-canvas-muted hover:text-fg"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
             <circle cx="8" cy="8" r="2.2" />
@@ -153,7 +153,7 @@ export function App() {
       <div class="flex flex-col gap-3 px-4 pb-4 empty:hidden">
         {!hostAccess && (
           <section class="flex flex-col items-start gap-2">
-            <p class="m-0 text-zinc-600">The extension needs access to github.com and {SERVER_NAME} to work.</p>
+            <p class="m-0 text-fg-muted">The extension needs access to github.com and {SERVER_NAME} to work.</p>
             <button type="button" class={primary} onClick={() => run(async () => setHostAccess(await browser.permissions.request({ origins: ORIGINS })))}>
               Allow access
             </button>
@@ -162,7 +162,7 @@ export function App() {
 
         {user === undefined && <Loader label="Checking your session…" />}
 
-        {error && <p class="m-0 text-red-700">{error}</p>}
+        {error && <p class="m-0 text-fg-danger">{error}</p>}
       </div>
     </main>
   );
