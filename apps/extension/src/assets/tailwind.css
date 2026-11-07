@@ -49,14 +49,15 @@
 
 /*
  * The extension's own pages (the popup, the share view framed over a page) have no GitHub to take colours from: they
- * wear dev-null.sh's, light or dark as the browser is set (resources/css/app.css, :root and .dark). They are set as
- * the Primer variables the theme above reads, so the components shared with GitHub follow too. :root matches nothing
- * in GitHub's shadow roots: GitHub's own theme is left alone. The color-scheme also gives Lightning CSS's light-dark()
+ * wear dev-null.sh's, light or dark as the browser is set (resources/css/app.css, its root and .dark). They are set
+ * as the Primer variables the theme above reads, so the components shared with GitHub follow too. The selector is
+ * html, which no shadow root has, and never the root pseudo-class: in GitHub's shadow roots, WXT rewrites it to :host,
+ * where these values would override GitHub's own theme. The color-scheme also gives Lightning CSS's light-dark()
  * fallback its variables: without it, the lanes, and the wordmark's hollow slash, have no colour here.
  *
  * One departure: dev-null.sh's warning (#b7791f) is too light for small text on white; the light one keeps Primer's.
  */
-:root {
+html {
   color-scheme: light dark;
   background-color: light-dark(#ffffff, #18181a);
 
