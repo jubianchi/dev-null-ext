@@ -150,6 +150,65 @@ describe('PopupComposer', () => {
     }
   });
 
+  it('schedules the commit from the clock in its footer, says for when, and closes after about two seconds', async () => {
+    const scheduled = { id: 's1', author: null, body: words, scheduled_at: '2026-11-10T08:00:00+00:00', submitted_at: null, status: 'scheduled' };
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return viewer;
+      return request.type === 'schedule' ? scheduled : null;
+    });
+    const named = (label: string) =>
+      [...root.querySelectorAll<HTMLButtonElement>('button')].find(
+        (button) => button.textContent?.trim() === label || button.getAttribute('aria-label') === label,
+      );
+    const onDone = vi.fn();
+
+    vi.useFakeTimers({ now: new Date(2026, 10, 9, 14, 22) });
+    try {
+      await act(async () => {
+        render(<PopupComposer page={page} onDone={onDone} />, root);
+      });
+      await act(async () => {});
+      await act(async () => {});
+      await type(`${words}\n\n${page.url}`);
+
+      const toolbar = root.querySelector('footer [role="toolbar"]')!;
+      expect(toolbar.children[2]?.getAttribute('aria-label')).toBe('Schedule');
+      await act(async () => named('Schedule')?.click());
+      expect(commit()?.textContent).toBe('Schedule commit');
+      expect(commit()?.disabled).toBe(true);
+
+      await act(async () => named('Pick a date and time')?.click());
+      await act(async () => root.querySelector<HTMLButtonElement>('[data-day="2026-11-10"]')?.click());
+      for (const [label, value] of [
+        ['Hour', '9'],
+        ['Minute', '0'],
+      ] as const) {
+        await act(async () => {
+          const select = root.querySelector<HTMLSelectElement>(`select[aria-label="${label}"]`)!;
+          select.value = value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      }
+      await act(async () => named('Done')?.click());
+      await act(async () => commit()?.click());
+      await act(async () => {});
+
+      expect(ask).toHaveBeenCalledWith({ type: 'schedule', body: `${words}\n\n${page.url}`, scheduledAt: new Date(2026, 10, 10, 9, 0).toISOString() });
+      const status = root.querySelector('[role="status"]');
+      expect(status?.textContent).toContain('Commit scheduled');
+      expect(status?.textContent).toContain('Only you can see it until it is submitted.');
+      expect(status?.textContent).toContain('Closing…');
+      expect(root.querySelector('a[href="https://dev-null.sh/scheduled-commits"]')?.textContent).toBe('Scheduled commits');
+
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(onDone).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('commits what the user wrote about the page, and says so', async () => {
     const committed = {
       id: 'c1',

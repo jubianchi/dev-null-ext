@@ -76,7 +76,7 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       the clock after the poll, a "Submit at" panel with dev-null.sh's picker (today to 30 days ahead, minutes by 5,
       in the reader's time zone), then a link to dev-null.sh's scheduled commits, which lists and cancels them. Not
       for replies and quotes, which /dev/null refuses to schedule.
-- [ ] Schedule a commit from the popup's share view.
+- [x] Schedule a commit from the popup's share view, and from the share view the shortcut opens.
 - [ ] Say whether a scheduled commit will be approved automatically, as dev-null.sh tells its admins: the API doesn't
       tell, it needs a field on `/api/v1/me` in dev-null.sh.
 
