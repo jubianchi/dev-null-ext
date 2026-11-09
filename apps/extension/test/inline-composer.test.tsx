@@ -449,3 +449,53 @@ describe('InlineComposer', () => {
     expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')?.textContent).toBe('Commit');
   });
 });
+
+describe('InlineComposer, scheduling', () => {
+  const scheduled = { id: 's1', author: null, body: 'Shipped', scheduled_at: '2026-11-10T08:00:00+00:00', submitted_at: null, status: 'scheduled' };
+  const named = (label: string) =>
+    [...root.querySelectorAll<HTMLButtonElement>('button')].find(
+      (candidate) => candidate.textContent?.trim() === label || candidate.getAttribute('aria-label') === label,
+    );
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date(2026, 10, 9, 14, 22), toFake: ['Date'] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('schedules from the clock in its toolbar, after the poll, says so and stays open without adding to the log', async () => {
+    const toolbar = root.querySelector('[role="toolbar"]')!;
+    expect(toolbar.children[2]?.getAttribute('aria-label')).toBe('Schedule');
+
+    await type('Shipped');
+    await act(async () => button('Schedule')?.click());
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')?.textContent).toBe('Schedule commit');
+
+    await act(async () => named('Pick a date and time')?.click());
+    await act(async () => root.querySelector<HTMLButtonElement>('[data-day="2026-11-10"]')?.click());
+    for (const [label, value] of [
+      ['Hour', '9'],
+      ['Minute', '0'],
+    ] as const) {
+      await act(async () => {
+        const select = root.querySelector<HTMLSelectElement>(`select[aria-label="${label}"]`)!;
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+    await act(async () => named('Done')?.click());
+
+    ask.mockResolvedValueOnce(scheduled);
+    await submit();
+    await act(async () => {});
+
+    expect(ask).toHaveBeenCalledWith({ type: 'schedule', body: 'Shipped', scheduledAt: new Date(2026, 10, 10, 9, 0).toISOString() });
+    expect(onCommitted).not.toHaveBeenCalled();
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Commit scheduled');
+    expect(root.querySelector('a[href="https://dev-null.sh/scheduled-commits"]')).not.toBeNull();
+    expect(root.querySelector('textarea')?.value).toBe('');
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')?.textContent).toBe('Commit');
+  });
+});

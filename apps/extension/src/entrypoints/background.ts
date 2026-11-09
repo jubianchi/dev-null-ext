@@ -262,6 +262,12 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
         },
         (request.images ?? []).map(fromTransfer),
       );
+    case 'schedule':
+      return (await client({ signed: true })).scheduleCommit(
+        { body: request.body, ...(request.poll ? { poll: request.poll } : {}) },
+        new Date(request.scheduledAt),
+        (request.images ?? []).map(fromTransfer),
+      );
     case 'preview':
       return (await client({ signed: true })).previewCommit(request.body);
     case 'mention-suggestions':
@@ -296,7 +302,7 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
     case 'stash:get':
       return stashes.get(request.name);
     case 'stash:put':
-      await stashes.put(request.name, request.text, request.images);
+      await stashes.put(request.name, request.text, request.images, request.scheduledAt);
       return null;
     case 'stash:drop':
       await stashes.drop(request.name);

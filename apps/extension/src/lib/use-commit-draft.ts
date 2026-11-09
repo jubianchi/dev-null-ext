@@ -1,9 +1,10 @@
-import type { Commit, CurrentUser } from '@dev-null-ext/client';
+import type { Commit, CurrentUser, ScheduledCommit } from '@dev-null-ext/client';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type Addition, additionsFor, type ComposerContext, isIn, webPageLink, withAddition } from './additions.ts';
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
 import { ask, BackgroundError } from './messages.ts';
 import { type DraftPoll, newPoll, pollReady } from './polls.ts';
+import { schedulable } from './schedule.ts';
 import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
 import { debounced, stashName } from './stash.ts';
 import type { StashImageInput } from './stash-store.ts';
@@ -17,18 +18,18 @@ const STASH_DELAY = 300;
  * The composer's stash: restored once the session is known (guests never stash), saved as the user types, and once
  * more when the composer or the page goes away, so that Escape, Cancel or a reload loses nothing.
  */
-function useStash(name: string, text: string, images: AttachedImage[]) {
+function useStash(name: string, text: string, images: AttachedImage[], scheduledAt: string | undefined) {
   const [restored, setRestored] = useState(false);
   const active = useRef(false);
-  const latest = useRef({ text, images });
-  latest.current = { text, images };
+  const latest = useRef({ text, images, scheduledAt });
+  latest.current = { text, images, scheduledAt };
   /** The images whose bytes the background already has. */
   const stored = useRef(new Set<string>());
 
   const save = useMemo(
     () =>
       debounced(() => {
-        const { text, images } = latest.current;
+        const { text, images, scheduledAt } = latest.current;
         void (async () => {
           const sent = await Promise.all(
             images.map(async ({ id, file, description }): Promise<StashImageInput> => {
@@ -38,7 +39,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
               return { ...image, data: (await toTransfer(file, '')).data };
             }),
           );
-          await ask({ type: 'stash:put', name, text, images: sent }).catch(() => undefined);
+          await ask({ type: 'stash:put', name, text, images: sent, ...(scheduledAt ? { scheduledAt } : {}) }).catch(() => undefined);
         })();
       }, STASH_DELAY),
     [name],
@@ -46,7 +47,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
 
   useEffect(() => {
     if (active.current) save();
-  }, [text, images]);
+  }, [text, images, scheduledAt]);
 
   useEffect(() => {
     const flush = () => save.flush();
@@ -59,7 +60,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
 
   return {
     restored,
-    async restore(): Promise<{ text: string; images: AttachedImage[] } | null> {
+    async restore(): Promise<{ text: string; images: AttachedImage[]; scheduledAt?: string } | null> {
       try {
         const stash = await ask({ type: 'stash:get', name });
         if (!stash) return null;
@@ -70,7 +71,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
           return { id, file: blob, url: URL.createObjectURL(blob), description };
         });
         setRestored(true);
-        return { text: stash.text, images };
+        return { text: stash.text, images, ...(stash.scheduledAt ? { scheduledAt: stash.scheduledAt } : {}) };
       } catch {
         return null;
       } finally {
@@ -122,12 +123,21 @@ export interface AttachedImage {
   description: string;
 }
 
+/** Whether the commit is to be scheduled, its panel open, and for when once the user picks it. */
+export interface DraftSchedule {
+  open: boolean;
+  at: Date | null;
+}
+
+const NOT_SCHEDULED: DraftSchedule = { open: false, at: null };
+
 export type DraftState =
   | { step: 'loading' }
   | { step: 'signed-out' }
   | { step: 'writing'; user: CurrentUser }
   | { step: 'sending'; user: CurrentUser }
   | { step: 'sent'; user: CurrentUser; commit: Commit }
+  | { step: 'scheduled'; user: CurrentUser; scheduled: ScheduledCommit }
   | { step: 'failed'; user: CurrentUser; error: BackgroundError };
 
 /**
@@ -144,9 +154,10 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
   const [caret, setCaret] = useState<number | null>(null);
   const [images, setImages] = useState<AttachedImage[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
+  const [schedule, setSchedule] = useState<DraftSchedule>(NOT_SCHEDULED);
 
   // The page's link alone is what the share view opens with, not something the user wrote: nothing to stash.
-  const stash = useStash(stashName(target), web && text.trim() === web.url ? '' : text, images);
+  const stash = useStash(stashName(target), web && text.trim() === web.url ? '' : text, images, schedule.at?.toISOString());
 
   useEffect(() => {
     void (async () => {
@@ -163,6 +174,10 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
       if (restored) {
         setText(restored.text);
         setImages(restored.images);
+        if (restored.scheduledAt) {
+          const at = new Date(restored.scheduledAt);
+          setSchedule({ open: true, at: schedulable(at, new Date()) ? at : null });
+        }
       } else if (web) {
         const quote = web.selection ? quoteOf(web.selection) : '';
         setText(`${quote}\n\n${web.url}`);
@@ -183,7 +198,8 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     (!poll || pollReady(poll)) &&
     length <= MAX_COMMIT_LENGTH &&
     remaining === 0 &&
-    (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
+    (!schedule.open || schedule.at !== null) &&
+    (state.step === 'writing' || state.step === 'sent' || state.step === 'scheduled' || state.step === 'failed');
 
   /** Attaches the images /dev/null would take, in order, and says why it leaves out the others. */
   function attach(files: Iterable<File>) {
@@ -222,27 +238,46 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     else setText(value);
   }
 
+  function forgetError() {
+    if (state.step === 'failed') setState({ step: 'writing', user: state.user });
+  }
+
+  /** Empties the composer once what it held is committed or scheduled. */
+  function clear() {
+    stash.drop();
+    setText('');
+    setPoll(null);
+    setSchedule(NOT_SCHEDULED);
+    for (const image of images) URL.revokeObjectURL(image.url);
+    setImages([]);
+    setImageErrors([]);
+  }
+
   async function submit() {
     if (!canCommit || !('user' in state)) return;
     const { user } = state;
+    if (schedule.at && !schedulable(schedule.at, new Date())) {
+      setSchedule({ open: true, at: null });
+      setState({ step: 'failed', user, error: new BackgroundError({ message: 'This time has passed: pick another.' }) });
+      return;
+    }
     setState({ step: 'sending', user });
     try {
       const transferred = await Promise.all(images.map((image) => toTransfer(image.file, image.description)));
-      const commit = await ask({
-        type: 'commit',
+      const content = {
         body,
         ...(transferred.length > 0 ? { images: transferred } : {}),
-        ...(parentId ? { parentId } : {}),
-        ...(quotedCommitId ? { quotedCommitId } : {}),
         ...(poll ? { poll: { ...poll, options: poll.options.map((option) => option.trim()) } } : {}),
-      });
+      };
+      if (schedule.at) {
+        const scheduled = await ask({ type: 'schedule', ...content, scheduledAt: schedule.at.toISOString() });
+        setState({ step: 'scheduled', user, scheduled });
+        clear();
+        return;
+      }
+      const commit = await ask({ type: 'commit', ...content, ...(parentId ? { parentId } : {}), ...(quotedCommitId ? { quotedCommitId } : {}) });
       setState({ step: 'sent', user, commit });
-      stash.drop();
-      setText('');
-      setPoll(null);
-      for (const image of images) URL.revokeObjectURL(image.url);
-      setImages([]);
-      setImageErrors([]);
+      clear();
       onCommitted?.(commit);
     } catch (error) {
       setState({ step: 'failed', user, error: error instanceof BackgroundError ? error : new BackgroundError({ message: String(error) }) });
@@ -266,6 +301,19 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     startPoll: () => setPoll(newPoll()),
     setPoll,
     removePoll: () => setPoll(null),
+    schedule,
+    /** /dev/null schedules neither replies nor quotes. */
+    canSchedule: !parentId && !quotedCommitId,
+    /** Opens the schedule panel, or closes it and commits right away again. */
+    /** Changing one's mind about when answers what went wrong with the last attempt: its error goes. */
+    toggleSchedule: () => {
+      setSchedule(schedule.open ? NOT_SCHEDULED : { open: true, at: null });
+      forgetError();
+    },
+    scheduleAt: (at: Date) => {
+      setSchedule({ open: true, at });
+      forgetError();
+    },
     attach,
     detach,
     describe,
@@ -282,14 +330,7 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     /** The composer opened with its stash, until it is dropped or sent. */
     restored: stash.restored,
     /** Discards the stash and empties the composer. */
-    drop: () => {
-      stash.drop();
-      for (const image of images) URL.revokeObjectURL(image.url);
-      setImages([]);
-      setImageErrors([]);
-      setPoll(null);
-      setText('');
-    },
+    drop: clear,
     /** Back to writing, for the next commit, once one is sent. */
     writeAnother: () => {
       if ('user' in state) setState({ step: 'writing', user: state.user });

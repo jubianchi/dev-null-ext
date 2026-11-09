@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
+import { SCHEDULED_COMMITS_URL, scheduleLabel } from '../lib/schedule.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { IMAGES_OR_POLL, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { privacyWarning, type WebPage } from '../lib/web-page.ts';
@@ -7,10 +8,12 @@ import { AdditionTools, AdditionWarnings } from './Additions.tsx';
 import { AttachedImages, filesOf, ImagePicker } from './AttachedImages.tsx';
 import { CommitError } from './CommitError.tsx';
 import { Loader } from './Loader.tsx';
+import { Lucide } from './Lucide.tsx';
 import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
+import { SchedulePanel, ScheduleTool, submitLabel } from './SchedulePanel.tsx';
 import { StashLabel } from './StashLabel.tsx';
 
 type Tab = 'write' | 'preview';
@@ -49,7 +52,7 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
   }, [state.step, tab]);
 
   useEffect(() => {
-    if (state.step !== 'sent' || !onDone) return;
+    if ((state.step !== 'sent' && state.step !== 'scheduled') || !onDone) return;
     const timer = setTimeout(onDone, CLOSE_DELAY);
     return () => clearTimeout(timer);
   }, [state.step]);
@@ -61,6 +64,21 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
 
   if (state.step === 'loading') return <Loader label="Checking your /dev/null session…" />;
   if (state.step === 'signed-out') return <p class="m-0 p-4 text-fg-muted">Connect your /dev/null account first.</p>;
+  if (state.step === 'scheduled') {
+    return (
+      <div role="status" class="flex flex-col items-center gap-2 px-4 py-8 text-center">
+        <span class="flex size-12 items-center justify-center rounded-full bg-fg-success/10 text-fg-success">
+          <Lucide name="clock-3" class="size-6" />
+        </span>
+        <p class="m-0 text-[17px] font-bold">Commit scheduled</p>
+        <p class="m-0 text-[13px] text-fg-muted">For {scheduleLabel(new Date(state.scheduled.scheduled_at))}. Only you can see it until it is submitted.</p>
+        <a href={SCHEDULED_COMMITS_URL} target="_blank" rel="noopener" class="text-[13px] font-semibold text-fg-accent hover:underline">
+          Scheduled commits
+        </a>
+        <p class="m-0 mt-2 text-[11px] text-fg-muted">Closing…</p>
+      </div>
+    );
+  }
   if (state.step === 'sent') {
     const pending = state.commit.status === 'pending';
     return (
@@ -170,6 +188,8 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
           />
         )}
 
+        {draft.schedule.open && <SchedulePanel at={draft.schedule.at} onChange={draft.scheduleAt} disabled={state.step === 'sending'} />}
+
         <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
         {state.step === 'failed' && <CommitError error={state.error} />}
 
@@ -199,6 +219,7 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
             <Octicon name="image" />
           </button>
           <PollTool draft={draft} class={TOOL} />
+          <ScheduleTool draft={draft} disabled={state.step === 'sending'} class={TOOL} />
           <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
         </div>
         <button
@@ -206,7 +227,7 @@ export function PopupComposer({ page, onDone }: { page: WebPage /** Once committ
           disabled={!canCommit}
           class="ml-auto h-8 cursor-pointer rounded-md border-0 bg-primary px-4 text-[13px] font-semibold text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
         >
-          {state.step === 'sending' ? 'Committing…' : 'Commit'}
+          {submitLabel(state.step === 'sending', draft.schedule.open)}
         </button>
       </footer>
     </form>

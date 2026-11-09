@@ -3,11 +3,14 @@ import type { AnyTarget } from './use-commit-draft.ts';
 /**
  * An unsent commit, kept as the user types so that closing its composer or reloading the page loses nothing, as
  * dev-null.sh's stashes do. One per context: the commit replied to or quoted, the page shared, the organization's log.
- * The poll isn't kept, as on dev-null.sh.
+ * The poll isn't kept, as on dev-null.sh; the date it is scheduled for is, so that reopening it never commits at once
+ * what the user meant to schedule.
  */
 export interface Stash {
   text: string;
   images: StashedImage[];
+  /** ISO 8601. */
+  scheduledAt?: string;
 }
 
 /** An image of a stash as the background lists it; its bytes stay in the background until restored. */

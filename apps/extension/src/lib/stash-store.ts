@@ -8,6 +8,7 @@ export type StashImageInput = StashedImage & { data?: string };
 export interface RestoredStash {
   text: string;
   images: (StashedImage & { data: string })[];
+  scheduledAt?: string;
 }
 
 export interface KeyValue<T> {
@@ -43,12 +44,20 @@ export class Stashes {
       }),
     );
 
-    return { text: stash.text, images: images.filter((image) => image !== null) };
+    return {
+      text: stash.text,
+      images: images.filter((image) => image !== null),
+      ...(stash.scheduledAt ? { scheduledAt: stash.scheduledAt } : {}),
+    };
   }
 
   /** Keeps the stash as the composer shows it; an empty one is dropped. */
-  async put(name: string, text: string, images: StashImageInput[]): Promise<void> {
-    const stash: Stash = { text, images: images.map(({ id, type, name: file, description }) => ({ id, type, name: file, description })) };
+  async put(name: string, text: string, images: StashImageInput[], scheduledAt?: string): Promise<void> {
+    const stash: Stash = {
+      text,
+      images: images.map(({ id, type, name: file, description }) => ({ id, type, name: file, description })),
+      ...(scheduledAt ? { scheduledAt } : {}),
+    };
     if (isEmptyStash(stash)) return this.drop(name);
 
     const previous = await this.#texts.get(PREFIX + name);

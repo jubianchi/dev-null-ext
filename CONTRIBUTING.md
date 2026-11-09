@@ -230,7 +230,9 @@ Cancel, a click outside) or reloading the page loses nothing.
 - **Kept as the user types**, with no *Stash* action and no confirmation: debounced (300 ms), and once more when the
   composer or the page goes away. The background keeps them (`src/lib/stash-store.ts`), since a content script's
   storage is github.com's: the text and the images' descriptions in `storage.local` under `stash:<name>`, the images'
-  bytes in the IndexedDB `dev-null-ext-stash`. The poll isn't kept, as on dev-null.sh.
+  bytes in the IndexedDB `dev-null-ext-stash`. The poll isn't kept, as on dev-null.sh. The date a commit is scheduled
+  for is, so that reopening it never commits at once what was to be scheduled; once passed, the composer asks for
+  another.
 - **Cleared** once committed, when emptied, on `drop`, and on signing out. Guests never stash.
 - **Shown as dev-null.sh does**, in muted monospace, never blue, with no icon and no toast: `stash@{0}` ("Restored your
   unsent draft") and a `drop` button next to the counter, only when a stash came back on opening; `stash@{0}` on a

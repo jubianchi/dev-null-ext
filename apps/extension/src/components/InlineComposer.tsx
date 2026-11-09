@@ -1,6 +1,7 @@
 import type { Commit } from '@dev-null-ext/client';
 import { useRef, useState } from 'preact/hooks';
 import { additionCandidates } from '../lib/mentions.ts';
+import { SCHEDULED_COMMITS_URL, scheduleLabel } from '../lib/schedule.ts';
 import { MAX_COMMIT_LENGTH } from '../lib/share.ts';
 import { IMAGES_OR_POLL, useCommitDraft } from '../lib/use-commit-draft.ts';
 import { AdditionTools, AdditionWarnings } from './Additions.tsx';
@@ -10,6 +11,7 @@ import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
+import { SchedulePanel, ScheduleTool, submitLabel } from './SchedulePanel.tsx';
 import { StashLabel } from './StashLabel.tsx';
 
 type Tab = 'write' | 'preview';
@@ -94,6 +96,7 @@ export function InlineComposer({
               <Octicon name="image" />
             </button>
             <PollTool draft={draft} class={TOOL} />
+            <ScheduleTool draft={draft} disabled={state.step === 'sending'} class={TOOL} />
             <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
           </div>
         </div>
@@ -136,6 +139,7 @@ export function InlineComposer({
               disabled={state.step === 'sending'}
             />
           )}
+          {draft.schedule.open && <SchedulePanel at={draft.schedule.at} onChange={draft.scheduleAt} disabled={state.step === 'sending'} />}
         </div>
 
         {warnings.length > 0 && (
@@ -175,12 +179,20 @@ export function InlineComposer({
             </a>
           </span>
         )}
+        {state.step === 'scheduled' && (
+          <span role="status" class="text-sm text-fg-muted">
+            Commit scheduled for {scheduleLabel(new Date(state.scheduled.scheduled_at))}. Only you can see it until it is submitted.{' '}
+            <a href={SCHEDULED_COMMITS_URL} target="_blank" rel="noopener" class="text-fg-accent hover:underline">
+              Scheduled commits
+            </a>
+          </span>
+        )}
         <button
           type="submit"
           disabled={!canCommit}
           class="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {state.step === 'sending' ? 'Committing…' : 'Commit'}
+          {submitLabel(state.step === 'sending', draft.schedule.open)}
         </button>
       </div>
     </form>
