@@ -301,6 +301,10 @@ describe('useCommitDraft, scheduling', () => {
     expect(draft.schedule).toEqual({ open: true, at: null });
     expect(draft.canCommit).toBe(false);
     expect(draft.text).toBe('Shipped');
+
+    await act(async () => draft.scheduleAt(new Date('2026-11-09T11:00:00.000Z')));
+
+    expect(draft.state.step).toBe('writing');
   });
 });
 

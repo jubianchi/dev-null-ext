@@ -302,7 +302,11 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     canSchedule: !parentId && !quotedCommitId,
     /** Opens the schedule panel, or closes it and commits right away again. */
     toggleSchedule: () => setSchedule(schedule.open ? NOT_SCHEDULED : { open: true, at: null }),
-    scheduleAt: (at: Date) => setSchedule({ open: true, at }),
+    /** A new date answers what went wrong with the last: its error goes. */
+    scheduleAt: (at: Date) => {
+      setSchedule({ open: true, at });
+      if (state.step === 'failed') setState({ step: 'writing', user: state.user });
+    },
     attach,
     detach,
     describe,
