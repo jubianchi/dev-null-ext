@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { menuPosition } from '../lib/menu-position.ts';
 import {
   calendar,
@@ -33,9 +33,12 @@ export function submitLabel(sending: boolean, scheduling: boolean): string {
 /** The composer toolbar's clock, as dev-null.sh's: it opens the schedule panel, and closes it to commit right away. */
 export function ScheduleTool({
   draft,
+  disabled = false,
   class: className,
 }: {
   draft: { canSchedule: boolean; schedule: DraftSchedule; toggleSchedule: () => void };
+  /** While the commit is being sent: turning scheduling off then would say Committing… of a commit being scheduled. */
+  disabled?: boolean;
   class: string;
 }) {
   if (!draft.canSchedule) return null;
@@ -43,6 +46,7 @@ export function ScheduleTool({
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={draft.toggleSchedule}
       aria-label="Schedule"
       aria-pressed={draft.schedule.open}
@@ -72,6 +76,8 @@ export function SchedulePanel({
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const labelId = useId();
+  const triggerId = useId();
 
   function close() {
     setOpen(false);
@@ -80,17 +86,32 @@ export function SchedulePanel({
 
   return (
     <div data-schedule class="mt-2 flex flex-col gap-2 rounded-lg border border-solid border-border p-3">
-      <span id="schedule-label" class="text-sm font-semibold text-fg">
+      <span id={labelId} class="text-sm font-semibold text-fg">
         Submit at
       </span>
-      <div ref={wrapper}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: Escape and focus leaving close the picker, from its button as from inside it. */}
+      <div
+        ref={wrapper}
+        onKeyDown={(event) => {
+          if (!open || event.key !== 'Escape') return;
+          // The picker only: the modal composer's dialog, the share frame and the popup would close on Escape too.
+          event.preventDefault();
+          event.stopPropagation();
+          close();
+        }}
+        onFocusOut={(event) => {
+          const next = event.relatedTarget;
+          if (open && next instanceof Node && !wrapper.current?.contains(next)) setOpen(false);
+        }}
+      >
         <button
           ref={trigger}
+          id={triggerId}
           type="button"
           disabled={disabled}
           aria-haspopup="dialog"
           aria-expanded={open}
-          aria-describedby="schedule-label"
+          aria-labelledby={`${labelId} ${triggerId}`}
           onClick={() => setOpen(!open)}
           class={`flex h-8 w-full cursor-pointer items-center gap-2 rounded-md border border-solid border-border bg-canvas px-2.5 text-left text-sm hover:bg-button-hover disabled:cursor-not-allowed disabled:opacity-50 ${at ? 'text-fg' : 'text-fg-muted'}`}
         >
@@ -137,7 +158,7 @@ function SchedulePicker({
   onDone: (at: Date) => void;
   onClose: () => void;
 }) {
-  const start = at ?? now;
+  const start = at && at > now ? at : now;
   const [month, setMonth] = useState({ year: start.getFullYear(), month: start.getMonth() });
   const [day, setDay] = useState<Day | null>(at ? dayOf(at) : null);
   const [hour, setHour] = useState<number | null>(at ? at.getHours() : null);
@@ -164,6 +185,9 @@ function SchedulePicker({
     );
     element.style.top = `${top}px`;
     element.style.left = `${left}px`;
+    (
+      element.querySelector<HTMLButtonElement>(`[data-day="${day}"]:not(:disabled)`) ?? element.querySelector<HTMLButtonElement>('[data-day]:not(:disabled)')
+    )?.focus();
   }, []);
 
   useEffect(() => {
@@ -190,8 +214,9 @@ function SchedulePicker({
 
   const shift = (by: number) =>
     setMonth(({ year, month }) => ({ year: new Date(year, month + by, 1).getFullYear(), month: new Date(year, month + by, 1).getMonth() }));
-  const firstMonth = month.year === now.getFullYear() && month.month === now.getMonth();
-  const lastMonth = month.year === last.getFullYear() && month.month === last.getMonth();
+  const index = month.year * 12 + month.month;
+  const firstMonth = index <= now.getFullYear() * 12 + now.getMonth();
+  const lastMonth = index >= last.getFullYear() * 12 + last.getMonth();
 
   return (
     <div
@@ -199,13 +224,6 @@ function SchedulePicker({
       role="dialog"
       aria-label="Pick a date and time"
       popover="manual"
-      onKeyDown={(event) => {
-        if (event.key !== 'Escape') return;
-        // The picker only: the modal composer's dialog would close on Escape too.
-        event.preventDefault();
-        event.stopPropagation();
-        onClose();
-      }}
       class="fixed inset-auto m-0 w-64 rounded-xl border border-solid border-border bg-canvas-overlay p-0 font-sans text-sm text-fg shadow-overlay"
     >
       <div class="flex items-center justify-between px-3 pt-3">

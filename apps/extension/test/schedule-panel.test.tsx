@@ -99,6 +99,75 @@ describe('SchedulePanel', () => {
     expect(onChange).toHaveBeenCalledWith(new Date(2026, 10, 9, 14, 30));
     expect(day('2026-11-09')).toBeNull();
   });
+
+  it('moves the focus to the day chosen, or the first one that can be, on opening', async () => {
+    await show();
+    await click(button('Pick a date and time'));
+    expect(document.activeElement).toBe(day('2026-11-09'));
+
+    render(null, root);
+    await show(new Date(2026, 10, 20, 9, 0));
+    await click(button('Fri, Nov 20, 9:00 AM'));
+    expect(document.activeElement).toBe(day('2026-11-20'));
+  });
+
+  it('closes on Escape, from the button that opened it too, and only the picker', async () => {
+    const parent = vi.fn();
+    root.addEventListener('keydown', parent);
+    await show();
+    const trigger = button('Pick a date and time');
+    await click(trigger);
+
+    await act(async () => {
+      trigger?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    });
+
+    expect(day('2026-11-09')).toBeNull();
+    expect(parent).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('closes once the keyboard leaves it', async () => {
+    const outside = document.createElement('button');
+    document.body.append(outside);
+    await show();
+    await click(button('Pick a date and time'));
+
+    await act(async () => {
+      button('Done')?.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: outside }));
+    });
+
+    expect(day('2026-11-09')).toBeNull();
+    outside.remove();
+  });
+
+  it('names its button after its label, each panel its own', async () => {
+    await act(async () => {
+      render(
+        <>
+          <SchedulePanel at={null} onChange={onChange} now={() => now} />
+          <SchedulePanel at={null} onChange={onChange} now={() => now} />
+        </>,
+        root,
+      );
+    });
+    const triggers = [...root.querySelectorAll<HTMLButtonElement>('button[aria-haspopup]')];
+    const labels = triggers.map((trigger) => trigger.getAttribute('aria-labelledby')?.split(' ')[0]);
+
+    expect(new Set(labels).size).toBe(2);
+    for (const [index, label] of labels.entries()) {
+      expect(root.querySelector(`[id="${label}"]`)?.textContent).toBe('Submit at');
+      expect(triggers[index]?.getAttribute('aria-labelledby')?.split(' ')[1]).toBe(triggers[index]?.id);
+    }
+  });
+
+  it('opens on this month when the date chosen has passed, with no way back before it', async () => {
+    await show(new Date(2026, 9, 31, 23, 55));
+    await click(button('Sat, Oct 31, 11:55 PM'));
+
+    expect(root.textContent).toContain('November 2026');
+    expect(button('Previous month')?.disabled).toBe(true);
+  });
 });
 
 describe('SchedulePanel, when the clocks move forward', () => {
@@ -143,6 +212,14 @@ describe('ScheduleTool', () => {
     await tool(true);
     expect(button('Schedule')?.title).toBe("Don't schedule");
     expect(button('Schedule')?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('waits while the commit is being sent', async () => {
+    await act(async () => {
+      render(<ScheduleTool draft={{ canSchedule: true, schedule: { open: true, at: null }, toggleSchedule: vi.fn() }} disabled class="" />, root);
+    });
+
+    expect(button('Schedule')?.disabled).toBe(true);
   });
 
   it('is not offered where /dev/null schedules nothing', async () => {
