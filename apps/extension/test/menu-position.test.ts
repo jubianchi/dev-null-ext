@@ -18,6 +18,13 @@ describe('menuPosition', () => {
     expect(menuPosition({ top: 700, bottom: 732, left: 100 }, menu, viewport, 'below')).toEqual({ top: 700 - 4 - 120, left: 100 });
   });
 
+  it('opens below when it fits on neither side, where the page can still scroll to it', () => {
+    const tall = { width: 288, height: 700 };
+
+    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, tall, viewport, 'below').top).toBe(332 + 4);
+    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, tall, viewport).top).toBe(332 + 4);
+  });
+
   it('stays within the viewport horizontally', () => {
     expect(menuPosition({ top: 500, bottom: 532, left: 900 }, menu, viewport).left).toBe(1000 - 8 - 288);
     expect(menuPosition({ top: 500, bottom: 532, left: -20 }, menu, viewport).left).toBe(8);

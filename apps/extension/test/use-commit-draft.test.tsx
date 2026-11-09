@@ -230,6 +230,24 @@ describe('useCommitDraft, scheduling', () => {
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Shipped' });
   });
 
+  it('keeps the text and the date when /dev/null refuses to schedule, to try again', async () => {
+    await writing();
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'schedule') throw new Error('You can have up to 10 scheduled commits.');
+      return null;
+    });
+    await act(async () => draft.setText('Shipped'));
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.scheduleAt(at));
+
+    await act(async () => draft.submit());
+
+    expect(draft.state.step).toBe('failed');
+    expect(draft.text).toBe('Shipped');
+    expect(draft.schedule).toEqual({ open: true, at });
+    expect(draft.canCommit).toBe(true);
+  });
+
   it('stashes the date with the text, so that reopening never commits at once what was to be scheduled', async () => {
     await writing();
     await act(async () => draft.setText('Shipped'));
