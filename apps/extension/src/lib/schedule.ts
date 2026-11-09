@@ -53,16 +53,27 @@ const STEPS = Array.from({ length: 60 / MINUTE_STEP }, (_, step) => step * MINUT
  * the first one.
  */
 export function minutes(day: Day, hour: number, now: Date): number[] {
-  return STEPS.filter((minute) => !skipped(day, hour, minute) && allowed(dateOf(day, hour, minute), now));
+  return STEPS.filter((minute) => offered(day, hour, minute, now));
 }
+
+function offered(day: Day, hour: number, minute: number, now: Date): boolean {
+  return !skipped(day, hour, minute) && allowed(dateOf(day, hour, minute), now);
+}
+
+const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 /** A day's hours that have at least one minute that can be scheduled. */
 export function hours(day: Day, now: Date): number[] {
-  return Array.from({ length: 24 }, (_, hour) => hour).filter((hour) => minutes(day, hour, now).length > 0);
+  return HOURS.filter((hour) => STEPS.some((minute) => offered(day, hour, minute, now)));
 }
 
+/** Whether a day has a time that can be scheduled: only today and the 30th day may have none left. */
 export function selectable(day: Day, now: Date): boolean {
-  return hours(day, now).length > 0;
+  const first = dayOf(now);
+  const last = dayOf(new Date(now.getTime() + SCHEDULE_DAYS * DAY_MS));
+  if (day < first || day > last) return false;
+  if (day > first && day < last) return true;
+  return HOURS.some((hour) => STEPS.some((minute) => offered(day, hour, minute, now)));
 }
 
 /** Whether the clocks skip this time when they move forward, so that it never happens. */
