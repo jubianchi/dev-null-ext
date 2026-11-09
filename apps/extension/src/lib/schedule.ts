@@ -48,9 +48,12 @@ function allowed(date: Date, now: Date): boolean {
 
 const STEPS = Array.from({ length: 60 / MINUTE_STEP }, (_, step) => step * MINUTE_STEP);
 
-/** A day's minutes, by 5, that can be scheduled at an hour. */
+/**
+ * A day's minutes, by 5, that can be scheduled at an hour; none in the hour the clocks skip. In the hour they repeat,
+ * the first one.
+ */
 export function minutes(day: Day, hour: number, now: Date): number[] {
-  return STEPS.filter((minute) => allowed(dateOf(day, hour, minute), now));
+  return STEPS.filter((minute) => !skipped(day, hour, minute) && allowed(dateOf(day, hour, minute), now));
 }
 
 /** A day's hours that have at least one minute that can be scheduled. */

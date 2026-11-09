@@ -65,6 +65,15 @@ describe('skipped times', () => {
     expect(skipped('2027-03-14', 2, 30)).toBe(true);
     expect(skipped('2027-03-14', 3, 30)).toBe(false);
   });
+
+  it('never offers them', () => {
+    process.env.TZ = 'America/New_York';
+    const before = new Date(2027, 2, 10, 9, 0);
+
+    expect(hours('2027-03-14', before)).not.toContain(2);
+    expect(hours('2027-03-14', before)).toContain(3);
+    expect(minutes('2027-03-14', 2, before)).toEqual([]);
+  });
 });
 
 describe('scheduleLabel', () => {

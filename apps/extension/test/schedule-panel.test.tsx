@@ -108,18 +108,17 @@ describe('SchedulePanel, when the clocks move forward', () => {
     else process.env.TZ = zone;
   });
 
-  it('says a time that never happens, rather than schedule it an hour off', async () => {
+  it('offers no time that never happens, rather than schedule it an hour off', async () => {
     process.env.TZ = 'America/New_York';
     await act(async () => {
       render(<SchedulePanel at={null} onChange={onChange} now={() => new Date(2027, 2, 10, 9, 0)} />, root);
     });
     await click(button('Pick a date and time'));
     await click(day('2027-03-14'));
-    await choose(select('Hour'), '2');
-    await choose(select('Minute'), '30');
 
-    expect(root.textContent).toContain('This time is skipped by the change to daylight saving time.');
-    expect(button('Done')?.disabled).toBe(true);
+    const offered = [...(select('Hour')?.options ?? [])].map((option) => option.value).filter(Boolean);
+    expect(offered).not.toContain('2');
+    expect(offered).toContain('3');
   });
 });
 

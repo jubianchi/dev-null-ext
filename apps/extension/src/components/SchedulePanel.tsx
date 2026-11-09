@@ -12,7 +12,6 @@ import {
   SCHEDULED_COMMITS_URL,
   scheduleLabel,
   selectable,
-  skipped,
   TIME_ZONE,
 } from '../lib/schedule.ts';
 import type { DraftSchedule } from '../lib/use-commit-draft.ts';
@@ -148,8 +147,7 @@ function SchedulePicker({
   const last = new Date(now.getTime() + SCHEDULE_DAYS * 86_400_000);
   const hourChoices = day ? hours(day, now) : [];
   const minuteChoices = day && hour !== null ? minutes(day, hour, now) : [];
-  const gap = day !== null && hour !== null && minute !== null && skipped(day, hour, minute);
-  const ready = day !== null && hour !== null && minute !== null && minuteChoices.includes(minute) && !gap;
+  const ready = day !== null && hour !== null && minute !== null && minuteChoices.includes(minute);
 
   // In the top layer, as a popover, so the modal composer's dialog doesn't clip it; placed before it is painted.
   useLayoutEffect(() => {
@@ -248,61 +246,54 @@ function SchedulePicker({
           })}
       </div>
 
-      <div class="flex flex-col gap-2 border-0 border-t border-solid border-border p-3">
-        <div class="flex items-center gap-2">
-          <span class="relative flex-1">
-            <select
-              aria-label="Hour"
-              disabled={day === null}
-              onChange={(event) => pickHour(event.currentTarget.value === '' ? null : Number(event.currentTarget.value))}
-              class={SELECT}
-            >
-              <option value="" selected={hour === null} disabled>
-                Hour
-              </option>
-              {hourChoices.map((choice) => (
-                <option key={choice} value={choice} selected={choice === hour}>
-                  {String(choice).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-            <Lucide name="chevron-down" class="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-fg-muted" />
-          </span>
-          <span class="text-fg-muted">:</span>
-          <span class="relative flex-1">
-            <select
-              aria-label="Minute"
-              disabled={hour === null}
-              onChange={(event) => setMinute(event.currentTarget.value === '' ? null : Number(event.currentTarget.value))}
-              class={SELECT}
-            >
-              <option value="" selected={minute === null} disabled>
-                Min
-              </option>
-              {minuteChoices.map((choice) => (
-                <option key={choice} value={choice} selected={choice === minute}>
-                  {String(choice).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-            <Lucide name="chevron-down" class="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-fg-muted" />
-          </span>
-          <button
-            type="button"
-            disabled={!ready}
-            onClick={() => {
-              if (ready) onDone(dateOf(day, hour, minute));
-            }}
-            class="h-8 cursor-pointer rounded-md border-0 bg-primary px-3 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
+      <div class="flex items-center gap-2 border-0 border-t border-solid border-border p-3">
+        <span class="relative flex-1">
+          <select
+            aria-label="Hour"
+            disabled={day === null}
+            onChange={(event) => pickHour(event.currentTarget.value === '' ? null : Number(event.currentTarget.value))}
+            class={SELECT}
           >
-            Done
-          </button>
-        </div>
-        {gap && (
-          <p role="alert" class="m-0 text-xs text-fg-danger">
-            This time is skipped by the change to daylight saving time.
-          </p>
-        )}
+            <option value="" selected={hour === null} disabled>
+              Hour
+            </option>
+            {hourChoices.map((choice) => (
+              <option key={choice} value={choice} selected={choice === hour}>
+                {String(choice).padStart(2, '0')}
+              </option>
+            ))}
+          </select>
+          <Lucide name="chevron-down" class="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-fg-muted" />
+        </span>
+        <span class="text-fg-muted">:</span>
+        <span class="relative flex-1">
+          <select
+            aria-label="Minute"
+            disabled={hour === null}
+            onChange={(event) => setMinute(event.currentTarget.value === '' ? null : Number(event.currentTarget.value))}
+            class={SELECT}
+          >
+            <option value="" selected={minute === null} disabled>
+              Min
+            </option>
+            {minuteChoices.map((choice) => (
+              <option key={choice} value={choice} selected={choice === minute}>
+                {String(choice).padStart(2, '0')}
+              </option>
+            ))}
+          </select>
+          <Lucide name="chevron-down" class="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-fg-muted" />
+        </span>
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => {
+            if (ready) onDone(dateOf(day, hour, minute));
+          }}
+          class="h-8 cursor-pointer rounded-md border-0 bg-primary px-3 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
+        >
+          Done
+        </button>
       </div>
     </div>
   );
