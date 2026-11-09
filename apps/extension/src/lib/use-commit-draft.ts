@@ -1,4 +1,4 @@
-import type { Commit, CurrentUser } from '@dev-null-ext/client';
+import type { Commit, CurrentUser, ScheduledCommit } from '@dev-null-ext/client';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type Addition, additionsFor, type ComposerContext, isIn, webPageLink, withAddition } from './additions.ts';
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
@@ -122,12 +122,21 @@ export interface AttachedImage {
   description: string;
 }
 
+/** Whether the commit is to be scheduled, its panel open, and for when once the user picks it. */
+export interface DraftSchedule {
+  open: boolean;
+  at: Date | null;
+}
+
+const NOT_SCHEDULED: DraftSchedule = { open: false, at: null };
+
 export type DraftState =
   | { step: 'loading' }
   | { step: 'signed-out' }
   | { step: 'writing'; user: CurrentUser }
   | { step: 'sending'; user: CurrentUser }
   | { step: 'sent'; user: CurrentUser; commit: Commit }
+  | { step: 'scheduled'; user: CurrentUser; scheduled: ScheduledCommit }
   | { step: 'failed'; user: CurrentUser; error: BackgroundError };
 
 /**
@@ -172,6 +181,7 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
   }, []);
 
   const [poll, setPoll] = useState<DraftPoll | null>(null);
+  const [schedule, setSchedule] = useState<DraftSchedule>(NOT_SCHEDULED);
 
   const body = text.trim();
   const length = commitLength(body);
@@ -183,7 +193,8 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     (!poll || pollReady(poll)) &&
     length <= MAX_COMMIT_LENGTH &&
     remaining === 0 &&
-    (state.step === 'writing' || state.step === 'sent' || state.step === 'failed');
+    (!schedule.open || schedule.at !== null) &&
+    (state.step === 'writing' || state.step === 'sent' || state.step === 'scheduled' || state.step === 'failed');
 
   /** Attaches the images /dev/null would take, in order, and says why it leaves out the others. */
   function attach(files: Iterable<File>) {
@@ -222,27 +233,37 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     else setText(value);
   }
 
+  /** Empties the composer once what it held is committed or scheduled. */
+  function clear() {
+    stash.drop();
+    setText('');
+    setPoll(null);
+    setSchedule(NOT_SCHEDULED);
+    for (const image of images) URL.revokeObjectURL(image.url);
+    setImages([]);
+    setImageErrors([]);
+  }
+
   async function submit() {
     if (!canCommit || !('user' in state)) return;
     const { user } = state;
     setState({ step: 'sending', user });
     try {
       const transferred = await Promise.all(images.map((image) => toTransfer(image.file, image.description)));
-      const commit = await ask({
-        type: 'commit',
+      const content = {
         body,
         ...(transferred.length > 0 ? { images: transferred } : {}),
-        ...(parentId ? { parentId } : {}),
-        ...(quotedCommitId ? { quotedCommitId } : {}),
         ...(poll ? { poll: { ...poll, options: poll.options.map((option) => option.trim()) } } : {}),
-      });
+      };
+      if (schedule.at) {
+        const scheduled = await ask({ type: 'schedule', ...content, scheduledAt: schedule.at.toISOString() });
+        setState({ step: 'scheduled', user, scheduled });
+        clear();
+        return;
+      }
+      const commit = await ask({ type: 'commit', ...content, ...(parentId ? { parentId } : {}), ...(quotedCommitId ? { quotedCommitId } : {}) });
       setState({ step: 'sent', user, commit });
-      stash.drop();
-      setText('');
-      setPoll(null);
-      for (const image of images) URL.revokeObjectURL(image.url);
-      setImages([]);
-      setImageErrors([]);
+      clear();
       onCommitted?.(commit);
     } catch (error) {
       setState({ step: 'failed', user, error: error instanceof BackgroundError ? error : new BackgroundError({ message: String(error) }) });
@@ -266,6 +287,12 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     startPoll: () => setPoll(newPoll()),
     setPoll,
     removePoll: () => setPoll(null),
+    schedule,
+    /** /dev/null schedules neither replies nor quotes. */
+    canSchedule: !parentId && !quotedCommitId,
+    /** Opens the schedule panel, or closes it and commits right away again. */
+    toggleSchedule: () => setSchedule(schedule.open ? NOT_SCHEDULED : { open: true, at: null }),
+    scheduleAt: (at: Date | null) => setSchedule({ open: true, at }),
     attach,
     detach,
     describe,
@@ -282,14 +309,7 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     /** The composer opened with its stash, until it is dropped or sent. */
     restored: stash.restored,
     /** Discards the stash and empties the composer. */
-    drop: () => {
-      stash.drop();
-      for (const image of images) URL.revokeObjectURL(image.url);
-      setImages([]);
-      setImageErrors([]);
-      setPoll(null);
-      setText('');
-    },
+    drop: clear,
     /** Back to writing, for the next commit, once one is sent. */
     writeAnother: () => {
       if ('user' in state) setState({ step: 'writing', user: state.user });

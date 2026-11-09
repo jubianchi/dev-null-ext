@@ -149,6 +149,76 @@ describe('useCommitDraft, sharing a web page', () => {
   });
 });
 
+describe('useCommitDraft, scheduling', () => {
+  const at = new Date('2026-11-10T14:00:00.000Z');
+  const scheduled = { id: 's1', body: 'Shipped', scheduled_at: '2026-11-10T14:00:00+00:00', status: 'scheduled' };
+
+  async function writing(target: Parameters<typeof useCommitDraft>[0] = { page: null, organization: 'acme' }) {
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return viewer;
+      if (request.type === 'schedule') return scheduled;
+      return request.type.startsWith('stash:') ? null : { id: 'c1' };
+    });
+    await act(async () => {
+      render(<Harness target={target} />, root);
+    });
+    await act(async () => {});
+  }
+
+  it('offers to schedule a commit about a page or an organization, or a web page, not a reply or a quote', async () => {
+    await writing();
+    expect(draft.canSchedule).toBe(true);
+
+    await writing({ parentId: 'c1' });
+    expect(draft.canSchedule).toBe(false);
+
+    await writing({ quotedCommitId: 'c1' });
+    expect(draft.canSchedule).toBe(false);
+  });
+
+  it('waits for a date once the user chooses to schedule', async () => {
+    await writing();
+    await act(async () => draft.setText('Shipped'));
+
+    await act(async () => draft.toggleSchedule());
+
+    expect(draft.schedule).toEqual({ open: true, at: null });
+    expect(draft.canCommit).toBe(false);
+
+    await act(async () => draft.scheduleAt(at));
+
+    expect(draft.canCommit).toBe(true);
+  });
+
+  it('schedules the commit for its date, and says so once it is', async () => {
+    await writing();
+    await act(async () => draft.setText('Shipped'));
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.scheduleAt(at));
+
+    await act(async () => draft.submit());
+
+    expect(ask).toHaveBeenCalledWith({ type: 'schedule', body: 'Shipped', scheduledAt: '2026-11-10T14:00:00.000Z' });
+    expect(draft.state).toMatchObject({ step: 'scheduled', scheduled });
+    expect(ask).toHaveBeenCalledWith({ type: 'stash:drop', name: 'organization:acme' });
+    expect(draft.text).toBe('');
+    expect(draft.schedule).toEqual({ open: false, at: null });
+  });
+
+  it('commits right away once the user changes their mind', async () => {
+    await writing();
+    await act(async () => draft.setText('Shipped'));
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.scheduleAt(at));
+
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.submit());
+
+    expect(draft.schedule).toEqual({ open: false, at: null });
+    expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Shipped' });
+  });
+});
+
 describe('useCommitDraft, stashing', () => {
   const stashed = { text: 'So true', images: [{ id: 'img-1', type: 'image/png', name: 'a.png', description: 'A diagram', data: btoa('png bytes') }] };
 
