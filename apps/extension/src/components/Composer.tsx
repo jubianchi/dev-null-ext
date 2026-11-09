@@ -140,7 +140,7 @@ export function Composer({ target }: { target: Target | WebTarget }) {
                   <Octicon name="image" />
                 </button>
                 <PollTool draft={draft} class={TOOL} />
-                <ScheduleTool draft={draft} class={TOOL} />
+                <ScheduleTool draft={draft} disabled={state.step === 'sending'} class={TOOL} />
                 <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
                 <button
                   type="button"
