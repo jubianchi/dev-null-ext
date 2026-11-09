@@ -18,18 +18,18 @@ const STASH_DELAY = 300;
  * The composer's stash: restored once the session is known (guests never stash), saved as the user types, and once
  * more when the composer or the page goes away, so that Escape, Cancel or a reload loses nothing.
  */
-function useStash(name: string, text: string, images: AttachedImage[]) {
+function useStash(name: string, text: string, images: AttachedImage[], scheduledAt: string | undefined) {
   const [restored, setRestored] = useState(false);
   const active = useRef(false);
-  const latest = useRef({ text, images });
-  latest.current = { text, images };
+  const latest = useRef({ text, images, scheduledAt });
+  latest.current = { text, images, scheduledAt };
   /** The images whose bytes the background already has. */
   const stored = useRef(new Set<string>());
 
   const save = useMemo(
     () =>
       debounced(() => {
-        const { text, images } = latest.current;
+        const { text, images, scheduledAt } = latest.current;
         void (async () => {
           const sent = await Promise.all(
             images.map(async ({ id, file, description }): Promise<StashImageInput> => {
@@ -39,7 +39,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
               return { ...image, data: (await toTransfer(file, '')).data };
             }),
           );
-          await ask({ type: 'stash:put', name, text, images: sent }).catch(() => undefined);
+          await ask({ type: 'stash:put', name, text, images: sent, ...(scheduledAt ? { scheduledAt } : {}) }).catch(() => undefined);
         })();
       }, STASH_DELAY),
     [name],
@@ -47,7 +47,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
 
   useEffect(() => {
     if (active.current) save();
-  }, [text, images]);
+  }, [text, images, scheduledAt]);
 
   useEffect(() => {
     const flush = () => save.flush();
@@ -60,7 +60,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
 
   return {
     restored,
-    async restore(): Promise<{ text: string; images: AttachedImage[] } | null> {
+    async restore(): Promise<{ text: string; images: AttachedImage[]; scheduledAt?: string } | null> {
       try {
         const stash = await ask({ type: 'stash:get', name });
         if (!stash) return null;
@@ -71,7 +71,7 @@ function useStash(name: string, text: string, images: AttachedImage[]) {
           return { id, file: blob, url: URL.createObjectURL(blob), description };
         });
         setRestored(true);
-        return { text: stash.text, images };
+        return { text: stash.text, images, ...(stash.scheduledAt ? { scheduledAt: stash.scheduledAt } : {}) };
       } catch {
         return null;
       } finally {
@@ -154,9 +154,10 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
   const [caret, setCaret] = useState<number | null>(null);
   const [images, setImages] = useState<AttachedImage[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
+  const [schedule, setSchedule] = useState<DraftSchedule>(NOT_SCHEDULED);
 
   // The page's link alone is what the share view opens with, not something the user wrote: nothing to stash.
-  const stash = useStash(stashName(target), web && text.trim() === web.url ? '' : text, images);
+  const stash = useStash(stashName(target), web && text.trim() === web.url ? '' : text, images, schedule.at?.toISOString());
 
   useEffect(() => {
     void (async () => {
@@ -173,6 +174,10 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
       if (restored) {
         setText(restored.text);
         setImages(restored.images);
+        if (restored.scheduledAt) {
+          const at = new Date(restored.scheduledAt);
+          setSchedule({ open: true, at: schedulable(at, new Date()) ? at : null });
+        }
       } else if (web) {
         const quote = web.selection ? quoteOf(web.selection) : '';
         setText(`${quote}\n\n${web.url}`);
@@ -182,7 +187,6 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
   }, []);
 
   const [poll, setPoll] = useState<DraftPoll | null>(null);
-  const [schedule, setSchedule] = useState<DraftSchedule>(NOT_SCHEDULED);
 
   const body = text.trim();
   const length = commitLength(body);

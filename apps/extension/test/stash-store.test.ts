@@ -40,6 +40,14 @@ describe('Stashes', () => {
     expect(await stashes.get('reply-01J0')).toEqual({ text: 'Nice one', images: [{ ...png, data: 'iVBORw0K' }] });
   });
 
+  it('keeps the date the commit is scheduled for, and forgets it once no longer scheduled', async () => {
+    await stashes.put('organization:acme', 'Shipped', [], '2026-11-10T08:00:00.000Z');
+    expect(await stashes.get('organization:acme')).toEqual({ text: 'Shipped', images: [], scheduledAt: '2026-11-10T08:00:00.000Z' });
+
+    await stashes.put('organization:acme', 'Shipped', []);
+    expect(await stashes.get('organization:acme')).toEqual({ text: 'Shipped', images: [] });
+  });
+
   it('keeps an image already stored when only its description changes, its bytes not sent again', async () => {
     await stashes.put('reply-01J0', 'Nice one', [{ ...png, data: 'iVBORw0K' }]);
     await stashes.put('reply-01J0', 'Nice one!', [{ ...png, description: 'The diagram' }]);

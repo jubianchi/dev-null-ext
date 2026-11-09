@@ -302,7 +302,7 @@ async function handle(request: Request): Promise<Responses[Request['type']]> {
     case 'stash:get':
       return stashes.get(request.name);
     case 'stash:put':
-      await stashes.put(request.name, request.text, request.images);
+      await stashes.put(request.name, request.text, request.images, request.scheduledAt);
       return null;
     case 'stash:drop':
       await stashes.drop(request.name);

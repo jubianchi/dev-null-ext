@@ -230,6 +230,45 @@ describe('useCommitDraft, scheduling', () => {
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Shipped' });
   });
 
+  it('stashes the date with the text, so that reopening never commits at once what was to be scheduled', async () => {
+    await writing();
+    await act(async () => draft.setText('Shipped'));
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.scheduleAt(at));
+
+    await act(async () => render(null, root));
+    await act(async () => {});
+
+    const puts = ask.mock.calls.map(([request]) => request).filter((request) => request.type === 'stash:put');
+    expect(puts.at(-1)).toEqual({ type: 'stash:put', name: 'organization:acme', text: 'Shipped', images: [], scheduledAt: '2026-11-10T14:00:00.000Z' });
+  });
+
+  async function restoring(scheduledAt: string) {
+    ask.mockImplementation(async (request: { type: string }) => {
+      if (request.type === 'session') return viewer;
+      if (request.type === 'stash:get') return { text: 'Shipped', images: [], scheduledAt };
+      return null;
+    });
+    await act(async () => {
+      render(<Harness target={{ page: null, organization: 'acme' }} />, root);
+    });
+    await act(async () => {});
+  }
+
+  it('restores the date it was to be scheduled for', async () => {
+    await restoring('2026-11-10T14:00:00.000Z');
+
+    expect(draft.text).toBe('Shipped');
+    expect(draft.schedule).toEqual({ open: true, at: at });
+  });
+
+  it('asks for another date when the one stashed has passed, still scheduling', async () => {
+    await restoring('2026-11-09T09:00:00.000Z');
+
+    expect(draft.schedule).toEqual({ open: true, at: null });
+    expect(draft.canCommit).toBe(false);
+  });
+
   it('asks for another date once the one picked has passed, rather than send what /dev/null refuses', async () => {
     await writing();
     await act(async () => draft.setText('Shipped'));

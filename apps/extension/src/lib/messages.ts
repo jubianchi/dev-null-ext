@@ -29,7 +29,7 @@ export type Request =
   | { type: 'sign-in:cancel' }
   | { type: 'sign-out' }
   | { type: 'stash:get'; name: string }
-  | { type: 'stash:put'; name: string; text: string; images: StashImageInput[] }
+  | { type: 'stash:put'; name: string; text: string; images: StashImageInput[]; scheduledAt?: string }
   | { type: 'stash:drop'; name: string }
   | { type: 'stash:which'; names: string[] };
 
