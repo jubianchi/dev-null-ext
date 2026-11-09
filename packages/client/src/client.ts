@@ -3,7 +3,19 @@ import { buffer, toHex } from './encoding.ts';
 import { ApiError } from './errors.ts';
 import { signatureHeaders } from './signed-request.ts';
 import type { Signer } from './signer.ts';
-import type { Commit, CommitPreview, CurrentUser, Device, MentionSuggestions, NewCommit, NewCommitImage, Organization, Page, User } from './types.ts';
+import type {
+  Commit,
+  CommitPreview,
+  CurrentUser,
+  Device,
+  MentionSuggestions,
+  NewCommit,
+  NewCommitImage,
+  Organization,
+  Page,
+  ScheduledCommit,
+  User,
+} from './types.ts';
 
 export const DEFAULT_BASE_URL = 'https://dev-null.sh';
 
@@ -45,6 +57,18 @@ function multipartBody(json: string, files: UploadFile[]): FormData {
   form.append('payload', new File([json], 'payload', { type: 'application/json' }));
   for (const [index, file] of files.entries()) form.append(file.field, new File([buffer(file.bytes)], `${index}`, { type: file.type }));
   return form;
+}
+
+/** A commit's request: multipart with its images, their descriptions in the JSON, in order. */
+function withImages(commit: object, images: NewCommitImage[]): RequestOptions {
+  const body = images.length > 0 ? { ...commit, image_descriptions: images.map((image) => image.description ?? null) } : commit;
+  const files = images.map((image) => ({ field: 'images[]', bytes: image.bytes, type: image.type }));
+  return { body, files, signed: true };
+}
+
+/** A date as /dev/null's `date_format:Y-m-d\TH:i:sP` takes it: seconds, no milliseconds, `+00:00` rather than `Z`. */
+export function scheduledAt(date: Date): string {
+  return date.toISOString().replace(/\.\d{3}Z$/, '+00:00');
 }
 
 interface Wrapped<T> {
@@ -137,10 +161,16 @@ export class DevNullClient {
    * body may be empty.
    */
   async createCommit(commit: NewCommit, images: NewCommitImage[] = []): Promise<Commit> {
-    const body = images.length > 0 ? { ...commit, image_descriptions: images.map((image) => image.description ?? null) } : commit;
-    const files = images.map((image) => ({ field: 'images[]', bytes: image.bytes, type: image.type }));
+    return (await this.request<Wrapped<Commit>>('POST', '/api/v1/commits', withImages(commit, images))).data;
+  }
 
-    return (await this.request<Wrapped<Commit>>('POST', '/api/v1/commits', { body, files, signed: true })).data;
+  /**
+   * Schedules a commit for later, within 30 days, at most 10 waiting: /dev/null answers 422 with the reason. It takes
+   * images and a poll as a commit does, but no reply nor quote.
+   */
+  async scheduleCommit(commit: Omit<NewCommit, 'parent_id' | 'quoted_commit_id'>, at: Date, images: NewCommitImage[] = []): Promise<ScheduledCommit> {
+    const options = withImages({ ...commit, scheduled_at: scheduledAt(at) }, images);
+    return (await this.request<Wrapped<ScheduledCommit>>('POST', '/api/v1/scheduled-commits', options)).data;
   }
 
   /**

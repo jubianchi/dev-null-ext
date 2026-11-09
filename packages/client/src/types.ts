@@ -147,6 +147,23 @@ export interface NewCommit {
   poll?: NewPoll;
 }
 
+/** Waiting to be submitted, then a commit's status once it is, or `deleted` once canceled. */
+export type ScheduledCommitStatus = 'scheduled' | CommitStatus | 'deleted';
+
+/** A commit scheduled for later (ScheduledCommitResource). Private until submitted; its body is emptied once it is. */
+export interface ScheduledCommit {
+  id: string;
+  /** The organization it posts as, or null for its author. */
+  author: Organization | null;
+  body: string;
+  /** ISO 8601, with an offset. */
+  scheduled_at: string;
+  submitted_at: string | null;
+  status: ScheduledCommitStatus;
+  poll_options: string[] | null;
+  image_count: number;
+}
+
 /** How long a poll stays open once its commit is approved, in minutes: 1 hour, 1, 3 or 7 days. */
 export const POLL_DURATIONS = [60, 1440, 4320, 10080] as const;
 export type PollDuration = (typeof POLL_DURATIONS)[number];
