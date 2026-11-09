@@ -1,0 +1,303 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { menuPosition } from '../lib/menu-position.ts';
+import {
+  calendar,
+  type Day,
+  dateOf,
+  dayOf,
+  hours,
+  minutes,
+  monthLabel,
+  SCHEDULE_DAYS,
+  scheduleLabel,
+  selectable,
+  skipped,
+  TIME_ZONE,
+} from '../lib/schedule.ts';
+import { SERVER } from '../lib/server.ts';
+import type { DraftSchedule } from '../lib/use-commit-draft.ts';
+import { Lucide } from './Lucide.tsx';
+
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+const SELECT =
+  'h-8 w-full appearance-none rounded-md border border-solid border-border bg-canvas pr-7 pl-2 text-sm text-fg disabled:cursor-not-allowed disabled:opacity-50';
+const ARROW =
+  'cursor-pointer rounded-md border-0 bg-transparent p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent';
+
+/** The composer toolbar's clock, as dev-null.sh's: it opens the schedule panel, and closes it to commit right away. */
+export function ScheduleTool({
+  draft,
+  class: className,
+}: {
+  draft: { canSchedule: boolean; schedule: DraftSchedule; toggleSchedule: () => void };
+  class: string;
+}) {
+  if (!draft.canSchedule) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={draft.toggleSchedule}
+      aria-label="Schedule"
+      aria-pressed={draft.schedule.open}
+      title={draft.schedule.open ? "Don't schedule" : 'Schedule for later'}
+      class={`${className} aria-pressed:bg-button aria-pressed:text-fg-accent`}
+    >
+      <Lucide name="clock-3" />
+    </button>
+  );
+}
+
+/**
+ * When to submit a scheduled commit, as dev-null.sh's panel: the date and time, picked in the reader's time zone, what
+ * happens then, and the way to the commits already scheduled, which dev-null.sh lists and cancels.
+ */
+export function SchedulePanel({
+  at,
+  onChange,
+  now = () => new Date(),
+  disabled = false,
+}: {
+  at: Date | null;
+  onChange: (at: Date) => void;
+  now?: () => Date;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapper = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+
+  function close() {
+    setOpen(false);
+    trigger.current?.focus();
+  }
+
+  return (
+    <div data-schedule class="mt-2 flex flex-col gap-2 rounded-lg border border-solid border-border p-3">
+      <span id="schedule-label" class="text-sm font-semibold text-fg">
+        Submit at
+      </span>
+      <div ref={wrapper}>
+        <button
+          ref={trigger}
+          type="button"
+          disabled={disabled}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-describedby="schedule-label"
+          onClick={() => setOpen(!open)}
+          class={`flex h-8 w-full cursor-pointer items-center gap-2 rounded-md border border-solid border-border bg-canvas px-2.5 text-left text-sm hover:bg-button-hover disabled:cursor-not-allowed disabled:opacity-50 ${at ? 'text-fg' : 'text-fg-muted'}`}
+        >
+          <Lucide name="calendar-clock" />
+          {at ? scheduleLabel(at) : 'Pick a date and time'}
+        </button>
+        {open && (
+          <SchedulePicker
+            at={at}
+            now={now()}
+            anchor={trigger}
+            wrapper={wrapper}
+            onDone={(picked) => {
+              onChange(picked);
+              close();
+            }}
+            onClose={close}
+          />
+        )}
+      </div>
+      <p class="m-0 text-xs text-fg-muted">
+        {TIME_ZONE}. Within {SCHEDULE_DAYS} days. Private until submitted; then submitted for review, not published automatically.
+      </p>
+      <a href={`${SERVER}/scheduled-commits`} target="_blank" rel="noopener" class="self-start text-xs text-fg-accent hover:underline">
+        Scheduled commits →
+      </a>
+    </div>
+  );
+}
+
+/** A calendar from today to 30 days ahead, then the hour and the minute, by 5, as dev-null.sh's picker. */
+function SchedulePicker({
+  at,
+  now,
+  anchor,
+  wrapper,
+  onDone,
+  onClose,
+}: {
+  at: Date | null;
+  now: Date;
+  anchor: { current: HTMLElement | null };
+  wrapper: { current: HTMLElement | null };
+  onDone: (at: Date) => void;
+  onClose: () => void;
+}) {
+  const start = at ?? now;
+  const [month, setMonth] = useState({ year: start.getFullYear(), month: start.getMonth() });
+  const [day, setDay] = useState<Day | null>(at ? dayOf(at) : null);
+  const [hour, setHour] = useState<number | null>(at ? at.getHours() : null);
+  const [minute, setMinute] = useState<number | null>(at ? at.getMinutes() : null);
+  const popover = useRef<HTMLDivElement>(null);
+
+  const last = new Date(now.getTime() + SCHEDULE_DAYS * 86_400_000);
+  const hourChoices = day ? hours(day, now) : [];
+  const minuteChoices = day && hour !== null ? minutes(day, hour, now) : [];
+  const gap = day !== null && hour !== null && minute !== null && skipped(day, hour, minute);
+  const ready = day !== null && hour !== null && minute !== null && minuteChoices.includes(minute) && !gap;
+
+  // In the top layer, as a popover, so the modal composer's dialog doesn't clip it; placed before it is painted.
+  useLayoutEffect(() => {
+    const element = popover.current;
+    const button = anchor.current;
+    if (!element || !button) return;
+
+    if (typeof element.showPopover === 'function') element.showPopover();
+    const { top, left } = menuPosition(
+      button.getBoundingClientRect(),
+      { width: element.offsetWidth, height: element.offsetHeight },
+      { width: window.innerWidth, height: window.innerHeight },
+      'below',
+    );
+    element.style.top = `${top}px`;
+    element.style.left = `${left}px`;
+  }, []);
+
+  useEffect(() => {
+    const outside = (event: Event) => {
+      if (wrapper.current && !event.composedPath().includes(wrapper.current)) onClose();
+    };
+    window.addEventListener('pointerdown', outside);
+    return () => window.removeEventListener('pointerdown', outside);
+  }, []);
+
+  function pickDay(picked: Day) {
+    setDay(picked);
+    const pickedHours = hours(picked, now);
+    if (hour !== null && !pickedHours.includes(hour)) {
+      setHour(null);
+      setMinute(null);
+    }
+  }
+
+  function pickHour(picked: number | null) {
+    setHour(picked);
+    if (day && picked !== null && minute !== null && !minutes(day, picked, now).includes(minute)) setMinute(null);
+  }
+
+  const shift = (by: number) =>
+    setMonth(({ year, month }) => ({ year: new Date(year, month + by, 1).getFullYear(), month: new Date(year, month + by, 1).getMonth() }));
+  const firstMonth = month.year === now.getFullYear() && month.month === now.getMonth();
+  const lastMonth = month.year === last.getFullYear() && month.month === last.getMonth();
+
+  return (
+    <div
+      ref={popover}
+      role="dialog"
+      aria-label="Pick a date and time"
+      popover="manual"
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape') return;
+        // The picker only: the modal composer's dialog would close on Escape too.
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }}
+      class="fixed inset-auto m-0 w-64 rounded-xl border border-solid border-border bg-canvas-overlay p-0 font-sans text-sm text-fg shadow-overlay"
+    >
+      <div class="flex items-center justify-between px-3 pt-3">
+        <button type="button" aria-label="Previous month" disabled={firstMonth} onClick={() => shift(-1)} class={ARROW}>
+          <Lucide name="chevron-left" />
+        </button>
+        <span class="font-semibold">{monthLabel(month.year, month.month)}</span>
+        <button type="button" aria-label="Next month" disabled={lastMonth} onClick={() => shift(1)} class={ARROW}>
+          <Lucide name="chevron-right" />
+        </button>
+      </div>
+
+      <div class="grid grid-cols-7 gap-0.5 px-3 py-2 text-center">
+        {WEEKDAYS.map((weekday) => (
+          <span key={weekday} class="py-1 text-xs text-fg-muted">
+            {weekday}
+          </span>
+        ))}
+        {calendar(month.year, month.month)
+          .flat()
+          .map((candidate) => {
+            const inMonth = Number(candidate.slice(5, 7)) - 1 === month.month;
+            const chosen = candidate === day;
+            return (
+              <button
+                key={candidate}
+                type="button"
+                data-day={candidate}
+                disabled={!selectable(candidate, now)}
+                aria-pressed={chosen}
+                aria-label={dateOf(candidate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                onClick={() => pickDay(candidate)}
+                class={`size-8 cursor-pointer rounded-md border-2 border-solid bg-transparent p-0 text-sm hover:bg-button-hover focus-visible:outline-2 focus-visible:outline-fg-accent disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent ${chosen ? 'border-fg-accent' : 'border-transparent'} ${inMonth ? 'text-fg' : 'text-fg-muted'}`}
+              >
+                {Number(candidate.slice(8))}
+              </button>
+            );
+          })}
+      </div>
+
+      <div class="flex flex-col gap-2 border-0 border-t border-solid border-border p-3">
+        <div class="flex items-center gap-2">
+          <span class="relative flex-1">
+            <select
+              aria-label="Hour"
+              disabled={day === null}
+              onChange={(event) => pickHour(event.currentTarget.value === '' ? null : Number(event.currentTarget.value))}
+              class={SELECT}
+            >
+              <option value="" selected={hour === null} disabled>
+                Hour
+              </option>
+              {hourChoices.map((choice) => (
+                <option key={choice} value={choice} selected={choice === hour}>
+                  {String(choice).padStart(2, '0')}
+                </option>
+              ))}
+            </select>
+            <Lucide name="chevron-down" class="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-fg-muted" />
+          </span>
+          <span class="text-fg-muted">:</span>
+          <span class="relative flex-1">
+            <select
+              aria-label="Minute"
+              disabled={hour === null}
+              onChange={(event) => setMinute(event.currentTarget.value === '' ? null : Number(event.currentTarget.value))}
+              class={SELECT}
+            >
+              <option value="" selected={minute === null} disabled>
+                Min
+              </option>
+              {minuteChoices.map((choice) => (
+                <option key={choice} value={choice} selected={choice === minute}>
+                  {String(choice).padStart(2, '0')}
+                </option>
+              ))}
+            </select>
+            <Lucide name="chevron-down" class="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-fg-muted" />
+          </span>
+          <button
+            type="button"
+            disabled={!ready}
+            onClick={() => {
+              if (ready) onDone(dateOf(day, hour, minute));
+            }}
+            class="h-8 cursor-pointer rounded-md border-0 bg-primary px-3 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary"
+          >
+            Done
+          </button>
+        </div>
+        {gap && (
+          <p role="alert" class="m-0 text-xs text-fg-danger">
+            This time is skipped by the change to daylight saving time.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
