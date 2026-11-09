@@ -72,6 +72,13 @@ thread to follow. The UI principles in the [contributing guide](CONTRIBUTING.md#
       commit replied to or quoted), kept as the user types with its images, restored in place with `stash@{0}` and
       `drop`, cleared once committed, emptied, dropped or on disconnecting; `stash@{0}` on the Reply and Quote actions
       while one waits there.
+- [x] Schedule a commit from the inline and modal composers, as dev-null.sh does (`POST /api/v1/scheduled-commits`):
+      the clock after the poll, a "Submit at" panel with dev-null.sh's picker (today to 30 days ahead, minutes by 5,
+      in the reader's time zone), then a link to dev-null.sh's scheduled commits, which lists and cancels them. Not
+      for replies and quotes, which /dev/null refuses to schedule.
+- [ ] Schedule a commit from the popup's share view.
+- [ ] Say whether a scheduled commit will be approved automatically, as dev-null.sh tells its admins: the API doesn't
+      tell, it needs a field on `/api/v1/me` in dev-null.sh.
 
 ## 5. Polish
 
@@ -117,6 +124,5 @@ Commit about the page in the current tab, on any site, from the popup or a keybo
 - "Follow back" for someone who follows the user: hardly useful on GitHub, and it needs `follows_you`, which only a
   lookup per person gives (`search/profiles`).
 - Report a commit: it stays on dev-null.sh.
-- Scheduled commits (`/api/v1/scheduled-commits`): they stay on dev-null.sh, which lists, edits and cancels them. One
-  scheduled from GitHub would be out of sight, against a limit of 10 pending the user couldn't see.
+- Listing and canceling scheduled commits: they stay on dev-null.sh, which the composers link to.
 - Keyboard shortcuts (`r` to reply, inserting the additions): they would interfere with GitHub's own.
