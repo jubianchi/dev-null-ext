@@ -76,7 +76,7 @@ export function selectable(day: Day, now: Date): boolean {
   const last = dayOf(new Date(now.getTime() + SCHEDULE_DAYS * DAY_MS));
   if (day < first || day > last) return false;
   if (day > first && day < last) return true;
-  return HOURS.some((hour) => STEPS.some((minute) => offered(day, hour, minute, now)));
+  return hours(day, now).length > 0;
 }
 
 /** Whether the clocks skip this time when they move forward, so that it never happens. */
