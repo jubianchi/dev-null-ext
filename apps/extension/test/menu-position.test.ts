@@ -18,11 +18,12 @@ describe('menuPosition', () => {
     expect(menuPosition({ top: 700, bottom: 732, left: 100 }, menu, viewport, 'below')).toEqual({ top: 700 - 4 - 120, left: 100 });
   });
 
-  it('opens below when it fits on neither side, where the page can still scroll to it', () => {
+  it('stays within the viewport when it fits on neither side, over its button: fixed, no scroll would bring it in', () => {
     const tall = { width: 288, height: 700 };
 
-    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, tall, viewport, 'below').top).toBe(332 + 4);
-    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, tall, viewport).top).toBe(332 + 4);
+    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, tall, viewport, 'below').top).toBe(800 - 8 - 700);
+    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, tall, viewport).top).toBe(800 - 8 - 700);
+    expect(menuPosition({ top: 300, bottom: 332, left: 100 }, { width: 288, height: 900 }, viewport, 'below').top).toBe(8);
   });
 
   it('stays within the viewport horizontally', () => {
