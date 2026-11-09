@@ -72,7 +72,7 @@ describe('SchedulePanel', () => {
     expect(root.textContent).toContain('November 2026');
     expect(day('2026-11-08')?.disabled).toBe(true);
     expect(day('2026-11-09')?.disabled).toBe(false);
-    expect(button('Previous month')?.disabled).toBe(true);
+    expect(button('Previous month')?.getAttribute('aria-disabled')).toBe('true');
     expect(select('Hour')?.disabled).toBe(true);
     expect(select('Minute')?.disabled).toBe(true);
     expect(button('Done')?.disabled).toBe(true);
@@ -82,7 +82,54 @@ describe('SchedulePanel', () => {
     expect(root.textContent).toContain('December 2026');
     expect(day('2026-12-09')?.disabled).toBe(false);
     expect(day('2026-12-10')?.disabled).toBe(true);
-    expect(button('Next month')?.disabled).toBe(true);
+    expect(button('Next month')?.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('keeps the focus on a month arrow that reaches the end, so Escape still reaches the picker', async () => {
+    await show();
+    await click(button('Pick a date and time'));
+    const next = button('Next month');
+
+    await click(next);
+    expect(next?.disabled).toBe(false);
+    await click(next);
+
+    expect(root.textContent).toContain('December 2026');
+  });
+
+  it('forgets a minute the day picked no longer offers', async () => {
+    await show();
+    await click(button('Pick a date and time'));
+    await click(day('2026-11-10'));
+    await choose(select('Hour'), '14');
+    await choose(select('Minute'), '20');
+
+    await click(day('2026-11-09'));
+
+    expect(select('Hour')?.value).toBe('14');
+    expect(select('Minute')?.value).toBe('');
+    await choose(select('Minute'), '25');
+    expect(button('Done')?.disabled).toBe(false);
+  });
+
+  it('opens empty when the date chosen has passed', async () => {
+    await show(new Date(2026, 10, 9, 14, 20));
+    await click(button('Mon, Nov 9, 2:20 PM'));
+
+    expect(select('Hour')?.value).toBe('');
+    expect(select('Minute')?.value).toBe('');
+    expect(root.querySelector('[data-day][aria-pressed="true"]')).toBeNull();
+  });
+
+  it('closes when the page scrolls, rather than float away from its button', async () => {
+    await show();
+    await click(button('Pick a date and time'));
+
+    await act(async () => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+
+    expect(day('2026-11-09')).toBeNull();
   });
 
   it('picks a day, an hour and a minute, by 5, still ahead', async () => {
@@ -166,7 +213,7 @@ describe('SchedulePanel', () => {
     await click(button('Sat, Oct 31, 11:55 PM'));
 
     expect(root.textContent).toContain('November 2026');
-    expect(button('Previous month')?.disabled).toBe(true);
+    expect(button('Previous month')?.getAttribute('aria-disabled')).toBe('true');
   });
 });
 

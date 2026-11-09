@@ -10,6 +10,7 @@ import {
   monthLabel,
   SCHEDULE_DAYS,
   SCHEDULED_COMMITS_URL,
+  schedulable,
   scheduleLabel,
   selectable,
   TIME_ZONE,
@@ -22,7 +23,7 @@ const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const SELECT =
   'h-8 w-full appearance-none rounded-md border border-solid border-border bg-canvas pr-7 pl-2 text-sm text-fg disabled:cursor-not-allowed disabled:opacity-50';
 const ARROW =
-  'cursor-pointer rounded-md border-0 bg-transparent p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent';
+  'cursor-pointer rounded-md border-0 bg-transparent p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg aria-disabled:cursor-not-allowed aria-disabled:opacity-30 aria-disabled:hover:bg-transparent aria-disabled:hover:text-fg-muted';
 
 /** A composer's submit button, as dev-null.sh's: "Schedule commit" once scheduling. */
 export function submitLabel(sending: boolean, scheduling: boolean): string {
@@ -158,11 +159,13 @@ function SchedulePicker({
   onDone: (at: Date) => void;
   onClose: () => void;
 }) {
-  const start = at && at > now ? at : now;
+  // A date chosen that has passed since is no choice any more: the picker opens empty, on this month.
+  const chosen = at && schedulable(at, now) ? at : null;
+  const start = chosen ?? now;
   const [month, setMonth] = useState({ year: start.getFullYear(), month: start.getMonth() });
-  const [day, setDay] = useState<Day | null>(at ? dayOf(at) : null);
-  const [hour, setHour] = useState<number | null>(at ? at.getHours() : null);
-  const [minute, setMinute] = useState<number | null>(at ? at.getMinutes() : null);
+  const [day, setDay] = useState<Day | null>(chosen ? dayOf(chosen) : null);
+  const [hour, setHour] = useState<number | null>(chosen ? chosen.getHours() : null);
+  const [minute, setMinute] = useState<number | null>(chosen ? chosen.getMinutes() : null);
   const popover = useRef<HTMLDivElement>(null);
 
   const last = new Date(now.getTime() + SCHEDULE_DAYS * 86_400_000);
@@ -194,15 +197,23 @@ function SchedulePicker({
     const outside = (event: Event) => {
       if (wrapper.current && !event.composedPath().includes(wrapper.current)) onClose();
     };
+    // Placed once, in the viewport: rather than float away from its button as the page scrolls, it closes.
+    const scrolled = () => onClose();
     window.addEventListener('pointerdown', outside);
-    return () => window.removeEventListener('pointerdown', outside);
+    window.addEventListener('scroll', scrolled, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', outside);
+      window.removeEventListener('scroll', scrolled, { capture: true });
+    };
   }, []);
 
   function pickDay(picked: Day) {
     setDay(picked);
-    const pickedHours = hours(picked, now);
-    if (hour !== null && !pickedHours.includes(hour)) {
+    if (hour === null) return;
+    if (!hours(picked, now).includes(hour)) {
       setHour(null);
+      setMinute(null);
+    } else if (minute !== null && !minutes(picked, hour, now).includes(minute)) {
       setMinute(null);
     }
   }
@@ -212,11 +223,14 @@ function SchedulePicker({
     if (day && picked !== null && minute !== null && !minutes(day, picked, now).includes(minute)) setMinute(null);
   }
 
-  const shift = (by: number) =>
-    setMonth(({ year, month }) => ({ year: new Date(year, month + by, 1).getFullYear(), month: new Date(year, month + by, 1).getMonth() }));
   const index = month.year * 12 + month.month;
   const firstMonth = index <= now.getFullYear() * 12 + now.getMonth();
   const lastMonth = index >= last.getFullYear() * 12 + last.getMonth();
+  function shift(by: number) {
+    if ((by < 0 && firstMonth) || (by > 0 && lastMonth)) return;
+    const next = index + by;
+    setMonth({ year: Math.floor(next / 12), month: next % 12 });
+  }
 
   return (
     <div
@@ -227,11 +241,12 @@ function SchedulePicker({
       class="fixed inset-auto m-0 w-64 rounded-xl border border-solid border-border bg-canvas-overlay p-0 font-sans text-sm text-fg shadow-overlay"
     >
       <div class="flex items-center justify-between px-3 pt-3">
-        <button type="button" aria-label="Previous month" disabled={firstMonth} onClick={() => shift(-1)} class={ARROW}>
+        {/* aria-disabled rather than disabled: a button disabled under the focus drops it to the body, out of the picker's reach of Escape. */}
+        <button type="button" aria-label="Previous month" aria-disabled={firstMonth} onClick={() => shift(-1)} class={ARROW}>
           <Lucide name="chevron-left" />
         </button>
         <span class="font-semibold">{monthLabel(month.year, month.month)}</span>
-        <button type="button" aria-label="Next month" disabled={lastMonth} onClick={() => shift(1)} class={ARROW}>
+        <button type="button" aria-label="Next month" aria-disabled={lastMonth} onClick={() => shift(1)} class={ARROW}>
           <Lucide name="chevron-right" />
         </button>
       </div>
