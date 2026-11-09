@@ -9,12 +9,12 @@ import {
   minutes,
   monthLabel,
   SCHEDULE_DAYS,
+  SCHEDULED_COMMITS_URL,
   scheduleLabel,
   selectable,
   skipped,
   TIME_ZONE,
 } from '../lib/schedule.ts';
-import { SERVER } from '../lib/server.ts';
 import type { DraftSchedule } from '../lib/use-commit-draft.ts';
 import { Lucide } from './Lucide.tsx';
 
@@ -24,6 +24,12 @@ const SELECT =
   'h-8 w-full appearance-none rounded-md border border-solid border-border bg-canvas pr-7 pl-2 text-sm text-fg disabled:cursor-not-allowed disabled:opacity-50';
 const ARROW =
   'cursor-pointer rounded-md border-0 bg-transparent p-1.5 text-fg-muted hover:bg-button-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent';
+
+/** A composer's submit button, as dev-null.sh's: "Schedule commit" once scheduling. */
+export function submitLabel(sending: boolean, scheduling: boolean): string {
+  if (scheduling) return sending ? 'Scheduling…' : 'Schedule commit';
+  return sending ? 'Committing…' : 'Commit';
+}
 
 /** The composer toolbar's clock, as dev-null.sh's: it opens the schedule panel, and closes it to commit right away. */
 export function ScheduleTool({
@@ -109,7 +115,7 @@ export function SchedulePanel({
       <p class="m-0 text-xs text-fg-muted">
         {TIME_ZONE}. Within {SCHEDULE_DAYS} days. Private until submitted; then submitted for review, not published automatically.
       </p>
-      <a href={`${SERVER}/scheduled-commits`} target="_blank" rel="noopener" class="self-start text-xs text-fg-accent hover:underline">
+      <a href={SCHEDULED_COMMITS_URL} target="_blank" rel="noopener" class="self-start text-xs text-fg-accent hover:underline">
         Scheduled commits →
       </a>
     </div>

@@ -1,3 +1,8 @@
+import { SERVER } from './server.ts';
+
+/** The way to the commits already scheduled: dev-null.sh lists them, commits them now or cancels them. */
+export const SCHEDULED_COMMITS_URL = `${SERVER}/scheduled-commits`;
+
 /** How far ahead /dev/null lets a commit be scheduled. */
 export const SCHEDULE_DAYS = 30;
 /** As dev-null.sh's picker steps its minutes. */

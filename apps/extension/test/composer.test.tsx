@@ -342,6 +342,81 @@ describe('Composer', () => {
   });
 });
 
+describe('Composer, scheduling', () => {
+  const scheduled = { id: 's1', author: null, body: 'Shipped', scheduled_at: '2026-11-10T08:00:00+00:00', submitted_at: null, status: 'scheduled' };
+  const buttons = () => [...root.querySelectorAll<HTMLButtonElement>('button')];
+  const named = (label: string) => buttons().find((button) => button.textContent?.trim() === label || button.getAttribute('aria-label') === label);
+
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date(2026, 10, 9, 14, 22), toFake: ['Date'] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function pick(day: string, hour: string, minute: string) {
+    await act(async () => named('Pick a date and time')?.click());
+    await act(async () => root.querySelector<HTMLButtonElement>(`[data-day="${day}"]`)?.click());
+    for (const [label, value] of [
+      ['Hour', hour],
+      ['Minute', minute],
+    ] as const) {
+      await act(async () => {
+        const select = root.querySelector<HTMLSelectElement>(`select[aria-label="${label}"]`)!;
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+    await act(async () => named('Done')?.click());
+  }
+
+  it('offers to schedule from the clock in its toolbar, after the poll', async () => {
+    await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
+    const toolbar = root.querySelector('[role="toolbar"]')!;
+
+    expect(toolbar.children[2]?.getAttribute('aria-label')).toBe('Schedule');
+  });
+
+  it('schedules the commit for the date picked, then says so', async () => {
+    await mount(<Composer target={{ page: null, organization: 'laravel' }} />);
+    const textarea = root.querySelector('textarea')!;
+    await act(async () => {
+      textarea.value = 'Shipped';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    await act(async () => named('Schedule')?.click());
+
+    expect(root.textContent).toContain('Submit at');
+    const submit = root.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    expect(submit.textContent).toBe('Schedule commit');
+    expect(submit.disabled).toBe(true);
+
+    await pick('2026-11-10', '9', '0');
+    expect(submit.disabled).toBe(false);
+
+    ask.mockResolvedValueOnce(scheduled);
+    await act(async () => {
+      root.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    await act(async () => {});
+
+    expect(ask).toHaveBeenCalledWith({ type: 'schedule', body: 'Shipped', scheduledAt: new Date(2026, 10, 10, 9, 0).toISOString() });
+    const status = root.querySelector('[role="status"]')!;
+    expect(status.textContent).toContain('Commit scheduled');
+    expect(status.textContent).toContain('Only you can see it until it is submitted.');
+    expect(status.textContent).toContain(
+      new Date(scheduled.scheduled_at).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
+    );
+    expect(root.querySelector('a[href="https://dev-null.sh/scheduled-commits"]')).not.toBeNull();
+
+    await act(async () => named('Write another')?.click());
+    expect(root.querySelector('textarea')?.value).toBe('');
+    expect(root.textContent).not.toContain('Submit at');
+  });
+});
+
 describe('Composer, once committed', () => {
   const published = (status: 'approved' | 'pending') => ({
     id: 'c1',

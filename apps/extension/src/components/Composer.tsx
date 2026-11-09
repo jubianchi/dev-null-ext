@@ -12,6 +12,8 @@ import { useMentionSuggestions } from './MentionSuggestions.tsx';
 import { Octicon } from './Octicon.tsx';
 import { ComposerPoll, PollTool } from './PollEditor.tsx';
 import { PreviewPanel } from './PreviewPanel.tsx';
+import { Scheduled } from './Scheduled.tsx';
+import { SchedulePanel, ScheduleTool, submitLabel } from './SchedulePanel.tsx';
 import { StashLabel } from './StashLabel.tsx';
 
 export type { Target } from '../lib/use-commit-draft.ts';
@@ -58,6 +60,7 @@ export function Composer({ target }: { target: Target | WebTarget }) {
       )}
 
       {state.step === 'sent' && <Committed commit={state.commit} onWriteAnother={draft.writeAnother} />}
+      {state.step === 'scheduled' && <Scheduled scheduled={state.scheduled} onWriteAnother={draft.writeAnother} />}
 
       {(state.step === 'writing' || state.step === 'sending' || state.step === 'failed') && (
         <form
@@ -118,6 +121,8 @@ export function Composer({ target }: { target: Target | WebTarget }) {
               />
             )}
 
+            {draft.schedule.open && <SchedulePanel at={draft.schedule.at} onChange={draft.scheduleAt} disabled={state.step === 'sending'} />}
+
             <AdditionWarnings warnings={warnings} onInsert={(addition) => insert(addition, textarea.current)} />
 
             {state.step === 'failed' && <CommitError error={state.error} />}
@@ -135,6 +140,7 @@ export function Composer({ target }: { target: Target | WebTarget }) {
                   <Octicon name="image" />
                 </button>
                 <PollTool draft={draft} class={TOOL} />
+                <ScheduleTool draft={draft} class={TOOL} />
                 <AdditionTools additions={additions} inCommit={inCommit} onInsert={(addition) => insert(addition, textarea.current)} />
                 <button
                   type="button"
@@ -159,7 +165,7 @@ export function Composer({ target }: { target: Target | WebTarget }) {
                 disabled={!canCommit}
                 class="ml-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {state.step === 'sending' ? 'Committing…' : 'Commit'}
+                {submitLabel(state.step === 'sending', draft.schedule.open)}
               </button>
             </div>
 
