@@ -7,7 +7,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const ask = vi.hoisted(() => vi.fn());
 vi.mock('../src/lib/messages.ts', () => ({
   ask,
-  BackgroundError: class BackgroundError extends Error {},
+  BackgroundError: class BackgroundError extends Error {
+    constructor(payload: { message: string }) {
+      super(payload.message);
+    }
+  },
 }));
 
 const { useCommitDraft } = await import('../src/lib/use-commit-draft.ts');
@@ -153,6 +157,14 @@ describe('useCommitDraft, scheduling', () => {
   const at = new Date('2026-11-10T14:00:00.000Z');
   const scheduled = { id: 's1', body: 'Shipped', scheduled_at: '2026-11-10T14:00:00+00:00', status: 'scheduled' };
 
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date('2026-11-09T10:00:00.000Z'), toFake: ['Date'] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   async function writing(target: Parameters<typeof useCommitDraft>[0] = { page: null, organization: 'acme' }) {
     ask.mockImplementation(async (request: { type: string }) => {
       if (request.type === 'session') return viewer;
@@ -216,6 +228,22 @@ describe('useCommitDraft, scheduling', () => {
 
     expect(draft.schedule).toEqual({ open: false, at: null });
     expect(ask).toHaveBeenCalledWith({ type: 'commit', body: 'Shipped' });
+  });
+
+  it('asks for another date once the one picked has passed, rather than send what /dev/null refuses', async () => {
+    await writing();
+    await act(async () => draft.setText('Shipped'));
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.scheduleAt(new Date('2026-11-09T10:05:00.000Z')));
+
+    vi.setSystemTime(new Date('2026-11-09T10:06:00.000Z'));
+    await act(async () => draft.submit());
+
+    expect(ask).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'schedule' }));
+    expect(draft.state).toMatchObject({ step: 'failed', error: { message: 'This time has passed: pick another.' } });
+    expect(draft.schedule).toEqual({ open: true, at: null });
+    expect(draft.canCommit).toBe(false);
+    expect(draft.text).toBe('Shipped');
   });
 });
 

@@ -41,9 +41,12 @@ export function monthLabel(year: number, month: number): string {
   return new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+/** Time for the request to reach /dev/null, which checks the date is still ahead when it gets there. */
+const LATENCY_MS = 15_000;
+
 /** Whether a time can be scheduled: after now, and within 30 days as /dev/null counts them, in UTC. */
-function allowed(date: Date, now: Date): boolean {
-  return date > now && date.getTime() <= now.getTime() + SCHEDULE_DAYS * DAY_MS;
+export function schedulable(date: Date, now: Date): boolean {
+  return date.getTime() > now.getTime() + LATENCY_MS && date.getTime() <= now.getTime() + SCHEDULE_DAYS * DAY_MS;
 }
 
 const STEPS = Array.from({ length: 60 / MINUTE_STEP }, (_, step) => step * MINUTE_STEP);
@@ -57,7 +60,7 @@ export function minutes(day: Day, hour: number, now: Date): number[] {
 }
 
 function offered(day: Day, hour: number, minute: number, now: Date): boolean {
-  return !skipped(day, hour, minute) && allowed(dateOf(day, hour, minute), now);
+  return !skipped(day, hour, minute) && schedulable(dateOf(day, hour, minute), now);
 }
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);

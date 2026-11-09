@@ -4,6 +4,7 @@ import { type Addition, additionsFor, type ComposerContext, isIn, webPageLink, w
 import { imageProblem, MAX_IMAGES, toTransfer } from './images.ts';
 import { ask, BackgroundError } from './messages.ts';
 import { type DraftPoll, newPoll, pollReady } from './polls.ts';
+import { schedulable } from './schedule.ts';
 import { commitLength, MAX_COMMIT_LENGTH } from './share.ts';
 import { debounced, stashName } from './stash.ts';
 import type { StashImageInput } from './stash-store.ts';
@@ -247,6 +248,11 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
   async function submit() {
     if (!canCommit || !('user' in state)) return;
     const { user } = state;
+    if (schedule.at && !schedulable(schedule.at, new Date())) {
+      setSchedule({ open: true, at: null });
+      setState({ step: 'failed', user, error: new BackgroundError({ message: 'This time has passed: pick another.' }) });
+      return;
+    }
     setState({ step: 'sending', user });
     try {
       const transferred = await Promise.all(images.map((image) => toTransfer(image.file, image.description)));
