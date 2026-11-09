@@ -121,6 +121,26 @@ describe('SchedulePanel', () => {
     expect(root.querySelector('[data-day][aria-pressed="true"]')).toBeNull();
   });
 
+  it('keeps the time it opened at, so that choices don’t vanish as the composer renders again', async () => {
+    let clock = now;
+    const panel = () => <SchedulePanel at={null} onChange={onChange} now={() => clock} />;
+    await act(async () => {
+      render(panel(), root);
+    });
+    await click(button('Pick a date and time'));
+    await click(day('2026-11-09'));
+    await choose(select('Hour'), '14');
+    await choose(select('Minute'), '25');
+
+    clock = new Date(2026, 10, 9, 14, 31);
+    await act(async () => {
+      render(panel(), root);
+    });
+
+    expect(select('Minute')?.value).toBe('25');
+    expect(button('Done')?.disabled).toBe(false);
+  });
+
   it('stays open through scrolls that leave its button in place', async () => {
     await show();
     await click(button('Pick a date and time'));

@@ -122,7 +122,7 @@ export function SchedulePanel({
         {open && (
           <SchedulePicker
             at={at}
-            now={now()}
+            clock={now}
             anchor={trigger}
             wrapper={wrapper}
             onDone={(picked) => {
@@ -147,7 +147,7 @@ export function SchedulePanel({
 /** A calendar from today to 30 days ahead, then the hour and the minute, by 5, as dev-null.sh's picker. */
 function SchedulePicker({
   at,
-  now,
+  clock,
   anchor,
   wrapper,
   onDone,
@@ -155,7 +155,7 @@ function SchedulePicker({
   onDismiss,
 }: {
   at: Date | null;
-  now: Date;
+  clock: () => Date;
   anchor: { current: HTMLElement | null };
   wrapper: { current: HTMLElement | null };
   onDone: (at: Date) => void;
@@ -164,6 +164,9 @@ function SchedulePicker({
   /** Closes it where the user is elsewhere: the focus is left where it is, and moving it could scroll. */
   onDismiss: () => void;
 }) {
+  // Read once: as the composer renders again, a minute passing would take a choice away from under the user, and a
+  // day's button disabled under the focus would drop it to the body. Done is checked again before sending.
+  const [now] = useState(clock);
   // A date chosen that has passed since is no choice any more: the picker opens empty, on this month.
   const chosen = at && schedulable(at, now) ? at : null;
   const start = chosen ?? now;
