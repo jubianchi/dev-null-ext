@@ -156,14 +156,14 @@ export function Composer({ target }: { target: Target | WebTarget }) {
 
               <span class="ml-auto flex items-center gap-3">
                 <StashLabel restored={draft.restored} onDrop={draft.drop} />
-                <span class={`text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
+                <span class={`whitespace-nowrap text-xs ${length > MAX_COMMIT_LENGTH ? 'text-fg-danger' : 'text-fg-muted'}`}>
                   {length} / {MAX_COMMIT_LENGTH}
                 </span>
               </span>
               <button
                 type="submit"
                 disabled={!canCommit}
-                class="ml-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                class="ml-2 shrink-0 whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitLabel(state.step === 'sending', draft.schedule.open)}
               </button>
