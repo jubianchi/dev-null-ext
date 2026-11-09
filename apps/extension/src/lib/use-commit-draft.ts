@@ -298,7 +298,7 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     canSchedule: !parentId && !quotedCommitId,
     /** Opens the schedule panel, or closes it and commits right away again. */
     toggleSchedule: () => setSchedule(schedule.open ? NOT_SCHEDULED : { open: true, at: null }),
-    scheduleAt: (at: Date | null) => setSchedule({ open: true, at }),
+    scheduleAt: (at: Date) => setSchedule({ open: true, at }),
     attach,
     detach,
     describe,
