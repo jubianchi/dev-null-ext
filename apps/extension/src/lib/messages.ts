@@ -1,4 +1,4 @@
-import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, NewPoll, Page } from '@dev-null-ext/client';
+import type { Commit, CommitPreview, CurrentUser, DeletedCommit, MentionSuggestions, NewPoll, Page, ScheduledCommit } from '@dev-null-ext/client';
 import { browser } from 'wxt/browser';
 import type { FollowState } from './follows.ts';
 import type { TransferredImage } from './images.ts';
@@ -12,6 +12,8 @@ export type Request =
   | { type: 'session' }
   | { type: 'mentions'; organization: string; cursor: string | null }
   | { type: 'commit'; body: string; images?: TransferredImage[]; parentId?: string; quotedCommitId?: string; poll?: NewPoll }
+  /** `scheduledAt` as ISO 8601: messages are JSON. */
+  | { type: 'schedule'; body: string; images?: TransferredImage[]; poll?: NewPoll; scheduledAt: string }
   | { type: 'preview'; body: string }
   | { type: 'mention-suggestions'; query: string; reply?: string }
   | { type: 'image'; url: string }
@@ -37,6 +39,7 @@ export interface Responses {
   session: CurrentUser | null;
   mentions: Page<Commit>;
   commit: Commit;
+  schedule: ScheduledCommit;
   preview: CommitPreview;
   'mention-suggestions': MentionSuggestions;
   /** A data URL: github.com's CSP blocks images from dev-null.sh. */
