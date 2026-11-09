@@ -130,6 +130,7 @@ export function SchedulePanel({
               close();
             }}
             onClose={close}
+            onDismiss={() => setOpen(false)}
           />
         )}
       </div>
@@ -151,13 +152,17 @@ function SchedulePicker({
   wrapper,
   onDone,
   onClose,
+  onDismiss,
 }: {
   at: Date | null;
   now: Date;
   anchor: { current: HTMLElement | null };
   wrapper: { current: HTMLElement | null };
   onDone: (at: Date) => void;
+  /** Closes it, the focus back on its button. */
   onClose: () => void;
+  /** Closes it where the user is elsewhere: the focus is left where it is, and moving it could scroll. */
+  onDismiss: () => void;
 }) {
   // A date chosen that has passed since is no choice any more: the picker opens empty, on this month.
   const chosen = at && schedulable(at, now) ? at : null;
@@ -197,13 +202,23 @@ function SchedulePicker({
     const outside = (event: Event) => {
       if (wrapper.current && !event.composedPath().includes(wrapper.current)) onClose();
     };
-    // Placed once, in the viewport: rather than float away from its button as the page scrolls, it closes.
-    const scrolled = () => onClose();
+    // Placed once, in the viewport: rather than float away from its button, it goes once a scroll moves the button.
+    // Scroll events don't leave a shadow root, hence the listener on the button's root too.
+    const placed = anchor.current?.getBoundingClientRect();
+    const scrolled = () => {
+      const moved = anchor.current?.getBoundingClientRect();
+      if (placed && moved && (Math.abs(moved.top - placed.top) > 1 || Math.abs(moved.left - placed.left) > 1)) onDismiss();
+    };
+    const root = anchor.current?.getRootNode();
+    const targets: EventTarget[] = root && root !== document ? [window, root] : [window];
     window.addEventListener('pointerdown', outside);
-    window.addEventListener('scroll', scrolled, { capture: true, passive: true });
+    // A click around the share frame or out of the popup is out of the pointerdown's sight: the window loses the focus.
+    window.addEventListener('blur', onDismiss);
+    for (const target of targets) target.addEventListener('scroll', scrolled, { capture: true, passive: true });
     return () => {
       window.removeEventListener('pointerdown', outside);
-      window.removeEventListener('scroll', scrolled, { capture: true });
+      window.removeEventListener('blur', onDismiss);
+      for (const target of targets) target.removeEventListener('scroll', scrolled, { capture: true });
     };
   }, []);
 

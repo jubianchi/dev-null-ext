@@ -121,12 +121,47 @@ describe('SchedulePanel', () => {
     expect(root.querySelector('[data-day][aria-pressed="true"]')).toBeNull();
   });
 
-  it('closes when the page scrolls, rather than float away from its button', async () => {
+  it('stays open through scrolls that leave its button in place', async () => {
     await show();
     await click(button('Pick a date and time'));
 
     await act(async () => {
       window.dispatchEvent(new Event('scroll'));
+    });
+
+    expect(day('2026-11-09')).not.toBeNull();
+  });
+
+  it('closes once a scroll moves its button, inside the shadow root too, rather than float away from it', async () => {
+    const host = document.createElement('div');
+    document.body.append(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const container = document.createElement('div');
+    const scroller = document.createElement('div');
+    shadow.append(scroller, container);
+    await act(async () => {
+      render(<SchedulePanel at={null} onChange={onChange} now={() => now} />, container);
+    });
+    const trigger = container.querySelector<HTMLButtonElement>('button[aria-haspopup]')!;
+    await act(async () => trigger.click());
+    expect(container.querySelector('[data-day="2026-11-09"]')).not.toBeNull();
+
+    trigger.getBoundingClientRect = () => ({ top: 200, bottom: 232, left: 0, right: 100, width: 100, height: 32, x: 0, y: 200, toJSON: () => ({}) });
+    await act(async () => {
+      scroller.dispatchEvent(new Event('scroll'));
+    });
+
+    expect(container.querySelector('[data-day="2026-11-09"]')).toBeNull();
+    render(null, container);
+    host.remove();
+  });
+
+  it('closes once the window loses the focus, as when clicking the page around the share frame', async () => {
+    await show();
+    await click(button('Pick a date and time'));
+
+    await act(async () => {
+      window.dispatchEvent(new Event('blur'));
     });
 
     expect(day('2026-11-09')).toBeNull();
