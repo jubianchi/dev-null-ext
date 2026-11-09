@@ -306,6 +306,21 @@ describe('useCommitDraft, scheduling', () => {
 
     expect(draft.state.step).toBe('writing');
   });
+
+  it('clears that error too once the user chooses to commit right away', async () => {
+    await writing();
+    await act(async () => draft.setText('Shipped'));
+    await act(async () => draft.toggleSchedule());
+    await act(async () => draft.scheduleAt(new Date('2026-11-09T10:05:00.000Z')));
+    vi.setSystemTime(new Date('2026-11-09T10:06:00.000Z'));
+    await act(async () => draft.submit());
+    expect(draft.state.step).toBe('failed');
+
+    await act(async () => draft.toggleSchedule());
+
+    expect(draft.state.step).toBe('writing');
+    expect(draft.schedule).toEqual({ open: false, at: null });
+  });
 });
 
 describe('useCommitDraft, stashing', () => {

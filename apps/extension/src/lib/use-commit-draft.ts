@@ -238,6 +238,10 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     else setText(value);
   }
 
+  function forgetError() {
+    if (state.step === 'failed') setState({ step: 'writing', user: state.user });
+  }
+
   /** Empties the composer once what it held is committed or scheduled. */
   function clear() {
     stash.drop();
@@ -301,11 +305,14 @@ export function useCommitDraft(target: AnyTarget, onCommitted?: (commit: Commit)
     /** /dev/null schedules neither replies nor quotes. */
     canSchedule: !parentId && !quotedCommitId,
     /** Opens the schedule panel, or closes it and commits right away again. */
-    toggleSchedule: () => setSchedule(schedule.open ? NOT_SCHEDULED : { open: true, at: null }),
-    /** A new date answers what went wrong with the last: its error goes. */
+    /** Changing one's mind about when answers what went wrong with the last attempt: its error goes. */
+    toggleSchedule: () => {
+      setSchedule(schedule.open ? NOT_SCHEDULED : { open: true, at: null });
+      forgetError();
+    },
     scheduleAt: (at: Date) => {
       setSchedule({ open: true, at });
-      if (state.step === 'failed') setState({ step: 'writing', user: state.user });
+      forgetError();
     },
     attach,
     detach,
